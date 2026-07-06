@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sourcing Product - Dynamic Money Route Tracker (V2)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --primary: #002D62;
+            --primary-light: #1e40af;
+            --accent: #C5A021;
+            --accent-light: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --background: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Prompt', 'Sarabun', sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text-main);
+            padding: 24px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header Style */
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, #001a3a 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::after {
+            content: '';
+            position: absolute;
+            right: -50px;
+            top: -50px;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(197,160,33,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        header h1 i {
+            color: var(--accent);
+        }
+
+        header p {
+            color: #cbd5e1;
+            font-size: 15px;
+            font-weight: 300;
+        }
+
+        .badge-live {
+            background-color: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .badge-live .dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--success);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.9); opacity: 0.6; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.6; }
+        }
+
+        /* Dashboard Grid Layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Control Panel Card */
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+        }
+
+        .panel-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 2px solid var(--background);
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-main);
+            margin-bottom: 8px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 14px;
+            color: var(--text-muted);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 14px 12px 40px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 16px;
+            color: var(--text-main);
+            transition: all 0.3s;
+            background-color: #fafafa;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            background-color: #fff;
+            box-shadow: 0 0 0 3px rgba(0, 45, 98, 0.1);
+        }
+
+        .slider-group {
+            margin-top: 10px;
+        }
+
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        /* Summary Stats within Panel */
+        .summary-box {
+            background-color: var(--background);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 24px;
+            border-left: 4px solid var(--accent);
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .summary-item:last-child {
+            margin-bottom: 0;
+            padding-top: 10px;
+            border-top: 1px dashed var(--border);
+            font-weight: 600;
+        }
+
+        /* Main Route Window */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* MONEY ROUTE VISUALIZATION MAP */
+        .route-map-card {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .route-container {
+            position: relative;
+            min-height: 400px;
+            background: radial-gradient(circle at 50% 50%, #fcfdfe 0%, var(--background) 100%);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-top: 15px;
+        }
+
+        /* Nodes/Stations Positioned Absolutely for the Flow */
+        .node {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 170px;
+            z-index: 2;
+        }
+
+        #nodeCustomer { top: 30px; left: 30px; }
+        #nodeDeposit { bottom: 30px; left: 30px; }
+        
+        #nodeNetPay { top: 30px; left: 50%; transform: translateX(-50%); }
+        #nodeBilling { bottom: 30px; left: 50%; transform: translateX(-50%); }
+        
+        #nodeRevenue { top: 50%; right: 30px; transform: translateY(-50%); }
+
+        .node-circle {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background-color: white;
+            border: 3px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: var(--text-muted);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .node.active .node-circle {
+            border-color: var(--primary);
+            color: var(--primary);
+            background-color: #eff6ff;
+            transform: scale(1.08);
+            box-shadow: 0 0 15px rgba(0, 45, 98, 0.2);
+        }
+
+        .node.accent .node-circle {
+            border-color: var(--accent);
+            color: var(--accent);
+            background-color: #fffbeb;
+            box-shadow: 0 0 15px rgba(197, 160, 33, 0.2);
+        }
+
+        .node-label {
+            margin-top: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+            color: var(--text-main);
+            line-height: 1.3;
+        }
+
+        .node-value {
+            font-size: 13px;
+            color: var(--primary);
+            font-weight: 500;
+            margin-top: 6px;
+            background: #f1f5f9;
+            padding: 4px 10px;
+            border-radius: 12px;
+            min-height: 22px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+
+        .node-value.highlight {
+            background-color: #dbeafe;
+            color: var(--primary-light);
+            border-color: #bfdbfe;
+        }
+
+        .node-value.highlight-accent {
+            background-color: #fef3c7;
+            color: #d97706;
+            border-color: #fde68a;
+        }
+
+        /* SVG Connecting Tracks */
+        .route-svg-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .connection-path {
+            fill: none;
+            stroke: #cbd5e1;
+            stroke-width: 4;
+            stroke-dasharray: 8 4;
+            transition: all 0.5s;
+            opacity: 0.3;
+        }
+
+        .connection-path.active-path {
+            stroke: var(--success);
+            opacity: 1;
+            animation: flowDash 30s linear infinite;
+        }
+
+        .connection-path.deposit-path {
+            stroke: var(--accent);
+            opacity: 1;
+            animation: flowDash 30s linear infinite;
+        }
+
+        @keyframes flowDash {
+            to { stroke-dashoffset: -1000; }
+        }
+
+        /* Simulation Controls */
+        .sim-btn-container {
+            display: flex;
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:hover { background-color: var(--primary-light); }
+        .btn-outline { background-color: transparent; border: 1px solid var(--border); color: var(--text-muted); }
+        .btn-outline:hover { background-color: #f1f5f9; color: var(--text-main); }
+
+        /* Dynamic Table Card */
+        .table-responsive { width: 100%; overflow-x: auto; margin-top: 15px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+        th { background-color: #f1f5f9; color: var(--primary); padding: 14px 16px; font-weight: 600; border-bottom: 2px solid var(--border); }
+        td { padding: 14px 16px; border-bottom: 1px solid var(--border); color: var(--text-main); }
+        tr:hover { background-color: #f8fafc; }
+        .tr-active-now { background-color: #eff6ff !important; border-left: 4px solid var(--primary); }
+
+        .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; gap: 4px; }
+        .status-pending { background-color: #f1f5f9; color: var(--text-muted); }
+        .status-current { background-color: #dbeafe; color: var(--primary-light); }
+        .status-completed { background-color: #d1fae5; color: #065f46; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div>
+            <h1><i class="fa-solid fa-route"></i> Sourcing Product: Dynamic Money Route Tracker</h1>
+            <p>จำลองเส้นทางการเดินทางของเงิน (Fund Flow) และระบบหักล้างเงินมัดจำแบบสัดส่วนรายงวด (Same % Principle)</p>
+        </div>
+        <div class="badge-live">
+            <div class="dot"></div>
+            <span>Interactive Simulator V2</span>
+        </div>
+    </header>
+
+    <div class="dashboard-grid">
+        <!-- SIDEBAR CONTROLS -->
+        <div class="card">
+            <div class="panel-title">
+                <i class="fa-solid fa-sliders"></i> ตั้งค่าตัวเลข Mockup
+            </div>
+            
+            <div class="form-group">
+                <label for="inputTotalSO">ยอดคำสั่งซื้อรวม (Total SO Value)</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-money-bill-wave"></i>
+                    <input type="number" id="inputTotalSO" class="form-control" value="1000000" step="50000" min="100000">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="inputDepositPct">สัดส่วนเงินมัดจำตั้งต้น: <span id="lblDepositPct" style="font-weight:700; color:var(--accent);">30</span>%</label>
+                <div class="slider-group">
+                    <input type="range" id="inputDepositPct" min="10" max="100" value="30" step="5">
+                    <div class="slider-labels">
+                        <span>10%</span><span>50%</span><span>100%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="inputInstallments">จำนวนงวดส่งมอบต่องาน: <span id="lblInstallments" style="font-weight:700; color:var(--primary);">4</span> งวด</label>
+                <div class="slider-group">
+                    <input type="range" id="inputInstallments" min="2" max="6" value="4" step="1">
+                    <div class="slider-labels">
+                        <span>2 งวด</span><span>4 งวด</span><span>6 งวด</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="summary-box">
+                <div class="summary-item">
+                    <span>💰 เงินมัดจำก้อนแรกครังแรก:</span>
+                    <span id="sumInitialDeposit" style="font-weight: 600; color: var(--accent);">300,000 THB</span>
+                </div>
+                <div class="summary-item">
+                    <span>📦 ยอดที่เหลือรอเรียกเก็บงวด:</span>
+                    <span id="sumRemainingSO">700,000 THB</span>
+                </div>
+                <div class="summary-item">
+                    <span>📊 อัตราตัดจ่ายต่องวด:</span>
+                    <span>ตามสัดส่วนสินค้าจริง</span>
+                </div>
+                <div class="summary-item">
+                    <span>🧾 ยอดรวมมูลค่าโครงการ:</span>
+                    <span id="sumTotalSO" style="color: var(--primary);">1,000,000 THB</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN DASHBOARD CONTENT AREA -->
+        <div class="main-content">
+            <!-- VISUAL ROUTE MAP CARD -->
+            <div class="card route-map-card">
+                <div class="panel-title" style="margin-bottom: 5px;">
+                    <i class="fa-solid fa-diagram-project"></i> แผนผังเส้นทางการวิ่งของเงิน (Live Route Map)
+                </div>
+                <p style="font-size: 13px; color: var(--text-muted);">กระบวนการเคลื่อนย้ายเงินทุนในระบบจากลูกค้าเข้าสู่บัญชีต่าง ๆ ของบริษัท</p>
+                
+                <div class="route-container">
+                    <svg class="route-svg-layer" id="routeSvg">
+                        <!-- Paths -->
+                        <path id="pathInitDep" class="connection-path" d="" /> <!-- 1 to 2 -->
+                        <path id="pathDedHold" class="connection-path" d="" /> <!-- 2 to 3 -->
+                        <path id="pathDedRev" class="connection-path" d="" />  <!-- 3 to 4 -->
+                        <path id="pathNetPayFlow" class="connection-path" d="" />  <!-- 1 to 5 -->
+                        <path id="pathNetRev" class="connection-path" d="" />  <!-- 5 to 4 -->
+                    </svg>
+
+                    <!-- Station 1: Customer Wallet -->
+                    <div class="node active" id="nodeCustomer">
+                        <div class="node-circle"><i class="fa-solid fa-wallet"></i></div>
+                        <div class="node-label">1. ลูกค้า (Customer)</div>
+                        <div class="node-value highlight-accent" id="valCustomer">มัดจำรวม: 0 THB</div>
+                    </div>
+
+                    <!-- Station 2: Deposit Hold Account -->
+                    <div class="node accent" id="nodeDeposit">
+                        <div class="node-circle"><i class="fa-solid fa-vault"></i></div>
+                        <div class="node-label">2. ยอดเงินมัดจำที่เหลือ</div>
+                        <div class="node-value" id="valDepositHold">0 THB</div>
+                    </div>
+
+                    <!-- Station 5: Customer Net Payment (NEW) -->
+                    <div class="node" id="nodeNetPay">
+                        <div class="node-circle"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+                        <div class="node-label">5. ลูกค้าต้องชำระเงินเพิ่ม</div>
+                        <div class="node-value" id="valNetPay">รอชำระ</div>
+                    </div>
+
+                    <!-- Station 3: Invoice / Billing -->
+                    <div class="node" id="nodeBilling">
+                        <div class="node-circle"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                        <div class="node-label">3. เงินมัดจำที่ทำคืนในงวดนี้</div>
+                        <div class="node-value" id="valBilling">หักมัดจำงวดนี้</div>
+                    </div>
+
+                    <!-- Station 4: Revenue Recognized -->
+                    <div class="node" id="nodeRevenue">
+                        <div class="node-circle"><i class="fa-solid fa-building-columns"></i></div>
+                        <div class="node-label">4. รายได้รับจริงบริษัท</div>
+                        <div class="node-value highlight" id="valRevenue">0 THB</div>
+                    </div>
+                </div>
+
+                <div class="sim-btn-container">
+                    <button class="btn btn-primary" id="btnNextStep"><i class="fa-solid fa-play"></i> จำลองการเดินเงินงวดถัดไป</button>
+                    <button class="btn btn-outline" id="btnResetSim"><i class="fa-solid fa-rotate-right"></i> รีเซ็ตจำลองใหม่</button>
+                    <span id="simStatusMsg" style="margin-left: auto; align-self: center; font-size: 14px; font-weight: 500; color: var(--success);"></span>
+                </div>
+            </div>
+
+            <!-- DETAILED LEDGER TABLE CARD -->
+            <div class="card">
+                <div class="panel-title">
+                    <i class="fa-solid fa-table-list"></i> ตารางคำนวณงวดการส่งมอบและการหักล้าง (Deduction Schedule)
+                </div>
+                
+                <div class="table-responsive">
+                    <table id="scheduleTable">
+                        <thead>
+                            <tr>
+                                <th>งวดที่</th>
+                                <th>สัดส่วนสินค้า (%)</th>
+                                <th>มูลค่าส่งมอบจริง (Gross)</th>
+                                <th>🔁 หักล้างเงินมัดจำออก (Same %)</th>
+                                <th>💰 ยอดเงินสดที่ลูกค้าต้องจ่ายเพิ่ม</th>
+                                <th>ยอดมัดจำคงเหลือค้างในระบบ</th>
+                                <th>สถานะเส้นทาง</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Dynamic Injection -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const inputTotalSO = document.getElementById('inputTotalSO');
+    const inputDepositPct = document.getElementById('inputDepositPct');
+    const inputInstallments = document.getElementById('inputInstallments');
+    
+    const lblDepositPct = document.getElementById('lblDepositPct');
+    const lblInstallments = document.getElementById('lblInstallments');
+    
+    const sumInitialDeposit = document.getElementById('sumInitialDeposit');
+    const sumRemainingSO = document.getElementById('sumRemainingSO');
+    const sumTotalSO = document.getElementById('sumTotalSO');
+    
+    const valCustomer = document.getElementById('valCustomer');
+    const valDepositHold = document.getElementById('valDepositHold');
+    const valNetPay = document.getElementById('valNetPay');
+    const valBilling = document.getElementById('valBilling');
+    const valRevenue = document.getElementById('valRevenue');
+    
+    const tableBody = document.getElementById('tableBody');
+    const btnNextStep = document.getElementById('btnNextStep');
+    const btnResetSim = document.getElementById('btnResetSim');
+    const simStatusMsg = document.getElementById('simStatusMsg');
+    const routeSvg = document.getElementById('routeSvg');
+
+    let currentActiveInstallment = 0; 
+    let calculatedDataRows = [];
+    let totalSOVal = 1000000;
+    let depositPctVal = 30;
+    let installmentCount = 4;
+
+    function formatCurrency(num) {
+        return new Intl.NumberFormat('th-TH', { style: 'decimal', maximumFractionDigits: 0 }).format(num) + ' THB';
+    }
+
+    function updateCalculations() {
+        totalSOVal = parseFloat(inputTotalSO.value) || 0;
+        depositPctVal = parseInt(inputDepositPct.value);
+        installmentCount = parseInt(inputInstallments.value);
+
+        lblDepositPct.textContent = depositPctVal;
+        lblInstallments.textContent = installmentCount;
+
+        const totalDepositAmount = totalSOVal * (depositPctVal / 100);
+        const remainingSOAmount = totalSOVal - totalDepositAmount;
+
+        sumTotalSO.textContent = formatCurrency(totalSOVal);
+        sumInitialDeposit.textContent = formatCurrency(totalDepositAmount);
+        sumRemainingSO.textContent = formatCurrency(remainingSOAmount);
+
+        calculatedDataRows = [];
+        let remainingDepositAccum = totalDepositAmount;
+
+        const pctPerInstallment = (100 / installmentCount);
+        
+        for (let i = 1; i <= installmentCount; i++) {
+            let itemPct = pctPerInstallment;
+            if (i === installmentCount) {
+                let currentSum = pctPerInstallment * (installmentCount - 1);
+                itemPct = 100 - currentSum;
+            }
+
+            const grossValue = totalSOVal * (itemPct / 100);
+            const depositDeduction = grossValue * (depositPctVal / 100);
+            const netPayment = grossValue - depositDeduction;
+            remainingDepositAccum -= depositDeduction;
+
+            let finalRemainingDeposit = Math.max(0, remainingDepositAccum);
+            if (i === installmentCount) finalRemainingDeposit = 0;
+
+            calculatedDataRows.push({
+                instNo: i,
+                pct: itemPct,
+                gross: grossValue,
+                deduction: depositDeduction,
+                net: netPayment,
+                remainingDeposit: finalRemainingDeposit
+            });
+        }
+
+        renderTableAndNodes();
+        drawSVGConnections();
+    }
+
+    function renderTableAndNodes() {
+        tableBody.innerHTML = '';
+        
+        let totalDepositAmount = totalSOVal * (depositPctVal / 100);
+        let liveDepositWalletState = totalDepositAmount;
+        let liveRevenueRealized = 0;
+        
+        for (let idx = 0; idx < currentActiveInstallment; idx++) {
+            if (idx < calculatedDataRows.length) {
+                liveDepositWalletState -= calculatedDataRows[idx].deduction;
+                liveRevenueRealized += calculatedDataRows[idx].gross;
+            }
+        }
+
+        // --- UPDATE NODES SPECIFIC DATA ---
+        // 1. Customer Node - Always shows initial deposit paid
+        valCustomer.innerHTML = `มัดจำรวม: <strong>${formatCurrency(totalDepositAmount)}</strong>`;
+        
+        // 2. Deposit Hold - Shows remaining
+        valDepositHold.innerHTML = `คงเหลือ: <strong>${formatCurrency(liveDepositWalletState)}</strong>`;
+        
+        // 4. Revenue - Shows accumulated revenue
+        valRevenue.innerHTML = `ยอดรับรวม: <strong>${formatCurrency(liveRevenueRealized)}</strong>`;
+
+        if (currentActiveInstallment === 0) {
+            // State: Just paid initial deposit
+            valBilling.textContent = "รอเริ่มตัดส่งของ";
+            valNetPay.textContent = "-";
+            
+            document.getElementById('nodeCustomer').classList.add('active');
+            document.getElementById('nodeDeposit').classList.add('accent');
+            document.getElementById('nodeBilling').classList.remove('active');
+            document.getElementById('nodeNetPay').classList.remove('active');
+            document.getElementById('nodeRevenue').classList.remove('active');
+            
+            simStatusMsg.textContent = "🟢 รับเงินมัดจำเข้าคลังแล้วเรียบร้อย";
+        } else {
+            // State: During an installment
+            const activeRow = calculatedDataRows[currentActiveInstallment - 1];
+            
+            // 3. Billing Node - Shows deduction for this specific installment
+            valBilling.innerHTML = `หักงวดนี้: <strong>${formatCurrency(activeRow.deduction)}</strong>`;
+            
+            // 5. Net Pay Node - Shows net payment required for this specific installment
+            valNetPay.innerHTML = `จ่ายเพิ่มงวดนี้: <strong>${formatCurrency(activeRow.net)}</strong>`;
+
+            document.getElementById('nodeBilling').classList.add('active');
+            document.getElementById('nodeNetPay').classList.add('active');
+            document.getElementById('nodeRevenue').classList.add('active');
+            
+            if (currentActiveInstallment === installmentCount) {
+                simStatusMsg.textContent = "🏆 เสร็จสมบูรณ์ทุกกระบวนการปิดจบ SO";
+            } else {
+                simStatusMsg.textContent = `⚡ กำลังดำเนินการตัดจ่ายงวดที่ ${currentActiveInstallment}`;
+            }
+        }
+
+        // Render Table
+        calculatedDataRows.forEach((row, index) => {
+            const tr = document.createElement('tr');
+            let statusText = "";
+            let statusClass = "status-pending";
+            
+            if (index + 1 < currentActiveInstallment) {
+                statusText = '<i class="fa-solid fa-circle-check"></i> ตัดจ่ายสำเร็จ';
+                statusClass = "status-completed";
+            } else if (index + 1 === currentActiveInstallment) {
+                statusText = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังดำเนินการ';
+                statusClass = "status-current";
+                tr.className = "tr-active-now";
+            } else {
+                statusText = '<i class="fa-solid fa-clock"></i> รอคิวส่งมอบ';
+                statusClass = "status-pending";
+            }
+
+            tr.innerHTML = `
+                <td style="font-weight:600; text-align:center;">งวดที่ ${row.instNo}</td>
+                <td>${row.pct.toFixed(1)}%</td>
+                <td style="font-weight:500;">${formatCurrency(row.gross)}</td>
+                <td style="color:var(--accent); font-weight:500;">-${formatCurrency(row.deduction)}</td>
+                <td style="color:var(--success); font-weight:600;">${formatCurrency(row.net)}</td>
+                <td style="color:var(--text-muted);">${formatCurrency(row.remainingDeposit)}</td>
+                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+            `;
+            tableBody.appendChild(tr);
+        });
+    }
+
+    function drawSVGConnections() {
+        const getCenter = (id) => {
+            const el = document.getElementById(id);
+            if(!el) return {x:0, y:0};
+            const box = el.getBoundingClientRect();
+            const svgBox = routeSvg.getBoundingClientRect();
+            return {
+                x: (box.left + box.width / 2) - svgBox.left,
+                y: (box.top + box.height / 2) - svgBox.top
+            };
+        };
+
+        const pCust = getCenter('nodeCustomer');
+        const pDep = getCenter('nodeDeposit');
+        const pBill = getCenter('nodeBilling');
+        const pNet = getCenter('nodeNetPay');
+        const pRev = getCenter('nodeRevenue');
+
+        const pathInitDep = document.getElementById('pathInitDep');
+        const pathDedHold = document.getElementById('pathDedHold');
+        const pathDedRev = document.getElementById('pathDedRev');
+        const pathNetPayFlow = document.getElementById('pathNetPayFlow');
+        const pathNetRev = document.getElementById('pathNetRev');
+
+        // ลากเส้น
+        pathInitDep.setAttribute('d', `M ${pCust.x} ${pCust.y} L ${pDep.x} ${pDep.y}`);
+        pathDedHold.setAttribute('d', `M ${pDep.x} ${pDep.y} L ${pBill.x} ${pBill.y}`);
+        pathNetPayFlow.setAttribute('d', `M ${pCust.x} ${pCust.y} L ${pNet.x} ${pNet.y}`);
+        
+        // โค้งเข้าหารายได้รวม
+        pathDedRev.setAttribute('d', `M ${pBill.x} ${pBill.y} Q ${pRev.x} ${pBill.y} ${pRev.x} ${pRev.y}`);
+        pathNetRev.setAttribute('d', `M ${pNet.x} ${pNet.y} Q ${pRev.x} ${pNet.y} ${pRev.x} ${pRev.y}`);
+
+        // รีเซ็ตคลาส
+        const paths = [pathInitDep, pathDedHold, pathDedRev, pathNetPayFlow, pathNetRev];
+        paths.forEach(p => p.className.baseVal = "connection-path");
+
+        if (currentActiveInstallment === 0) {
+            pathInitDep.className.baseVal = "connection-path deposit-path"; // แสดงเฉพาะการโอนมัดจำตั้งต้น
+        } else {
+            pathDedHold.className.baseVal = "connection-path deposit-path";
+            pathDedRev.className.baseVal = "connection-path deposit-path";
+            pathNetPayFlow.className.baseVal = "connection-path active-path";
+            pathNetRev.className.baseVal = "connection-path active-path";
+        }
+    }
+
+    btnNextStep.addEventListener('click', () => {
+        if (currentActiveInstallment < installmentCount) {
+            currentActiveInstallment++;
+        } else {
+            currentActiveInstallment = 0; 
+        }
+        renderTableAndNodes();
+        drawSVGConnections();
+    });
+
+    btnResetSim.addEventListener('click', () => {
+        currentActiveInstallment = 0;
+        renderTableAndNodes();
+        drawSVGConnections();
+    });
+
+    inputTotalSO.addEventListener('input', updateCalculations);
+    inputDepositPct.addEventListener('input', updateCalculations);
+    inputInstallments.addEventListener('input', updateCalculations);
+
+    window.addEventListener('load', () => {
+        updateCalculations();
+        setTimeout(drawSVGConnections, 200); // ดีเลย์นิดหน่อยให้ UI วาดเสร็จก่อนลากเส้น
+    });
+
+    window.addEventListener('resize', drawSVGConnections);
+</script>
+
+</body>
+</html>
