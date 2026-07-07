@@ -425,7 +425,6 @@
     </header>
 
     <div class="dashboard-grid">
-        <!-- SIDEBAR CONTROLS -->
         <div class="card">
             <div class="panel-title">
                 <i class="fa-solid fa-sliders"></i> ตั้งค่าตัวเลข Mockup
@@ -479,9 +478,7 @@
             </div>
         </div>
 
-        <!-- MAIN DASHBOARD CONTENT AREA -->
         <div class="main-content">
-            <!-- VISUAL ROUTE MAP CARD -->
             <div class="card route-map-card">
                 <div class="panel-title" style="margin-bottom: 5px;">
                     <i class="fa-solid fa-diagram-project"></i> แผนผังเส้นทางการวิ่งของเงิน (Live Route Map)
@@ -490,43 +487,32 @@
                 
                 <div class="route-container">
                     <svg class="route-svg-layer" id="routeSvg">
-                        <!-- Paths -->
-                        <path id="pathInitDep" class="connection-path" d="" /> <!-- 1 to 2 -->
-                        <path id="pathDedHold" class="connection-path" d="" /> <!-- 2 to 3 -->
-                        <path id="pathDedRev" class="connection-path" d="" />  <!-- 3 to 4 -->
-                        <path id="pathNetPayFlow" class="connection-path" d="" />  <!-- 1 to 5 -->
-                        <path id="pathNetRev" class="connection-path" d="" />  <!-- 5 to 4 -->
-                    </svg>
+                        <path id="pathInitDep" class="connection-path" d="" /> <path id="pathDedHold" class="connection-path" d="" /> <path id="pathDedRev" class="connection-path" d="" />  <path id="pathNetPayFlow" class="connection-path" d="" />  <path id="pathNetRev" class="connection-path" d="" />  </svg>
 
-                    <!-- Station 1: Customer Wallet -->
                     <div class="node active" id="nodeCustomer">
                         <div class="node-circle"><i class="fa-solid fa-wallet"></i></div>
                         <div class="node-label">1. ลูกค้า (Customer)</div>
                         <div class="node-value highlight-accent" id="valCustomer">มัดจำรวม: 0 THB</div>
                     </div>
 
-                    <!-- Station 2: Deposit Hold Account -->
                     <div class="node accent" id="nodeDeposit">
                         <div class="node-circle"><i class="fa-solid fa-vault"></i></div>
                         <div class="node-label">2. ยอดเงินมัดจำที่เหลือ</div>
                         <div class="node-value" id="valDepositHold">0 THB</div>
                     </div>
 
-                    <!-- Station 5: Customer Net Payment (NEW) -->
                     <div class="node" id="nodeNetPay">
                         <div class="node-circle"><i class="fa-solid fa-hand-holding-dollar"></i></div>
                         <div class="node-label">5. ลูกค้าต้องชำระเงินเพิ่ม</div>
                         <div class="node-value" id="valNetPay">รอชำระ</div>
                     </div>
 
-                    <!-- Station 3: Invoice / Billing -->
                     <div class="node" id="nodeBilling">
                         <div class="node-circle"><i class="fa-solid fa-file-invoice-dollar"></i></div>
                         <div class="node-label">3. เงินมัดจำที่ทำคืนในงวดนี้</div>
                         <div class="node-value" id="valBilling">หักมัดจำงวดนี้</div>
                     </div>
 
-                    <!-- Station 4: Revenue Recognized -->
                     <div class="node" id="nodeRevenue">
                         <div class="node-circle"><i class="fa-solid fa-building-columns"></i></div>
                         <div class="node-label">4. รายได้รับจริงบริษัท</div>
@@ -541,7 +527,6 @@
                 </div>
             </div>
 
-            <!-- DETAILED LEDGER TABLE CARD -->
             <div class="card">
                 <div class="panel-title">
                     <i class="fa-solid fa-table-list"></i> ตารางคำนวณงวดการส่งมอบและการหักล้าง (Deduction Schedule)
@@ -561,8 +546,7 @@
                             </tr>
                         </thead>
                         <tbody id="tableBody">
-                            <!-- Dynamic Injection -->
-                        </tbody>
+                            </tbody>
                     </table>
                 </div>
             </div>
@@ -571,7 +555,40 @@
 </div>
 
 <script>
-   function updateCalculations() {
+    const inputTotalSO = document.getElementById('inputTotalSO');
+    const inputDepositPct = document.getElementById('inputDepositPct');
+    const inputInstallments = document.getElementById('inputInstallments');
+    
+    const lblDepositPct = document.getElementById('lblDepositPct');
+    const lblInstallments = document.getElementById('lblInstallments');
+    
+    const sumInitialDeposit = document.getElementById('sumInitialDeposit');
+    const sumRemainingSO = document.getElementById('sumRemainingSO');
+    const sumTotalSO = document.getElementById('sumTotalSO');
+    
+    const valCustomer = document.getElementById('valCustomer');
+    const valDepositHold = document.getElementById('valDepositHold');
+    const valNetPay = document.getElementById('valNetPay');
+    const valBilling = document.getElementById('valBilling');
+    const valRevenue = document.getElementById('valRevenue');
+    
+    const tableBody = document.getElementById('tableBody');
+    const btnNextStep = document.getElementById('btnNextStep');
+    const btnResetSim = document.getElementById('btnResetSim');
+    const simStatusMsg = document.getElementById('simStatusMsg');
+    const routeSvg = document.getElementById('routeSvg');
+
+    let currentActiveInstallment = 0; 
+    let calculatedDataRows = [];
+    let totalSOVal = 1000000;
+    let depositPctVal = 30;
+    let installmentCount = 4;
+
+    function formatCurrency(num) {
+        return new Intl.NumberFormat('th-TH', { style: 'decimal', maximumFractionDigits: 0 }).format(num) + ' THB';
+    }
+
+    function updateCalculations() {
         totalSOVal = parseFloat(inputTotalSO.value) || 0;
         depositPctVal = parseInt(inputDepositPct.value);
         installmentCount = parseInt(inputInstallments.value);
@@ -588,10 +605,10 @@
 
         calculatedDataRows = [];
         let remainingDepositAccum = totalDepositAmount;
-        const pctPerInstallment = (100 / installmentCount); // สัดส่วนปกติ
+
+        const pctPerInstallment = (100 / installmentCount);
         
         for (let i = 1; i <= installmentCount; i++) {
-            // 1. กำหนดสัดส่วนสินค้า (ที่นี่กำหนดเป็นเท่าๆ กัน แต่คุณสามารถแก้ไขให้เป็น array รายงวดได้ในอนาคต)
             let itemPct = pctPerInstallment;
             if (i === installmentCount) {
                 let currentSum = pctPerInstallment * (installmentCount - 1);
@@ -600,10 +617,10 @@
 
             const grossValue = totalSOVal * (itemPct / 100);
             
-            // 2. Logic การหักมัดจำ: หักตามสัดส่วนที่ตั้งต้น (Same %)
+            // Logic: Deduct deposit based on the same initial percentage
             let depositDeduction = grossValue * (depositPctVal / 100);
 
-            // Logic งวดสุดท้าย: หักล้างเงินมัดจำที่เหลือทั้งหมดที่มี
+            // Logic for the LAST installment: Clear all remaining deposit
             if (i === installmentCount) {
                 depositDeduction = remainingDepositAccum;
             }
@@ -624,6 +641,154 @@
         renderTableAndNodes();
         drawSVGConnections();
     }
+
+    function renderTableAndNodes() {
+        tableBody.innerHTML = '';
+        
+        let totalDepositAmount = totalSOVal * (depositPctVal / 100);
+        let liveDepositWalletState = totalDepositAmount;
+        let liveRevenueRealized = 0;
+        
+        for (let idx = 0; idx < currentActiveInstallment; idx++) {
+            if (idx < calculatedDataRows.length) {
+                liveDepositWalletState -= calculatedDataRows[idx].deduction;
+                liveRevenueRealized += calculatedDataRows[idx].gross;
+            }
+        }
+
+        valCustomer.innerHTML = `มัดจำรวม: <strong>${formatCurrency(totalDepositAmount)}</strong>`;
+        valDepositHold.innerHTML = `คงเหลือ: <strong>${formatCurrency(liveDepositWalletState)}</strong>`;
+        valRevenue.innerHTML = `ยอดรับรวม: <strong>${formatCurrency(liveRevenueRealized)}</strong>`;
+
+        if (currentActiveInstallment === 0) {
+            valBilling.textContent = "รอเริ่มตัดส่งของ";
+            valNetPay.textContent = "-";
+            
+            document.getElementById('nodeCustomer').classList.add('active');
+            document.getElementById('nodeDeposit').classList.add('accent');
+            document.getElementById('nodeBilling').classList.remove('active');
+            document.getElementById('nodeNetPay').classList.remove('active');
+            document.getElementById('nodeRevenue').classList.remove('active');
+            
+            simStatusMsg.textContent = "🟢 รับเงินมัดจำเข้าคลังแล้วเรียบร้อย";
+        } else {
+            const activeRow = calculatedDataRows[currentActiveInstallment - 1];
+            
+            valBilling.innerHTML = `หักงวดนี้: <strong>${formatCurrency(activeRow.deduction)}</strong>`;
+            valNetPay.innerHTML = `จ่ายเพิ่มงวดนี้: <strong>${formatCurrency(activeRow.net)}</strong>`;
+
+            document.getElementById('nodeBilling').classList.add('active');
+            document.getElementById('nodeNetPay').classList.add('active');
+            document.getElementById('nodeRevenue').classList.add('active');
+            
+            if (currentActiveInstallment === installmentCount) {
+                simStatusMsg.textContent = "🏆 เสร็จสมบูรณ์ทุกกระบวนการปิดจบ SO";
+            } else {
+                simStatusMsg.textContent = `⚡ กำลังดำเนินการตัดจ่ายงวดที่ ${currentActiveInstallment}`;
+            }
+        }
+
+        calculatedDataRows.forEach((row, index) => {
+            const tr = document.createElement('tr');
+            let statusText = "";
+            let statusClass = "status-pending";
+            
+            if (index + 1 < currentActiveInstallment) {
+                statusText = '<i class="fa-solid fa-circle-check"></i> ตัดจ่ายสำเร็จ';
+                statusClass = "status-completed";
+            } else if (index + 1 === currentActiveInstallment) {
+                statusText = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังดำเนินการ';
+                statusClass = "status-current";
+                tr.className = "tr-active-now";
+            } else {
+                statusText = '<i class="fa-solid fa-clock"></i> รอคิวส่งมอบ';
+                statusClass = "status-pending";
+            }
+
+            tr.innerHTML = `
+                <td style="font-weight:600; text-align:center;">งวดที่ ${row.instNo}</td>
+                <td>${row.pct.toFixed(1)}%</td>
+                <td style="font-weight:500;">${formatCurrency(row.gross)}</td>
+                <td style="color:var(--accent); font-weight:500;">-${formatCurrency(row.deduction)}</td>
+                <td style="color:var(--success); font-weight:600;">${formatCurrency(row.net)}</td>
+                <td style="color:var(--text-muted);">${formatCurrency(row.remainingDeposit)}</td>
+                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+            `;
+            tableBody.appendChild(tr);
+        });
+    }
+
+    function drawSVGConnections() {
+        const getCenter = (id) => {
+            const el = document.getElementById(id);
+            if(!el) return {x:0, y:0};
+            const box = el.getBoundingClientRect();
+            const svgBox = routeSvg.getBoundingClientRect();
+            return {
+                x: (box.left + box.width / 2) - svgBox.left,
+                y: (box.top + box.height / 2) - svgBox.top
+            };
+        };
+
+        const pCust = getCenter('nodeCustomer');
+        const pDep = getCenter('nodeDeposit');
+        const pBill = getCenter('nodeBilling');
+        const pNet = getCenter('nodeNetPay');
+        const pRev = getCenter('nodeRevenue');
+
+        const pathInitDep = document.getElementById('pathInitDep');
+        const pathDedHold = document.getElementById('pathDedHold');
+        const pathDedRev = document.getElementById('pathDedRev');
+        const pathNetPayFlow = document.getElementById('pathNetPayFlow');
+        const pathNetRev = document.getElementById('pathNetRev');
+
+        if(pathInitDep && pathDedHold && pathDedRev && pathNetPayFlow && pathNetRev) {
+            pathInitDep.setAttribute('d', `M ${pCust.x} ${pCust.y} L ${pDep.x} ${pDep.y}`);
+            pathDedHold.setAttribute('d', `M ${pDep.x} ${pDep.y} L ${pBill.x} ${pBill.y}`);
+            pathNetPayFlow.setAttribute('d', `M ${pCust.x} ${pCust.y} L ${pNet.x} ${pNet.y}`);
+            pathDedRev.setAttribute('d', `M ${pBill.x} ${pBill.y} Q ${pRev.x} ${pBill.y} ${pRev.x} ${pRev.y}`);
+            pathNetRev.setAttribute('d', `M ${pNet.x} ${pNet.y} Q ${pRev.x} ${pNet.y} ${pRev.x} ${pRev.y}`);
+
+            const paths = [pathInitDep, pathDedHold, pathDedRev, pathNetPayFlow, pathNetRev];
+            paths.forEach(p => p.className.baseVal = "connection-path");
+
+            if (currentActiveInstallment === 0) {
+                pathInitDep.className.baseVal = "connection-path deposit-path";
+            } else {
+                pathDedHold.className.baseVal = "connection-path deposit-path";
+                pathDedRev.className.baseVal = "connection-path deposit-path";
+                pathNetPayFlow.className.baseVal = "connection-path active-path";
+                pathNetRev.className.baseVal = "connection-path active-path";
+            }
+        }
+    }
+
+    btnNextStep.addEventListener('click', () => {
+        if (currentActiveInstallment < installmentCount) {
+            currentActiveInstallment++;
+        } else {
+            currentActiveInstallment = 0; 
+        }
+        renderTableAndNodes();
+        drawSVGConnections();
+    });
+
+    btnResetSim.addEventListener('click', () => {
+        currentActiveInstallment = 0;
+        renderTableAndNodes();
+        drawSVGConnections();
+    });
+
+    inputTotalSO.addEventListener('input', updateCalculations);
+    inputDepositPct.addEventListener('input', updateCalculations);
+    inputInstallments.addEventListener('input', updateCalculations);
+
+    window.addEventListener('load', () => {
+        updateCalculations();
+        setTimeout(drawSVGConnections, 200);
+    });
+
+    window.addEventListener('resize', drawSVGConnections);
 </script>
 
 </body>
