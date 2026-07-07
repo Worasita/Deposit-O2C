@@ -571,40 +571,7 @@
 </div>
 
 <script>
-    const inputTotalSO = document.getElementById('inputTotalSO');
-    const inputDepositPct = document.getElementById('inputDepositPct');
-    const inputInstallments = document.getElementById('inputInstallments');
-    
-    const lblDepositPct = document.getElementById('lblDepositPct');
-    const lblInstallments = document.getElementById('lblInstallments');
-    
-    const sumInitialDeposit = document.getElementById('sumInitialDeposit');
-    const sumRemainingSO = document.getElementById('sumRemainingSO');
-    const sumTotalSO = document.getElementById('sumTotalSO');
-    
-    const valCustomer = document.getElementById('valCustomer');
-    const valDepositHold = document.getElementById('valDepositHold');
-    const valNetPay = document.getElementById('valNetPay');
-    const valBilling = document.getElementById('valBilling');
-    const valRevenue = document.getElementById('valRevenue');
-    
-    const tableBody = document.getElementById('tableBody');
-    const btnNextStep = document.getElementById('btnNextStep');
-    const btnResetSim = document.getElementById('btnResetSim');
-    const simStatusMsg = document.getElementById('simStatusMsg');
-    const routeSvg = document.getElementById('routeSvg');
-
-    let currentActiveInstallment = 0; 
-    let calculatedDataRows = [];
-    let totalSOVal = 1000000;
-    let depositPctVal = 30;
-    let installmentCount = 4;
-
-    function formatCurrency(num) {
-        return new Intl.NumberFormat('th-TH', { style: 'decimal', maximumFractionDigits: 0 }).format(num) + ' THB';
-    }
-
-    function updateCalculations() {
+   function updateCalculations() {
         totalSOVal = parseFloat(inputTotalSO.value) || 0;
         depositPctVal = parseInt(inputDepositPct.value);
         installmentCount = parseInt(inputInstallments.value);
@@ -621,10 +588,10 @@
 
         calculatedDataRows = [];
         let remainingDepositAccum = totalDepositAmount;
-
-        const pctPerInstallment = (100 / installmentCount);
+        const pctPerInstallment = (100 / installmentCount); // สัดส่วนปกติ
         
         for (let i = 1; i <= installmentCount; i++) {
+            // 1. กำหนดสัดส่วนสินค้า (ที่นี่กำหนดเป็นเท่าๆ กัน แต่คุณสามารถแก้ไขให้เป็น array รายงวดได้ในอนาคต)
             let itemPct = pctPerInstallment;
             if (i === installmentCount) {
                 let currentSum = pctPerInstallment * (installmentCount - 1);
@@ -632,12 +599,17 @@
             }
 
             const grossValue = totalSOVal * (itemPct / 100);
-            const depositDeduction = grossValue * (depositPctVal / 100);
+            
+            // 2. Logic การหักมัดจำ: หักตามสัดส่วนที่ตั้งต้น (Same %)
+            let depositDeduction = grossValue * (depositPctVal / 100);
+
+            // Logic งวดสุดท้าย: หักล้างเงินมัดจำที่เหลือทั้งหมดที่มี
+            if (i === installmentCount) {
+                depositDeduction = remainingDepositAccum;
+            }
+
             const netPayment = grossValue - depositDeduction;
             remainingDepositAccum -= depositDeduction;
-
-            let finalRemainingDeposit = Math.max(0, remainingDepositAccum);
-            if (i === installmentCount) finalRemainingDeposit = 0;
 
             calculatedDataRows.push({
                 instNo: i,
@@ -645,175 +617,13 @@
                 gross: grossValue,
                 deduction: depositDeduction,
                 net: netPayment,
-                remainingDeposit: finalRemainingDeposit
+                remainingDeposit: Math.max(0, remainingDepositAccum)
             });
         }
 
         renderTableAndNodes();
         drawSVGConnections();
     }
-
-    function renderTableAndNodes() {
-        tableBody.innerHTML = '';
-        
-        let totalDepositAmount = totalSOVal * (depositPctVal / 100);
-        let liveDepositWalletState = totalDepositAmount;
-        let liveRevenueRealized = 0;
-        
-        for (let idx = 0; idx < currentActiveInstallment; idx++) {
-            if (idx < calculatedDataRows.length) {
-                liveDepositWalletState -= calculatedDataRows[idx].deduction;
-                liveRevenueRealized += calculatedDataRows[idx].gross;
-            }
-        }
-
-        // --- UPDATE NODES SPECIFIC DATA ---
-        // 1. Customer Node - Always shows initial deposit paid
-        valCustomer.innerHTML = `มัดจำรวม: <strong>${formatCurrency(totalDepositAmount)}</strong>`;
-        
-        // 2. Deposit Hold - Shows remaining
-        valDepositHold.innerHTML = `คงเหลือ: <strong>${formatCurrency(liveDepositWalletState)}</strong>`;
-        
-        // 4. Revenue - Shows accumulated revenue
-        valRevenue.innerHTML = `ยอดรับรวม: <strong>${formatCurrency(liveRevenueRealized)}</strong>`;
-
-        if (currentActiveInstallment === 0) {
-            // State: Just paid initial deposit
-            valBilling.textContent = "รอเริ่มตัดส่งของ";
-            valNetPay.textContent = "-";
-            
-            document.getElementById('nodeCustomer').classList.add('active');
-            document.getElementById('nodeDeposit').classList.add('accent');
-            document.getElementById('nodeBilling').classList.remove('active');
-            document.getElementById('nodeNetPay').classList.remove('active');
-            document.getElementById('nodeRevenue').classList.remove('active');
-            
-            simStatusMsg.textContent = "🟢 รับเงินมัดจำเข้าคลังแล้วเรียบร้อย";
-        } else {
-            // State: During an installment
-            const activeRow = calculatedDataRows[currentActiveInstallment - 1];
-            
-            // 3. Billing Node - Shows deduction for this specific installment
-            valBilling.innerHTML = `หักงวดนี้: <strong>${formatCurrency(activeRow.deduction)}</strong>`;
-            
-            // 5. Net Pay Node - Shows net payment required for this specific installment
-            valNetPay.innerHTML = `จ่ายเพิ่มงวดนี้: <strong>${formatCurrency(activeRow.net)}</strong>`;
-
-            document.getElementById('nodeBilling').classList.add('active');
-            document.getElementById('nodeNetPay').classList.add('active');
-            document.getElementById('nodeRevenue').classList.add('active');
-            
-            if (currentActiveInstallment === installmentCount) {
-                simStatusMsg.textContent = "🏆 เสร็จสมบูรณ์ทุกกระบวนการปิดจบ SO";
-            } else {
-                simStatusMsg.textContent = `⚡ กำลังดำเนินการตัดจ่ายงวดที่ ${currentActiveInstallment}`;
-            }
-        }
-
-        // Render Table
-        calculatedDataRows.forEach((row, index) => {
-            const tr = document.createElement('tr');
-            let statusText = "";
-            let statusClass = "status-pending";
-            
-            if (index + 1 < currentActiveInstallment) {
-                statusText = '<i class="fa-solid fa-circle-check"></i> ตัดจ่ายสำเร็จ';
-                statusClass = "status-completed";
-            } else if (index + 1 === currentActiveInstallment) {
-                statusText = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังดำเนินการ';
-                statusClass = "status-current";
-                tr.className = "tr-active-now";
-            } else {
-                statusText = '<i class="fa-solid fa-clock"></i> รอคิวส่งมอบ';
-                statusClass = "status-pending";
-            }
-
-            tr.innerHTML = `
-                <td style="font-weight:600; text-align:center;">งวดที่ ${row.instNo}</td>
-                <td>${row.pct.toFixed(1)}%</td>
-                <td style="font-weight:500;">${formatCurrency(row.gross)}</td>
-                <td style="color:var(--accent); font-weight:500;">-${formatCurrency(row.deduction)}</td>
-                <td style="color:var(--success); font-weight:600;">${formatCurrency(row.net)}</td>
-                <td style="color:var(--text-muted);">${formatCurrency(row.remainingDeposit)}</td>
-                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-            `;
-            tableBody.appendChild(tr);
-        });
-    }
-
-    function drawSVGConnections() {
-        const getCenter = (id) => {
-            const el = document.getElementById(id);
-            if(!el) return {x:0, y:0};
-            const box = el.getBoundingClientRect();
-            const svgBox = routeSvg.getBoundingClientRect();
-            return {
-                x: (box.left + box.width / 2) - svgBox.left,
-                y: (box.top + box.height / 2) - svgBox.top
-            };
-        };
-
-        const pCust = getCenter('nodeCustomer');
-        const pDep = getCenter('nodeDeposit');
-        const pBill = getCenter('nodeBilling');
-        const pNet = getCenter('nodeNetPay');
-        const pRev = getCenter('nodeRevenue');
-
-        const pathInitDep = document.getElementById('pathInitDep');
-        const pathDedHold = document.getElementById('pathDedHold');
-        const pathDedRev = document.getElementById('pathDedRev');
-        const pathNetPayFlow = document.getElementById('pathNetPayFlow');
-        const pathNetRev = document.getElementById('pathNetRev');
-
-        // ลากเส้น
-        pathInitDep.setAttribute('d', `M ${pCust.x} ${pCust.y} L ${pDep.x} ${pDep.y}`);
-        pathDedHold.setAttribute('d', `M ${pDep.x} ${pDep.y} L ${pBill.x} ${pBill.y}`);
-        pathNetPayFlow.setAttribute('d', `M ${pCust.x} ${pCust.y} L ${pNet.x} ${pNet.y}`);
-        
-        // โค้งเข้าหารายได้รวม
-        pathDedRev.setAttribute('d', `M ${pBill.x} ${pBill.y} Q ${pRev.x} ${pBill.y} ${pRev.x} ${pRev.y}`);
-        pathNetRev.setAttribute('d', `M ${pNet.x} ${pNet.y} Q ${pRev.x} ${pNet.y} ${pRev.x} ${pRev.y}`);
-
-        // รีเซ็ตคลาส
-        const paths = [pathInitDep, pathDedHold, pathDedRev, pathNetPayFlow, pathNetRev];
-        paths.forEach(p => p.className.baseVal = "connection-path");
-
-        if (currentActiveInstallment === 0) {
-            pathInitDep.className.baseVal = "connection-path deposit-path"; // แสดงเฉพาะการโอนมัดจำตั้งต้น
-        } else {
-            pathDedHold.className.baseVal = "connection-path deposit-path";
-            pathDedRev.className.baseVal = "connection-path deposit-path";
-            pathNetPayFlow.className.baseVal = "connection-path active-path";
-            pathNetRev.className.baseVal = "connection-path active-path";
-        }
-    }
-
-    btnNextStep.addEventListener('click', () => {
-        if (currentActiveInstallment < installmentCount) {
-            currentActiveInstallment++;
-        } else {
-            currentActiveInstallment = 0; 
-        }
-        renderTableAndNodes();
-        drawSVGConnections();
-    });
-
-    btnResetSim.addEventListener('click', () => {
-        currentActiveInstallment = 0;
-        renderTableAndNodes();
-        drawSVGConnections();
-    });
-
-    inputTotalSO.addEventListener('input', updateCalculations);
-    inputDepositPct.addEventListener('input', updateCalculations);
-    inputInstallments.addEventListener('input', updateCalculations);
-
-    window.addEventListener('load', () => {
-        updateCalculations();
-        setTimeout(drawSVGConnections, 200); // ดีเลย์นิดหน่อยให้ UI วาดเสร็จก่อนลากเส้น
-    });
-
-    window.addEventListener('resize', drawSVGConnections);
 </script>
 
 </body>
