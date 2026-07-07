@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sourcing Product - Dynamic Money Route Tracker (V2)</title>
+    <title>Sourcing Product - Dynamic Money Route Tracker (V3)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -23,387 +23,102 @@
             --border: #e2e8f0;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Prompt', 'Sarabun', sans-serif;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Prompt', 'Sarabun', sans-serif; }
+        body { background-color: var(--background); color: var(--text-main); padding: 24px; min-height: 100vh; }
+        .container { max-width: 1400px; margin: 0 auto; }
 
-        body {
-            background-color: var(--background);
-            color: var(--text-main);
-            padding: 24px;
-            min-height: 100vh;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        /* Header Style */
         header {
             background: linear-gradient(135deg, var(--primary) 0%, #001a3a 100%);
-            color: white;
-            padding: 30px;
-            border-radius: 16px;
-            margin-bottom: 24px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: relative;
-            overflow: hidden;
+            color: white; padding: 30px; border-radius: 16px; margin-bottom: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08); display: flex; justify-content: space-between;
+            align-items: center; position: relative; overflow: hidden;
         }
-
         header::after {
-            content: '';
-            position: absolute;
-            right: -50px;
-            top: -50px;
-            width: 200px;
-            height: 200px;
-            background: radial-gradient(circle, rgba(197,160,33,0.1) 0%, transparent 70%);
-            border-radius: 50%;
+            content: ''; position: absolute; right: -50px; top: -50px; width: 200px; height: 200px;
+            background: radial-gradient(circle, rgba(197,160,33,0.1) 0%, transparent 70%); border-radius: 50%;
         }
-
-        header h1 {
-            font-size: 28px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        header h1 i {
-            color: var(--accent);
-        }
-
-        header p {
-            color: #cbd5e1;
-            font-size: 15px;
-            font-weight: 300;
-        }
+        header h1 { font-size: 28px; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+        header h1 i { color: var(--accent); }
+        header p { color: #cbd5e1; font-size: 15px; font-weight: 300; }
 
         .badge-live {
-            background-color: rgba(16, 185, 129, 0.2);
-            color: #34d399;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            background-color: rgba(16, 185, 129, 0.2); color: #34d399; padding: 6px 12px;
+            border-radius: 20px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 6px;
             border: 1px solid rgba(16, 185, 129, 0.3);
         }
-
         .badge-live .dot {
-            width: 8px;
-            height: 8px;
-            background-color: var(--success);
-            border-radius: 50%;
-            animation: pulse 1.5s infinite;
+            width: 8px; height: 8px; background-color: var(--success); border-radius: 50%; animation: pulse 1.5s infinite;
         }
+        @keyframes pulse { 0% { transform: scale(0.9); opacity: 0.6; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(0.9); opacity: 0.6; } }
 
-        @keyframes pulse {
-            0% { transform: scale(0.9); opacity: 0.6; }
-            50% { transform: scale(1.2); opacity: 1; }
-            100% { transform: scale(0.9); opacity: 0.6; }
-        }
+        .dashboard-grid { display: grid; grid-template-columns: 350px 1fr; gap: 24px; }
+        @media (max-width: 1024px) { .dashboard-grid { grid-template-columns: 1fr; } }
 
-        /* Dashboard Grid Layout */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: 350px 1fr;
-            gap: 24px;
-        }
+        .card { background-color: var(--card-bg); border-radius: 16px; border: 1px solid var(--border); padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); }
+        .panel-title { font-size: 18px; font-weight: 600; color: var(--primary); margin-bottom: 20px; display: flex; align-items: center; gap: 8px; border-bottom: 2px solid var(--background); padding-bottom: 10px; }
 
-        @media (max-width: 1024px) {
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-            }
-        }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 14px; font-weight: 500; color: var(--text-main); margin-bottom: 8px; }
+        .input-wrapper { position: relative; display: flex; align-items: center; }
+        .input-wrapper i { position: absolute; left: 14px; color: var(--text-muted); }
+        .form-control { width: 100%; padding: 12px 14px 12px 40px; border: 1px solid var(--border); border-radius: 10px; font-size: 16px; color: var(--text-main); transition: all 0.3s; background-color: #fafafa; }
+        .form-control:focus { outline: none; border-color: var(--primary); background-color: #fff; box-shadow: 0 0 0 3px rgba(0, 45, 98, 0.1); }
+        
+        .slider-group { margin-top: 10px; }
+        .slider-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+        input[type="range"] { width: 100%; accent-color: var(--primary); cursor: pointer; }
 
-        /* Control Panel Card */
-        .card {
-            background-color: var(--card-bg);
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            padding: 24px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
-        }
+        /* Custom Installment Inputs */
+        .custom-pct-container { background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-top: 15px; }
+        .custom-pct-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
+        .custom-pct-row:last-child { margin-bottom: 0; }
+        .custom-pct-input { width: 80px; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; text-align: right; }
+        .pct-total-warning { color: var(--danger); font-size: 12px; margin-top: 8px; display: none; font-weight: 500; }
+        .pct-total-success { color: var(--success); font-size: 12px; margin-top: 8px; display: none; font-weight: 500; }
 
-        .panel-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--primary);
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            border-bottom: 2px solid var(--background);
-            padding-bottom: 10px;
-        }
+        .summary-box { background-color: var(--background); border-radius: 12px; padding: 16px; margin-top: 24px; border-left: 4px solid var(--accent); }
+        .summary-item { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; }
+        .summary-item:last-child { margin-bottom: 0; padding-top: 10px; border-top: 1px dashed var(--border); font-weight: 600; }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
+        .main-content { display: flex; flex-direction: column; gap: 24px; }
+        .route-map-card { position: relative; overflow: hidden; }
+        .route-container { position: relative; min-height: 400px; background: radial-gradient(circle at 50% 50%, #fcfdfe 0%, var(--background) 100%); border-radius: 12px; border: 1px solid var(--border); margin-top: 15px; }
 
-        .form-group label {
-            display: block;
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--text-main);
-            margin-bottom: 8px;
-        }
-
-        .input-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-
-        .input-wrapper i {
-            position: absolute;
-            left: 14px;
-            color: var(--text-muted);
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 12px 14px 12px 40px;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            font-size: 16px;
-            color: var(--text-main);
-            transition: all 0.3s;
-            background-color: #fafafa;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--primary);
-            background-color: #fff;
-            box-shadow: 0 0 0 3px rgba(0, 45, 98, 0.1);
-        }
-
-        .slider-group {
-            margin-top: 10px;
-        }
-
-        .slider-labels {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-top: 4px;
-        }
-
-        input[type="range"] {
-            width: 100%;
-            accent-color: var(--primary);
-            cursor: pointer;
-        }
-
-        /* Summary Stats within Panel */
-        .summary-box {
-            background-color: var(--background);
-            border-radius: 12px;
-            padding: 16px;
-            margin-top: 24px;
-            border-left: 4px solid var(--accent);
-        }
-
-        .summary-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
-
-        .summary-item:last-child {
-            margin-bottom: 0;
-            padding-top: 10px;
-            border-top: 1px dashed var(--border);
-            font-weight: 600;
-        }
-
-        /* Main Route Window */
-        .main-content {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-        }
-
-        /* MONEY ROUTE VISUALIZATION MAP */
-        .route-map-card {
-            position: relative;
-            overflow: hidden;
-        }
-
-        .route-container {
-            position: relative;
-            min-height: 400px;
-            background: radial-gradient(circle at 50% 50%, #fcfdfe 0%, var(--background) 100%);
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            margin-top: 15px;
-        }
-
-        /* Nodes/Stations Positioned Absolutely for the Flow */
-        .node {
-            position: absolute;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 170px;
-            z-index: 2;
-        }
-
+        .node { position: absolute; display: flex; flex-direction: column; align-items: center; width: 170px; z-index: 2; }
         #nodeCustomer { top: 30px; left: 30px; }
         #nodeDeposit { bottom: 30px; left: 30px; }
-        
         #nodeNetPay { top: 30px; left: 50%; transform: translateX(-50%); }
         #nodeBilling { bottom: 30px; left: 50%; transform: translateX(-50%); }
-        
         #nodeRevenue { top: 50%; right: 30px; transform: translateY(-50%); }
 
-        .node-circle {
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
-            background-color: white;
-            border: 3px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            color: var(--text-muted);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
+        .node-circle { width: 64px; height: 64px; border-radius: 50%; background-color: white; border: 3px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--text-muted); box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .node.active .node-circle { border-color: var(--primary); color: var(--primary); background-color: #eff6ff; transform: scale(1.08); box-shadow: 0 0 15px rgba(0, 45, 98, 0.2); }
+        .node.accent .node-circle { border-color: var(--accent); color: var(--accent); background-color: #fffbeb; box-shadow: 0 0 15px rgba(197, 160, 33, 0.2); }
+        .node-label { margin-top: 12px; font-size: 14px; font-weight: 600; text-align: center; color: var(--text-main); line-height: 1.3; }
+        .node-value { font-size: 13px; color: var(--primary); font-weight: 500; margin-top: 6px; background: #f1f5f9; padding: 4px 10px; border-radius: 12px; min-height: 22px; text-align: center; border: 1px solid #e2e8f0; }
+        .node-value.highlight { background-color: #dbeafe; color: var(--primary-light); border-color: #bfdbfe; }
+        .node-value.highlight-accent { background-color: #fef3c7; color: #d97706; border-color: #fde68a; }
 
-        .node.active .node-circle {
-            border-color: var(--primary);
-            color: var(--primary);
-            background-color: #eff6ff;
-            transform: scale(1.08);
-            box-shadow: 0 0 15px rgba(0, 45, 98, 0.2);
-        }
+        .route-svg-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+        .connection-path { fill: none; stroke: #cbd5e1; stroke-width: 4; stroke-dasharray: 8 4; transition: all 0.5s; opacity: 0.3; }
+        .connection-path.active-path { stroke: var(--success); opacity: 1; animation: flowDash 30s linear infinite; }
+        .connection-path.deposit-path { stroke: var(--accent); opacity: 1; animation: flowDash 30s linear infinite; }
+        @keyframes flowDash { to { stroke-dashoffset: -1000; } }
 
-        .node.accent .node-circle {
-            border-color: var(--accent);
-            color: var(--accent);
-            background-color: #fffbeb;
-            box-shadow: 0 0 15px rgba(197, 160, 33, 0.2);
-        }
-
-        .node-label {
-            margin-top: 12px;
-            font-size: 14px;
-            font-weight: 600;
-            text-align: center;
-            color: var(--text-main);
-            line-height: 1.3;
-        }
-
-        .node-value {
-            font-size: 13px;
-            color: var(--primary);
-            font-weight: 500;
-            margin-top: 6px;
-            background: #f1f5f9;
-            padding: 4px 10px;
-            border-radius: 12px;
-            min-height: 22px;
-            text-align: center;
-            border: 1px solid #e2e8f0;
-        }
-
-        .node-value.highlight {
-            background-color: #dbeafe;
-            color: var(--primary-light);
-            border-color: #bfdbfe;
-        }
-
-        .node-value.highlight-accent {
-            background-color: #fef3c7;
-            color: #d97706;
-            border-color: #fde68a;
-        }
-
-        /* SVG Connecting Tracks */
-        .route-svg-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        .connection-path {
-            fill: none;
-            stroke: #cbd5e1;
-            stroke-width: 4;
-            stroke-dasharray: 8 4;
-            transition: all 0.5s;
-            opacity: 0.3;
-        }
-
-        .connection-path.active-path {
-            stroke: var(--success);
-            opacity: 1;
-            animation: flowDash 30s linear infinite;
-        }
-
-        .connection-path.deposit-path {
-            stroke: var(--accent);
-            opacity: 1;
-            animation: flowDash 30s linear infinite;
-        }
-
-        @keyframes flowDash {
-            to { stroke-dashoffset: -1000; }
-        }
-
-        /* Simulation Controls */
-        .sim-btn-container {
-            display: flex;
-            gap: 12px;
-            margin-top: 15px;
-        }
-
-        .btn {
-            padding: 10px 16px;
-            border-radius: 8px;
-            border: none;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
+        .sim-btn-container { display: flex; gap: 12px; margin-top: 15px; }
+        .btn { padding: 10px 16px; border-radius: 8px; border: none; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
         .btn-primary { background-color: var(--primary); color: white; }
         .btn-primary:hover { background-color: var(--primary-light); }
         .btn-outline { background-color: transparent; border: 1px solid var(--border); color: var(--text-muted); }
         .btn-outline:hover { background-color: #f1f5f9; color: var(--text-main); }
+        .btn:disabled { background-color: #cbd5e1; cursor: not-allowed; }
 
-        /* Dynamic Table Card */
         .table-responsive { width: 100%; overflow-x: auto; margin-top: 15px; }
         table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
         th { background-color: #f1f5f9; color: var(--primary); padding: 14px 16px; font-weight: 600; border-bottom: 2px solid var(--border); }
         td { padding: 14px 16px; border-bottom: 1px solid var(--border); color: var(--text-main); }
         tr:hover { background-color: #f8fafc; }
         .tr-active-now { background-color: #eff6ff !important; border-left: 4px solid var(--primary); }
-
         .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; gap: 4px; }
         .status-pending { background-color: #f1f5f9; color: var(--text-muted); }
         .status-current { background-color: #dbeafe; color: var(--primary-light); }
@@ -420,7 +135,7 @@
         </div>
         <div class="badge-live">
             <div class="dot"></div>
-            <span>Interactive Simulator V2</span>
+            <span>Interactive Simulator V3</span>
         </div>
     </header>
 
@@ -456,6 +171,11 @@
                         <span>2 งวด</span><span>4 งวด</span><span>6 งวด</span>
                     </div>
                 </div>
+                
+                <div class="custom-pct-container" id="customPctContainer">
+                    </div>
+                <div id="pctWarning" class="pct-total-warning"><i class="fa-solid fa-triangle-exclamation"></i> ผลรวมสัดส่วนต้องเท่ากับ 100% (ตอนนี้: <span id="currentPctSum"></span>%)</div>
+                <div id="pctSuccess" class="pct-total-success"><i class="fa-solid fa-check"></i> สัดส่วนรวม 100% ถูกต้อง</div>
             </div>
 
             <div class="summary-box">
@@ -521,7 +241,7 @@
                 </div>
 
                 <div class="sim-btn-container">
-                    <button class="btn btn-primary" id="btnNextStep"><i class="fa-solid fa-play"></i> จำลองการเดินเงินงวดถัดไป</button>
+                    <button class="btn btn-primary" id="btnNextStep" disabled><i class="fa-solid fa-play"></i> จำลองการเดินเงินงวดถัดไป</button>
                     <button class="btn btn-outline" id="btnResetSim"><i class="fa-solid fa-rotate-right"></i> รีเซ็ตจำลองใหม่</button>
                     <span id="simStatusMsg" style="margin-left: auto; align-self: center; font-size: 14px; font-weight: 500; color: var(--success);"></span>
                 </div>
@@ -546,7 +266,7 @@
                             </tr>
                         </thead>
                         <tbody id="tableBody">
-                            </tbody>
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -561,6 +281,11 @@
     
     const lblDepositPct = document.getElementById('lblDepositPct');
     const lblInstallments = document.getElementById('lblInstallments');
+    
+    const customPctContainer = document.getElementById('customPctContainer');
+    const pctWarning = document.getElementById('pctWarning');
+    const pctSuccess = document.getElementById('pctSuccess');
+    const currentPctSum = document.getElementById('currentPctSum');
     
     const sumInitialDeposit = document.getElementById('sumInitialDeposit');
     const sumRemainingSO = document.getElementById('sumRemainingSO');
@@ -580,18 +305,90 @@
 
     let currentActiveInstallment = 0; 
     let calculatedDataRows = [];
-    let totalSOVal = 1000000;
-    let depositPctVal = 30;
-    let installmentCount = 4;
+    let customPercentages = []; // Array เก็บ % ที่ผู้ใช้ระบุเอง
+    let isConfigValid = true; // ตรวจสอบว่ารวมกันได้ 100% หรือไม่
 
     function formatCurrency(num) {
         return new Intl.NumberFormat('th-TH', { style: 'decimal', maximumFractionDigits: 0 }).format(num) + ' THB';
     }
 
+    // ฟังก์ชันสร้างช่องกรอก % ตามจำนวนงวด
+    function renderCustomPctInputs() {
+        const count = parseInt(inputInstallments.value);
+        let html = '';
+        
+        let newCustomPct = [];
+        let totalAssigned = 0;
+
+        for (let i = 0; i < count; i++) {
+            let defaultVal = 0;
+            // พยายามเก็บค่าเดิมไว้ถ้าไม่ได้เปลี่ยนจำนวนงวด
+            if (i < customPercentages.length && customPercentages.length === count) {
+                defaultVal = customPercentages[i];
+            } else {
+                // ถ้าเปลี่ยนจำนวนงวด ให้หารเฉลี่ยให้
+                if (i === count - 1) {
+                    defaultVal = 100 - totalAssigned;
+                } else {
+                    defaultVal = Math.floor(100 / count);
+                    totalAssigned += defaultVal;
+                }
+            }
+            newCustomPct.push(defaultVal);
+            
+            html += `
+                <div class="custom-pct-row">
+                    <span>งวดที่ ${i + 1}:</span>
+                    <div>
+                        <input type="number" class="custom-pct-input dyn-pct" data-idx="${i}" value="${defaultVal}" min="0" max="100"> %
+                    </div>
+                </div>
+            `;
+        }
+        
+        customPercentages = newCustomPct;
+        customPctContainer.innerHTML = html;
+        
+        // ผูก Event เวลามีการพิมพ์แก้ไขตัวเลข %
+        document.querySelectorAll('.dyn-pct').forEach(input => {
+            input.addEventListener('input', (e) => {
+                const idx = parseInt(e.target.dataset.idx);
+                let val = parseFloat(e.target.value) || 0;
+                customPercentages[idx] = val;
+                validateAndCalculate();
+            });
+        });
+        
+        validateAndCalculate();
+    }
+
+    // ฟังก์ชันตรวจสอบว่ารวมแล้วได้ 100% พอดีหรือไม่
+    function validateAndCalculate() {
+        let sum = customPercentages.reduce((a, b) => a + b, 0);
+        sum = Math.round(sum * 100) / 100; // แก้ปัญหาทศนิยม JS
+        
+        if (sum !== 100) {
+            pctWarning.style.display = 'block';
+            pctSuccess.style.display = 'none';
+            currentPctSum.textContent = sum;
+            isConfigValid = false;
+            btnNextStep.disabled = true; // ปิดปุ่มจำลอง
+            renderTableAndNodes(); // แสดงแจ้งเตือนในตาราง
+        } else {
+            pctWarning.style.display = 'none';
+            pctSuccess.style.display = 'block';
+            isConfigValid = true;
+            btnNextStep.disabled = false; // เปิดปุ่มจำลอง
+            updateCalculations();
+        }
+    }
+
     function updateCalculations() {
-        totalSOVal = parseFloat(inputTotalSO.value) || 0;
-        depositPctVal = parseInt(inputDepositPct.value);
-        installmentCount = parseInt(inputInstallments.value);
+        if (!isConfigValid) return; // ไม่คำนวณถ้ายอดไม่ครบ 100
+
+        let totalSOVal = parseFloat(inputTotalSO.value) || 0;
+        let depositPctVal = parseInt(inputDepositPct.value);
+        let installmentCount = parseInt(inputInstallments.value);
 
         lblDepositPct.textContent = depositPctVal;
         lblInstallments.textContent = installmentCount;
@@ -605,22 +402,16 @@
 
         calculatedDataRows = [];
         let remainingDepositAccum = totalDepositAmount;
-
-        const pctPerInstallment = (100 / installmentCount);
         
         for (let i = 1; i <= installmentCount; i++) {
-            let itemPct = pctPerInstallment;
-            if (i === installmentCount) {
-                let currentSum = pctPerInstallment * (installmentCount - 1);
-                itemPct = 100 - currentSum;
-            }
-
+            // ดึงสัดส่วน % ที่ผู้ใช้กรอก
+            let itemPct = customPercentages[i-1] || 0;
             const grossValue = totalSOVal * (itemPct / 100);
             
-            // Logic: Deduct deposit based on the same initial percentage
+            // หักมัดจำออกด้วยสัดส่วนตั้งต้น
             let depositDeduction = grossValue * (depositPctVal / 100);
 
-            // Logic for the LAST installment: Clear all remaining deposit
+            // Logic งวดสุดท้าย: ดึงยอดที่เหลือค้างทั้งหมดมาหักล้าง
             if (i === installmentCount) {
                 depositDeduction = remainingDepositAccum;
             }
@@ -643,8 +434,16 @@
     }
 
     function renderTableAndNodes() {
+        if (!isConfigValid) {
+            tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--danger); padding:20px;">⚠️ กรุณาปรับสัดส่วนรวมให้เท่ากับ 100% เพื่อคำนวณตาราง</td></tr>';
+            return;
+        }
+
         tableBody.innerHTML = '';
         
+        let totalSOVal = parseFloat(inputTotalSO.value) || 0;
+        let depositPctVal = parseInt(inputDepositPct.value);
+        let installmentCount = parseInt(inputInstallments.value);
         let totalDepositAmount = totalSOVal * (depositPctVal / 100);
         let liveDepositWalletState = totalDepositAmount;
         let liveRevenueRealized = 0;
@@ -707,7 +506,7 @@
 
             tr.innerHTML = `
                 <td style="font-weight:600; text-align:center;">งวดที่ ${row.instNo}</td>
-                <td>${row.pct.toFixed(1)}%</td>
+                <td>${row.pct.toFixed(2)}%</td>
                 <td style="font-weight:500;">${formatCurrency(row.gross)}</td>
                 <td style="color:var(--accent); font-weight:500;">-${formatCurrency(row.deduction)}</td>
                 <td style="color:var(--success); font-weight:600;">${formatCurrency(row.net)}</td>
@@ -719,6 +518,8 @@
     }
 
     function drawSVGConnections() {
+        if(!isConfigValid) return; // ไม่วาดเส้นถ้า % ยังไม่ครบ 100
+
         const getCenter = (id) => {
             const el = document.getElementById(id);
             if(!el) return {x:0, y:0};
@@ -764,6 +565,8 @@
     }
 
     btnNextStep.addEventListener('click', () => {
+        if (!isConfigValid) return;
+        let installmentCount = parseInt(inputInstallments.value);
         if (currentActiveInstallment < installmentCount) {
             currentActiveInstallment++;
         } else {
@@ -779,12 +582,17 @@
         drawSVGConnections();
     });
 
+    // Event Listeners เมื่อมีการเลื่อนแถบ
     inputTotalSO.addEventListener('input', updateCalculations);
     inputDepositPct.addEventListener('input', updateCalculations);
-    inputInstallments.addEventListener('input', updateCalculations);
+    
+    inputInstallments.addEventListener('input', () => {
+        currentActiveInstallment = 0; 
+        renderCustomPctInputs(); // รีเฟรชช่องกรอก % ใหม่
+    });
 
     window.addEventListener('load', () => {
-        updateCalculations();
+        renderCustomPctInputs(); // สร้างช่องกรอก % ครั้งแรก
         setTimeout(drawSVGConnections, 200);
     });
 
