@@ -57,13 +57,17 @@
         .card { background-color: var(--card-bg); border-radius: 16px; border: 1px solid var(--border); padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); }
         .panel-title { font-size: 18px; font-weight: 600; color: var(--primary); margin-bottom: 20px; display: flex; align-items: center; gap: 8px; border-bottom: 2px solid var(--background); padding-bottom: 10px; }
 
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; font-size: 14px; font-weight: 500; color: var(--text-main); margin-bottom: 8px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 14px; font-weight: 500; color: var(--text-main); margin-bottom: 6px; }
         .input-wrapper { position: relative; display: flex; align-items: center; }
         .input-wrapper i { position: absolute; left: 14px; color: var(--text-muted); }
-        .form-control { width: 100%; padding: 12px 14px 12px 40px; border: 1px solid var(--border); border-radius: 10px; font-size: 16px; color: var(--text-main); transition: all 0.3s; background-color: #fafafa; }
+        .form-control { width: 100%; padding: 10px 14px 10px 40px; border: 1px solid var(--border); border-radius: 10px; font-size: 14px; color: var(--text-main); transition: all 0.3s; background-color: #fafafa; }
         .form-control:focus { outline: none; border-color: var(--primary); background-color: #fff; box-shadow: 0 0 0 3px rgba(0, 45, 98, 0.1); }
+        .required-asterisk { color: var(--danger); }
         
+        .section-divider { border-top: 1px dashed var(--border); margin: 20px 0; }
+        .section-label { font-size: 14px; font-weight: 600; color: var(--primary-light); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+
         .slider-group { margin-top: 10px; }
         .slider-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-top: 4px; }
         input[type="range"] { width: 100%; accent-color: var(--primary); cursor: pointer; }
@@ -73,8 +77,10 @@
         .custom-pct-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
         .custom-pct-row:last-child { margin-bottom: 0; }
         .custom-pct-input { width: 80px; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; text-align: right; }
-        .pct-total-warning { color: var(--danger); font-size: 12px; margin-top: 8px; display: none; font-weight: 500; }
-        .pct-total-success { color: var(--success); font-size: 12px; margin-top: 8px; display: none; font-weight: 500; }
+        
+        .alert-msg { font-size: 12px; margin-top: 8px; display: none; font-weight: 500; }
+        .alert-warning { color: var(--danger); }
+        .alert-success { color: var(--success); }
 
         .summary-box { background-color: var(--background); border-radius: 12px; padding: 16px; margin-top: 24px; border-left: 4px solid var(--accent); }
         .summary-item { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; }
@@ -95,7 +101,7 @@
         .node.active .node-circle { border-color: var(--primary); color: var(--primary); background-color: #eff6ff; transform: scale(1.08); box-shadow: 0 0 15px rgba(0, 45, 98, 0.2); }
         .node.accent .node-circle { border-color: var(--accent); color: var(--accent); background-color: #fffbeb; box-shadow: 0 0 15px rgba(197, 160, 33, 0.2); }
         .node-label { margin-top: 12px; font-size: 14px; font-weight: 600; text-align: center; color: var(--text-main); line-height: 1.3; }
-        .node-value { font-size: 13px; color: var(--primary); font-weight: 500; margin-top: 6px; background: #f1f5f9; padding: 4px 10px; border-radius: 12px; min-height: 22px; text-align: center; border: 1px solid #e2e8f0; }
+        .node-value { font-size: 13px; color: var(--primary); font-weight: 500; margin-top: 6px; background: #f1f5f9; padding: 4px 10px; border-radius: 12px; min-height: 22px; text-align: center; border: 1px solid #e2e8f0; line-height: 1.4;}
         .node-value.highlight { background-color: #dbeafe; color: var(--primary-light); border-color: #bfdbfe; }
         .node-value.highlight-accent { background-color: #fef3c7; color: #d97706; border-color: #fde68a; }
 
@@ -108,10 +114,10 @@
         .sim-btn-container { display: flex; gap: 12px; margin-top: 15px; }
         .btn { padding: 10px 16px; border-radius: 8px; border: none; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
         .btn-primary { background-color: var(--primary); color: white; }
-        .btn-primary:hover { background-color: var(--primary-light); }
+        .btn-primary:hover:not(:disabled) { background-color: var(--primary-light); }
         .btn-outline { background-color: transparent; border: 1px solid var(--border); color: var(--text-muted); }
-        .btn-outline:hover { background-color: #f1f5f9; color: var(--text-main); }
-        .btn:disabled { background-color: #cbd5e1; cursor: not-allowed; }
+        .btn-outline:hover:not(:disabled) { background-color: #f1f5f9; color: var(--text-main); }
+        .btn:disabled { background-color: #cbd5e1; cursor: not-allowed; opacity: 0.7; }
 
         .table-responsive { width: 100%; overflow-x: auto; margin-top: 15px; }
         table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
@@ -145,6 +151,34 @@
                 <i class="fa-solid fa-sliders"></i> ตั้งค่าตัวเลข Mockup
             </div>
             
+            <!-- ส่วนเพิ่มใหม่: ข้อมูลลูกค้าและเอกสาร -->
+            <div class="section-label"><i class="fa-solid fa-address-card"></i> ข้อมูลลูกค้าและเอกสาร (จำเป็น)</div>
+            
+            <div class="form-group">
+                <label for="inputSONumber">1. หมายเลข SO <span class="required-asterisk">*</span></label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-file-invoice"></i>
+                    <input type="text" id="inputSONumber" class="form-control required-field" placeholder="เช่น SO-20260717-01">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="inputCustomerName">2. ชื่อลูกค้า <span class="required-asterisk">*</span></label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-user"></i>
+                    <input type="text" id="inputCustomerName" class="form-control required-field" placeholder="ระบุชื่อลูกค้า">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="inputCustomerCode">3. รหัสลูกค้า <span class="required-asterisk">*</span></label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-id-badge"></i>
+                    <input type="text" id="inputCustomerCode" class="form-control required-field" placeholder="ระบุรหัสลูกค้า">
+                </div>
+            </div>
+
+            <div class="section-divider"></div>
+            <div class="section-label"><i class="fa-solid fa-calculator"></i> ข้อมูลการเงิน</div>
+
             <div class="form-group">
                 <label for="inputTotalSO">ยอดคำสั่งซื้อรวม (Total SO Value)</label>
                 <div class="input-wrapper">
@@ -173,9 +207,10 @@
                 </div>
                 
                 <div class="custom-pct-container" id="customPctContainer">
-                    </div>
-                <div id="pctWarning" class="pct-total-warning"><i class="fa-solid fa-triangle-exclamation"></i> ผลรวมสัดส่วนต้องเท่ากับ 100% (ตอนนี้: <span id="currentPctSum"></span>%)</div>
-                <div id="pctSuccess" class="pct-total-success"><i class="fa-solid fa-check"></i> สัดส่วนรวม 100% ถูกต้อง</div>
+                    <!-- จะถูกสร้างด้วย JS -->
+                </div>
+                <div id="pctWarning" class="alert-msg alert-warning"><i class="fa-solid fa-triangle-exclamation"></i> ผลรวมสัดส่วนต้องเท่ากับ 100% (ตอนนี้: <span id="currentPctSum"></span>%)</div>
+                <div id="pctSuccess" class="alert-msg alert-success"><i class="fa-solid fa-check"></i> สัดส่วนรวม 100% ถูกต้อง</div>
             </div>
 
             <div class="summary-box">
@@ -211,7 +246,7 @@
 
                     <div class="node active" id="nodeCustomer">
                         <div class="node-circle"><i class="fa-solid fa-wallet"></i></div>
-                        <div class="node-label">1. ลูกค้า (Customer)</div>
+                        <div class="node-label" id="lblCustomerNode">1. ลูกค้า (Customer)</div>
                         <div class="node-value highlight-accent" id="valCustomer">มัดจำรวม: 0 THB</div>
                     </div>
 
@@ -242,8 +277,10 @@
 
                 <div class="sim-btn-container">
                     <button class="btn btn-primary" id="btnNextStep" disabled><i class="fa-solid fa-play"></i> จำลองการเดินเงินงวดถัดไป</button>
-                    <button class="btn btn-outline" id="btnResetSim"><i class="fa-solid fa-rotate-right"></i> รีเซ็ตจำลองใหม่</button>
-                    <span id="simStatusMsg" style="margin-left: auto; align-self: center; font-size: 14px; font-weight: 500; color: var(--success);"></span>
+                    <button class="btn btn-outline" id="btnResetSim"><i class="fa-solid fa-rotate-right"></i> รีเซ็ต</button>
+                    <span id="simStatusMsg" style="margin-left: auto; align-self: center; font-size: 14px; font-weight: 500; color: var(--danger);">
+                        <i class="fa-solid fa-lock"></i> กรุณากรอกข้อมูลลูกค้าและ SO ให้ครบถ้วน
+                    </span>
                 </div>
             </div>
 
@@ -275,6 +312,13 @@
 </div>
 
 <script>
+    // Elements (Text Inputs)
+    const inputSONumber = document.getElementById('inputSONumber');
+    const inputCustomerName = document.getElementById('inputCustomerName');
+    const inputCustomerCode = document.getElementById('inputCustomerCode');
+    const requiredFields = document.querySelectorAll('.required-field');
+
+    // Elements (Settings & Values)
     const inputTotalSO = document.getElementById('inputTotalSO');
     const inputDepositPct = document.getElementById('inputDepositPct');
     const inputInstallments = document.getElementById('inputInstallments');
@@ -296,6 +340,7 @@
     const valNetPay = document.getElementById('valNetPay');
     const valBilling = document.getElementById('valBilling');
     const valRevenue = document.getElementById('valRevenue');
+    const lblCustomerNode = document.getElementById('lblCustomerNode');
     
     const tableBody = document.getElementById('tableBody');
     const btnNextStep = document.getElementById('btnNextStep');
@@ -305,28 +350,26 @@
 
     let currentActiveInstallment = 0; 
     let calculatedDataRows = [];
-    let customPercentages = []; // Array เก็บ % ที่ผู้ใช้ระบุเอง
-    let isConfigValid = true; // ตรวจสอบว่ารวมกันได้ 100% หรือไม่
+    let customPercentages = [];
+    let isConfigValid = true; // For Percentage Check
+    let areFieldsValid = false; // For Required Info Check
 
     function formatCurrency(num) {
         return new Intl.NumberFormat('th-TH', { style: 'decimal', maximumFractionDigits: 0 }).format(num) + ' THB';
     }
 
-    // ฟังก์ชันสร้างช่องกรอก % ตามจำนวนงวด
+    // สร้างช่องกรอก % ตามงวด
     function renderCustomPctInputs() {
         const count = parseInt(inputInstallments.value);
         let html = '';
-        
         let newCustomPct = [];
         let totalAssigned = 0;
 
         for (let i = 0; i < count; i++) {
             let defaultVal = 0;
-            // พยายามเก็บค่าเดิมไว้ถ้าไม่ได้เปลี่ยนจำนวนงวด
             if (i < customPercentages.length && customPercentages.length === count) {
                 defaultVal = customPercentages[i];
             } else {
-                // ถ้าเปลี่ยนจำนวนงวด ให้หารเฉลี่ยให้
                 if (i === count - 1) {
                     defaultVal = 100 - totalAssigned;
                 } else {
@@ -349,7 +392,6 @@
         customPercentages = newCustomPct;
         customPctContainer.innerHTML = html;
         
-        // ผูก Event เวลามีการพิมพ์แก้ไขตัวเลข %
         document.querySelectorAll('.dyn-pct').forEach(input => {
             input.addEventListener('input', (e) => {
                 const idx = parseInt(e.target.dataset.idx);
@@ -362,29 +404,44 @@
         validateAndCalculate();
     }
 
-    // ฟังก์ชันตรวจสอบว่ารวมแล้วได้ 100% พอดีหรือไม่
+    // ตรวจสอบความถูกต้องของ Input และ %
     function validateAndCalculate() {
+        // 1. เช็คสัดส่วน % รวม
         let sum = customPercentages.reduce((a, b) => a + b, 0);
-        sum = Math.round(sum * 100) / 100; // แก้ปัญหาทศนิยม JS
-        
-        if (sum !== 100) {
+        sum = Math.round(sum * 100) / 100;
+        isConfigValid = (sum === 100);
+
+        if (!isConfigValid) {
             pctWarning.style.display = 'block';
             pctSuccess.style.display = 'none';
             currentPctSum.textContent = sum;
-            isConfigValid = false;
-            btnNextStep.disabled = true; // ปิดปุ่มจำลอง
-            renderTableAndNodes(); // แสดงแจ้งเตือนในตาราง
         } else {
             pctWarning.style.display = 'none';
             pctSuccess.style.display = 'block';
-            isConfigValid = true;
-            btnNextStep.disabled = false; // เปิดปุ่มจำลอง
-            updateCalculations();
         }
+
+        // 2. เช็คว่ากรอกข้อมูลลูกค้าและ SO ครบหรือไม่
+        areFieldsValid = (
+            inputSONumber.value.trim() !== '' &&
+            inputCustomerName.value.trim() !== '' &&
+            inputCustomerCode.value.trim() !== ''
+        );
+
+        // จัดการสถานะปุ่มและข้อความ
+        if (isConfigValid && areFieldsValid) {
+            btnNextStep.disabled = false;
+        } else {
+            btnNextStep.disabled = true;
+        }
+
+        updateCalculations();
     }
 
     function updateCalculations() {
-        if (!isConfigValid) return; // ไม่คำนวณถ้ายอดไม่ครบ 100
+        if (!isConfigValid) {
+            renderTableAndNodes();
+            return;
+        }
 
         let totalSOVal = parseFloat(inputTotalSO.value) || 0;
         let depositPctVal = parseInt(inputDepositPct.value);
@@ -404,14 +461,10 @@
         let remainingDepositAccum = totalDepositAmount;
         
         for (let i = 1; i <= installmentCount; i++) {
-            // ดึงสัดส่วน % ที่ผู้ใช้กรอก
             let itemPct = customPercentages[i-1] || 0;
             const grossValue = totalSOVal * (itemPct / 100);
-            
-            // หักมัดจำออกด้วยสัดส่วนตั้งต้น
             let depositDeduction = grossValue * (depositPctVal / 100);
 
-            // Logic งวดสุดท้าย: ดึงยอดที่เหลือค้างทั้งหมดมาหักล้าง
             if (i === installmentCount) {
                 depositDeduction = remainingDepositAccum;
             }
@@ -455,9 +508,29 @@
             }
         }
 
-        valCustomer.innerHTML = `มัดจำรวม: <strong>${formatCurrency(totalDepositAmount)}</strong>`;
+        // ดึงชื่อลูกค้าและเลข SO มาโชว์บนกราฟฟิก Node แบบ Real-time
+        let custNameDisp = inputCustomerName.value.trim() || "ลูกค้า";
+        let soDisp = inputSONumber.value.trim() || "ไม่ระบุ SO";
+        lblCustomerNode.textContent = `1. ${custNameDisp}`;
+        
+        valCustomer.innerHTML = `มัดจำรวม: <strong>${formatCurrency(totalDepositAmount)}</strong><br><span style="font-size:11px; color:var(--text-muted);">Ref: ${soDisp}</span>`;
         valDepositHold.innerHTML = `คงเหลือ: <strong>${formatCurrency(liveDepositWalletState)}</strong>`;
         valRevenue.innerHTML = `ยอดรับรวม: <strong>${formatCurrency(liveRevenueRealized)}</strong>`;
+
+        // กำหนดสถานะ Simulation Status
+        if (!areFieldsValid) {
+            simStatusMsg.innerHTML = '<i class="fa-solid fa-lock"></i> กรุณากรอกข้อมูลลูกค้าและ SO ให้ครบถ้วนเพื่อเริ่มจำลอง';
+            simStatusMsg.style.color = "var(--danger)";
+        } else {
+            simStatusMsg.style.color = "var(--success)";
+            if (currentActiveInstallment === 0) {
+                simStatusMsg.innerHTML = "🟢 รับเงินมัดจำเข้าคลังแล้วเรียบร้อย | พร้อมจำลองงวดแรก";
+            } else if (currentActiveInstallment === installmentCount) {
+                simStatusMsg.innerHTML = "🏆 เสร็จสมบูรณ์ทุกกระบวนการปิดจบ SO";
+            } else {
+                simStatusMsg.innerHTML = `⚡ กำลังดำเนินการตัดจ่ายงวดที่ ${currentActiveInstallment}`;
+            }
+        }
 
         if (currentActiveInstallment === 0) {
             valBilling.textContent = "รอเริ่มตัดส่งของ";
@@ -468,8 +541,6 @@
             document.getElementById('nodeBilling').classList.remove('active');
             document.getElementById('nodeNetPay').classList.remove('active');
             document.getElementById('nodeRevenue').classList.remove('active');
-            
-            simStatusMsg.textContent = "🟢 รับเงินมัดจำเข้าคลังแล้วเรียบร้อย";
         } else {
             const activeRow = calculatedDataRows[currentActiveInstallment - 1];
             
@@ -479,14 +550,9 @@
             document.getElementById('nodeBilling').classList.add('active');
             document.getElementById('nodeNetPay').classList.add('active');
             document.getElementById('nodeRevenue').classList.add('active');
-            
-            if (currentActiveInstallment === installmentCount) {
-                simStatusMsg.textContent = "🏆 เสร็จสมบูรณ์ทุกกระบวนการปิดจบ SO";
-            } else {
-                simStatusMsg.textContent = `⚡ กำลังดำเนินการตัดจ่ายงวดที่ ${currentActiveInstallment}`;
-            }
         }
 
+        // Render ตาราง
         calculatedDataRows.forEach((row, index) => {
             const tr = document.createElement('tr');
             let statusText = "";
@@ -518,7 +584,7 @@
     }
 
     function drawSVGConnections() {
-        if(!isConfigValid) return; // ไม่วาดเส้นถ้า % ยังไม่ครบ 100
+        if(!isConfigValid) return;
 
         const getCenter = (id) => {
             const el = document.getElementById(id);
@@ -564,8 +630,9 @@
         }
     }
 
+    // Event สำหรับจำลองการเดินเงิน
     btnNextStep.addEventListener('click', () => {
-        if (!isConfigValid) return;
+        if (!isConfigValid || !areFieldsValid) return;
         let installmentCount = parseInt(inputInstallments.value);
         if (currentActiveInstallment < installmentCount) {
             currentActiveInstallment++;
@@ -582,17 +649,22 @@
         drawSVGConnections();
     });
 
-    // Event Listeners เมื่อมีการเลื่อนแถบ
+    // Event Listeners การแก้ไขค่าต่างๆ
     inputTotalSO.addEventListener('input', updateCalculations);
     inputDepositPct.addEventListener('input', updateCalculations);
     
     inputInstallments.addEventListener('input', () => {
         currentActiveInstallment = 0; 
-        renderCustomPctInputs(); // รีเฟรชช่องกรอก % ใหม่
+        renderCustomPctInputs(); 
+    });
+
+    // เพิ่ม Event Listener ให้ Text Field ทั้ง 3 ช่อง
+    requiredFields.forEach(input => {
+        input.addEventListener('input', validateAndCalculate);
     });
 
     window.addEventListener('load', () => {
-        renderCustomPctInputs(); // สร้างช่องกรอก % ครั้งแรก
+        renderCustomPctInputs();
         setTimeout(drawSVGConnections, 200);
     });
 
