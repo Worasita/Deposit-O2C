@@ -136,19 +136,19 @@
 <div class="container">
     <header>
         <div>
-            <h1><i class="fa-solid fa-route"></i> Sourcing Product: Dynamic Money Route Tracker</h1>
-            <p>จำลองเส้นทางการเดินทางของเงิน (Fund Flow) และระบบหักล้างเงินมัดจำแบบสัดส่วนรายงวด (Same % Principle)</p>
+            <h1><i class="fa-solid fa-route"></i> Deposit SO Tracking</h1>
+            <p>ระบบติดตาม SO ที่มีการชำระมัดจำ</p>
         </div>
         <div class="badge-live">
             <div class="dot"></div>
-            <span>Interactive Simulator V3</span>
+            <span>Mockup website</span>
         </div>
     </header>
 
     <div class="dashboard-grid">
         <div class="card">
             <div class="panel-title">
-                <i class="fa-solid fa-sliders"></i> ตั้งค่าตัวเลข Mockup
+                <i class="fa-solid fa-sliders"></i> ข้อมูล Mockup
             </div>
             
             <!-- ส่วนเพิ่มใหม่: ข้อมูลลูกค้าและเอกสาร -->
@@ -236,9 +236,9 @@
         <div class="main-content">
             <div class="card route-map-card">
                 <div class="panel-title" style="margin-bottom: 5px;">
-                    <i class="fa-solid fa-diagram-project"></i> แผนผังเส้นทางการวิ่งของเงิน (Live Route Map)
+                    <i class="fa-solid fa-diagram-project"></i> แผนผังติดตามสถานะ SO
                 </div>
-                <p style="font-size: 13px; color: var(--text-muted);">กระบวนการเคลื่อนย้ายเงินทุนในระบบจากลูกค้าเข้าสู่บัญชีต่าง ๆ ของบริษัท</p>
+                <p style="font-size: 13px; color: var(--text-muted);">SO Route map Tracking</p>
                 
                 <div class="route-container">
                     <svg class="route-svg-layer" id="routeSvg">
@@ -276,7 +276,7 @@
                 </div>
 
                 <div class="sim-btn-container">
-                    <button class="btn btn-primary" id="btnNextStep" disabled><i class="fa-solid fa-play"></i> จำลองการเดินเงินงวดถัดไป</button>
+                    <button class="btn btn-primary" id="btnNextStep" disabled><i class="fa-solid fa-play"></i> ตัดจ่ายงวดถัดไป</button>
                     <button class="btn btn-outline" id="btnResetSim"><i class="fa-solid fa-rotate-right"></i> รีเซ็ต</button>
                     <span id="simStatusMsg" style="margin-left: auto; align-self: center; font-size: 14px; font-weight: 500; color: var(--danger);">
                         <i class="fa-solid fa-lock"></i> กรุณากรอกข้อมูลลูกค้าและ SO ให้ครบถ้วน
@@ -286,7 +286,7 @@
 
             <div class="card">
                 <div class="panel-title">
-                    <i class="fa-solid fa-table-list"></i> ตารางคำนวณงวดการส่งมอบและการหักล้าง (Deduction Schedule)
+                    <i class="fa-solid fa-table-list"></i> ตารางคำนวณงวดการส่งมอบและการหักล้างเงินมัดจำ 
                 </div>
                 
                 <div class="table-responsive">
@@ -299,7 +299,7 @@
                                 <th>🔁 หักล้างเงินมัดจำออก (Same %)</th>
                                 <th>💰 ยอดเงินสดที่ลูกค้าต้องจ่ายเพิ่ม</th>
                                 <th>ยอดมัดจำคงเหลือค้างในระบบ</th>
-                                <th>สถานะเส้นทาง</th>
+                                <th>สถานะ</th>
                             </tr>
                         </thead>
                         <tbody id="tableBody">
@@ -519,12 +519,12 @@
 
         // กำหนดสถานะ Simulation Status
         if (!areFieldsValid) {
-            simStatusMsg.innerHTML = '<i class="fa-solid fa-lock"></i> กรุณากรอกข้อมูลลูกค้าและ SO ให้ครบถ้วนเพื่อเริ่มจำลอง';
+            simStatusMsg.innerHTML = '<i class="fa-solid fa-lock"></i> กรุณากรอกข้อมูลลูกค้าและ SO ให้ครบถ้วนเพื่อเริ่มต้น';
             simStatusMsg.style.color = "var(--danger)";
         } else {
             simStatusMsg.style.color = "var(--success)";
             if (currentActiveInstallment === 0) {
-                simStatusMsg.innerHTML = "🟢 รับเงินมัดจำเข้าคลังแล้วเรียบร้อย | พร้อมจำลองงวดแรก";
+                simStatusMsg.innerHTML = "🟢 รับเงินมัดจำแล้วเรียบร้อย | พร้อมจัดจ่ายงวดแรก";
             } else if (currentActiveInstallment === installmentCount) {
                 simStatusMsg.innerHTML = "🏆 เสร็จสมบูรณ์ทุกกระบวนการปิดจบ SO";
             } else {
