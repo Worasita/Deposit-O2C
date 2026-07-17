@@ -51,11 +51,20 @@
         }
         @keyframes pulse { 0% { transform: scale(0.9); opacity: 0.6; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(0.9); opacity: 0.6; } }
 
+        /* Tabs System */
+        .tabs-container { margin-bottom: 24px; display: flex; gap: 10px; border-bottom: 2px solid var(--border); padding-bottom: 10px; }
+        .tab-btn { background: none; border: none; padding: 10px 20px; font-size: 16px; font-weight: 600; color: var(--text-muted); cursor: pointer; border-radius: 8px; transition: all 0.3s; display: flex; align-items: center; gap: 8px; }
+        .tab-btn:hover { background-color: #f1f5f9; color: var(--primary); }
+        .tab-btn.active { background-color: var(--primary); color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
         .dashboard-grid { display: grid; grid-template-columns: 350px 1fr; gap: 24px; }
         @media (max-width: 1024px) { .dashboard-grid { grid-template-columns: 1fr; } }
 
         .card { background-color: var(--card-bg); border-radius: 16px; border: 1px solid var(--border); padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); }
-        .panel-title { font-size: 18px; font-weight: 600; color: var(--primary); margin-bottom: 20px; display: flex; align-items: center; gap: 8px; border-bottom: 2px solid var(--background); padding-bottom: 10px; }
+        .panel-title { font-size: 18px; font-weight: 600; color: var(--primary); margin-bottom: 20px; display: flex; align-items: center; gap: 8px; border-bottom: 2px solid var(--background); padding-bottom: 10px; justify-content: space-between;}
 
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; font-size: 14px; font-weight: 500; color: var(--text-main); margin-bottom: 6px; }
@@ -111,12 +120,16 @@
         .connection-path.deposit-path { stroke: var(--accent); opacity: 1; animation: flowDash 30s linear infinite; }
         @keyframes flowDash { to { stroke-dashoffset: -1000; } }
 
-        .sim-btn-container { display: flex; gap: 12px; margin-top: 15px; }
+        .sim-btn-container { display: flex; gap: 12px; margin-top: 15px; flex-wrap: wrap; }
         .btn { padding: 10px 16px; border-radius: 8px; border: none; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
         .btn-primary { background-color: var(--primary); color: white; }
         .btn-primary:hover:not(:disabled) { background-color: var(--primary-light); }
         .btn-outline { background-color: transparent; border: 1px solid var(--border); color: var(--text-muted); }
         .btn-outline:hover:not(:disabled) { background-color: #f1f5f9; color: var(--text-main); }
+        .btn-success { background-color: var(--success); color: white; }
+        .btn-success:hover:not(:disabled) { background-color: #059669; }
+        .btn-danger { background-color: #fee2e2; color: var(--danger); }
+        .btn-danger:hover { background-color: #fca5a5; }
         .btn:disabled { background-color: #cbd5e1; cursor: not-allowed; opacity: 0.7; }
 
         .table-responsive { width: 100%; overflow-x: auto; margin-top: 15px; }
@@ -129,6 +142,17 @@
         .status-pending { background-color: #f1f5f9; color: var(--text-muted); }
         .status-current { background-color: #dbeafe; color: var(--primary-light); }
         .status-completed { background-color: #d1fae5; color: #065f46; }
+
+        /* Action buttons in Log Table */
+        .action-btns { display: flex; gap: 8px; }
+        .action-btn { padding: 6px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; border: none; font-weight: 500; transition: 0.2s;}
+        .edit-btn { background-color: #dbeafe; color: var(--primary); }
+        .edit-btn:hover { background-color: #bfdbfe; }
+        .delete-btn { background-color: #fee2e2; color: var(--danger); }
+        .delete-btn:hover { background-color: #fca5a5; }
+
+        .empty-state { text-align: center; padding: 40px; color: var(--text-muted); }
+        .empty-state i { font-size: 40px; margin-bottom: 15px; color: #cbd5e1; }
     </style>
 </head>
 <body>
@@ -145,178 +169,225 @@
         </div>
     </header>
 
-    <div class="dashboard-grid">
-        <div class="card">
-            <div class="panel-title">
-                <i class="fa-solid fa-sliders"></i> ข้อมูล Mockup
-            </div>
-            
-            <!-- ส่วนเพิ่มใหม่: ข้อมูลลูกค้าและเอกสาร -->
-            <div class="section-label"><i class="fa-solid fa-address-card"></i> ข้อมูลลูกค้าและเอกสาร (จำเป็น)</div>
-            
-            <div class="form-group">
-                <label for="inputSONumber">1. หมายเลข SO <span class="required-asterisk">*</span></label>
-                <div class="input-wrapper">
-                    <i class="fa-solid fa-file-invoice"></i>
-                    <input type="text" id="inputSONumber" class="form-control required-field" placeholder="เช่น SO-20260717-01">
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="inputCustomerName">2. ชื่อลูกค้า <span class="required-asterisk">*</span></label>
-                <div class="input-wrapper">
-                    <i class="fa-solid fa-user"></i>
-                    <input type="text" id="inputCustomerName" class="form-control required-field" placeholder="ระบุชื่อลูกค้า">
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="inputCustomerCode">3. รหัสลูกค้า <span class="required-asterisk">*</span></label>
-                <div class="input-wrapper">
-                    <i class="fa-solid fa-id-badge"></i>
-                    <input type="text" id="inputCustomerCode" class="form-control required-field" placeholder="ระบุรหัสลูกค้า">
-                </div>
-            </div>
+    <!-- Tab Navigation -->
+    <div class="tabs-container">
+        <button class="tab-btn active" id="tabMainBtn" onclick="switchTab('main')"><i class="fa-solid fa-pen-to-square"></i> สร้าง/จำลอง SO</button>
+        <button class="tab-btn" id="tabLogBtn" onclick="switchTab('log')"><i class="fa-solid fa-folder-open"></i> ประวัติ SO (Log)</button>
+    </div>
 
-            <div class="section-divider"></div>
-            <div class="section-label"><i class="fa-solid fa-calculator"></i> ข้อมูลการเงิน</div>
-
-            <div class="form-group">
-                <label for="inputTotalSO">ยอดคำสั่งซื้อรวม (Total SO Value)</label>
-                <div class="input-wrapper">
-                    <i class="fa-solid fa-money-bill-wave"></i>
-                    <input type="number" id="inputTotalSO" class="form-control" value="1000000" step="50000" min="100000">
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label for="inputDepositPct">สัดส่วนเงินมัดจำตั้งต้น: <span id="lblDepositPct" style="font-weight:700; color:var(--accent);">30</span>%</label>
-                <div class="slider-group">
-                    <input type="range" id="inputDepositPct" min="10" max="100" value="30" step="5">
-                    <div class="slider-labels">
-                        <span>10%</span><span>50%</span><span>100%</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label for="inputInstallments">จำนวนงวดส่งมอบต่องาน: <span id="lblInstallments" style="font-weight:700; color:var(--primary);">4</span> งวด</label>
-                <div class="slider-group">
-                    <input type="range" id="inputInstallments" min="2" max="6" value="4" step="1">
-                    <div class="slider-labels">
-                        <span>2 งวด</span><span>4 งวด</span><span>6 งวด</span>
-                    </div>
+    <!-- MAIN TAB (จำลอง SO) -->
+    <div id="mainTab" class="tab-content active">
+        <div class="dashboard-grid">
+            <div class="card">
+                <div class="panel-title">
+                    <span><i class="fa-solid fa-sliders"></i> ข้อมูล Mockup</span>
+                    <button class="btn btn-outline" style="padding: 6px 12px; font-size: 12px;" onclick="createNewSO()"><i class="fa-solid fa-plus"></i> สร้างใหม่ (Clear)</button>
                 </div>
                 
-                <div class="custom-pct-container" id="customPctContainer">
-                    <!-- จะถูกสร้างด้วย JS -->
+                <!-- ข้อมูลลูกค้าและเอกสาร -->
+                <div class="section-label"><i class="fa-solid fa-address-card"></i> ข้อมูลลูกค้าและเอกสาร (จำเป็น)</div>
+                <input type="hidden" id="editingSOId" value="">
+                
+                <div class="form-group">
+                    <label for="inputSONumber">1. หมายเลข SO <span class="required-asterisk">*</span></label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-file-invoice"></i>
+                        <input type="text" id="inputSONumber" class="form-control required-field" placeholder="เช่น SO-20260717-01">
+                    </div>
                 </div>
-                <div id="pctWarning" class="alert-msg alert-warning"><i class="fa-solid fa-triangle-exclamation"></i> ผลรวมสัดส่วนต้องเท่ากับ 100% (ตอนนี้: <span id="currentPctSum"></span>%)</div>
-                <div id="pctSuccess" class="alert-msg alert-success"><i class="fa-solid fa-check"></i> สัดส่วนรวม 100% ถูกต้อง</div>
+                <div class="form-group">
+                    <label for="inputCustomerName">2. ชื่อลูกค้า <span class="required-asterisk">*</span></label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-user"></i>
+                        <input type="text" id="inputCustomerName" class="form-control required-field" placeholder="ระบุชื่อลูกค้า">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="inputCustomerCode">3. รหัสลูกค้า <span class="required-asterisk">*</span></label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-id-badge"></i>
+                        <input type="text" id="inputCustomerCode" class="form-control required-field" placeholder="ระบุรหัสลูกค้า">
+                    </div>
+                </div>
+
+                <div class="section-divider"></div>
+                <div class="section-label"><i class="fa-solid fa-calculator"></i> ข้อมูลการเงิน</div>
+
+                <div class="form-group">
+                    <label for="inputTotalSO">ยอดคำสั่งซื้อรวม (Total SO Value)</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-money-bill-wave"></i>
+                        <input type="number" id="inputTotalSO" class="form-control" value="1000000" step="50000" min="100000">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="inputDepositPct">สัดส่วนเงินมัดจำตั้งต้น: <span id="lblDepositPct" style="font-weight:700; color:var(--accent);">30</span>%</label>
+                    <div class="slider-group">
+                        <input type="range" id="inputDepositPct" min="10" max="100" value="30" step="5">
+                        <div class="slider-labels">
+                            <span>10%</span><span>50%</span><span>100%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="inputInstallments">จำนวนงวดส่งมอบต่องาน: <span id="lblInstallments" style="font-weight:700; color:var(--primary);">4</span> งวด</label>
+                    <div class="slider-group">
+                        <input type="range" id="inputInstallments" min="2" max="6" value="4" step="1">
+                        <div class="slider-labels">
+                            <span>2 งวด</span><span>4 งวด</span><span>6 งวด</span>
+                        </div>
+                    </div>
+                    
+                    <div class="custom-pct-container" id="customPctContainer">
+                        <!-- จะถูกสร้างด้วย JS -->
+                    </div>
+                    <div id="pctWarning" class="alert-msg alert-warning"><i class="fa-solid fa-triangle-exclamation"></i> ผลรวมสัดส่วนต้องเท่ากับ 100% (ตอนนี้: <span id="currentPctSum"></span>%)</div>
+                    <div id="pctSuccess" class="alert-msg alert-success"><i class="fa-solid fa-check"></i> สัดส่วนรวม 100% ถูกต้อง</div>
+                </div>
+
+                <div class="summary-box">
+                    <div class="summary-item">
+                        <span>💰 เงินมัดจำก้อนแรกครังแรก:</span>
+                        <span id="sumInitialDeposit" style="font-weight: 600; color: var(--accent);">300,000 THB</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>📦 ยอดที่เหลือรอเรียกเก็บงวด:</span>
+                        <span id="sumRemainingSO">700,000 THB</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>📊 อัตราตัดจ่ายต่องวด:</span>
+                        <span>ตามสัดส่วนสินค้าจริง</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>🧾 ยอดรวมมูลค่าโครงการ:</span>
+                        <span id="sumTotalSO" style="color: var(--primary);">1,000,000 THB</span>
+                    </div>
+                </div>
             </div>
 
-            <div class="summary-box">
-                <div class="summary-item">
-                    <span>💰 เงินมัดจำก้อนแรกครังแรก:</span>
-                    <span id="sumInitialDeposit" style="font-weight: 600; color: var(--accent);">300,000 THB</span>
+            <div class="main-content">
+                <div class="card route-map-card">
+                    <div class="panel-title" style="margin-bottom: 5px;">
+                        <i class="fa-solid fa-diagram-project"></i> แผนผังติดตามสถานะ SO
+                    </div>
+                    <p style="font-size: 13px; color: var(--text-muted);">SO Route map Tracking</p>
+                    
+                    <div class="route-container">
+                        <svg class="route-svg-layer" id="routeSvg">
+                            <path id="pathInitDep" class="connection-path" d="" /> <path id="pathDedHold" class="connection-path" d="" /> <path id="pathDedRev" class="connection-path" d="" />  <path id="pathNetPayFlow" class="connection-path" d="" />  <path id="pathNetRev" class="connection-path" d="" />  </svg>
+
+                        <div class="node active" id="nodeCustomer">
+                            <div class="node-circle"><i class="fa-solid fa-wallet"></i></div>
+                            <div class="node-label" id="lblCustomerNode">1. ลูกค้า (Customer)</div>
+                            <div class="node-value highlight-accent" id="valCustomer">มัดจำรวม: 0 THB</div>
+                        </div>
+
+                        <div class="node accent" id="nodeDeposit">
+                            <div class="node-circle"><i class="fa-solid fa-vault"></i></div>
+                            <div class="node-label">2. ยอดเงินมัดจำที่เหลือ</div>
+                            <div class="node-value" id="valDepositHold">0 THB</div>
+                        </div>
+
+                        <div class="node" id="nodeNetPay">
+                            <div class="node-circle"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+                            <div class="node-label">5. ลูกค้าต้องชำระเงินเพิ่ม</div>
+                            <div class="node-value" id="valNetPay">รอชำระ</div>
+                        </div>
+
+                        <div class="node" id="nodeBilling">
+                            <div class="node-circle"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                            <div class="node-label">3. เงินมัดจำที่ทำคืนในงวดนี้</div>
+                            <div class="node-value" id="valBilling">หักมัดจำงวดนี้</div>
+                        </div>
+
+                        <div class="node" id="nodeRevenue">
+                            <div class="node-circle"><i class="fa-solid fa-building-columns"></i></div>
+                            <div class="node-label">4. รายได้รับจริงบริษัท</div>
+                            <div class="node-value highlight" id="valRevenue">0 THB</div>
+                        </div>
+                    </div>
+
+                    <div class="sim-btn-container">
+                        <button class="btn btn-primary" id="btnNextStep" disabled><i class="fa-solid fa-play"></i> ตัดจ่ายงวดถัดไป</button>
+                        <button class="btn btn-outline" id="btnResetSim"><i class="fa-solid fa-rotate-right"></i> รีเซ็ต</button>
+                        <!-- เพิ่มปุ่ม SAVE ที่นี่ -->
+                        <button class="btn btn-success" id="btnSaveSO" disabled><i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูล SO</button>
+
+                        <span id="simStatusMsg" style="margin-left: auto; align-self: center; font-size: 14px; font-weight: 500; color: var(--danger);">
+                            <i class="fa-solid fa-lock"></i> กรุณากรอกข้อมูลลูกค้าและ SO ให้ครบถ้วน
+                        </span>
+                    </div>
                 </div>
-                <div class="summary-item">
-                    <span>📦 ยอดที่เหลือรอเรียกเก็บงวด:</span>
-                    <span id="sumRemainingSO">700,000 THB</span>
-                </div>
-                <div class="summary-item">
-                    <span>📊 อัตราตัดจ่ายต่องวด:</span>
-                    <span>ตามสัดส่วนสินค้าจริง</span>
-                </div>
-                <div class="summary-item">
-                    <span>🧾 ยอดรวมมูลค่าโครงการ:</span>
-                    <span id="sumTotalSO" style="color: var(--primary);">1,000,000 THB</span>
+
+                <div class="card">
+                    <div class="panel-title">
+                        <i class="fa-solid fa-table-list"></i> ตารางคำนวณงวดการส่งมอบและการหักล้างเงินมัดจำ 
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table id="scheduleTable">
+                            <thead>
+                                <tr>
+                                    <th>งวดที่</th>
+                                    <th>สัดส่วนสินค้า (%)</th>
+                                    <th>มูลค่าส่งมอบจริง (Gross)</th>
+                                    <th>🔁 หักล้างเงินมัดจำออก (Same %)</th>
+                                    <th>💰 ยอดเงินสดที่ลูกค้าต้องจ่ายเพิ่ม</th>
+                                    <th>ยอดมัดจำคงเหลือค้างในระบบ</th>
+                                    <th>สถานะ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="main-content">
-            <div class="card route-map-card">
-                <div class="panel-title" style="margin-bottom: 5px;">
-                    <i class="fa-solid fa-diagram-project"></i> แผนผังติดตามสถานะ SO
-                </div>
-                <p style="font-size: 13px; color: var(--text-muted);">SO Route map Tracking</p>
-                
-                <div class="route-container">
-                    <svg class="route-svg-layer" id="routeSvg">
-                        <path id="pathInitDep" class="connection-path" d="" /> <path id="pathDedHold" class="connection-path" d="" /> <path id="pathDedRev" class="connection-path" d="" />  <path id="pathNetPayFlow" class="connection-path" d="" />  <path id="pathNetRev" class="connection-path" d="" />  </svg>
-
-                    <div class="node active" id="nodeCustomer">
-                        <div class="node-circle"><i class="fa-solid fa-wallet"></i></div>
-                        <div class="node-label" id="lblCustomerNode">1. ลูกค้า (Customer)</div>
-                        <div class="node-value highlight-accent" id="valCustomer">มัดจำรวม: 0 THB</div>
-                    </div>
-
-                    <div class="node accent" id="nodeDeposit">
-                        <div class="node-circle"><i class="fa-solid fa-vault"></i></div>
-                        <div class="node-label">2. ยอดเงินมัดจำที่เหลือ</div>
-                        <div class="node-value" id="valDepositHold">0 THB</div>
-                    </div>
-
-                    <div class="node" id="nodeNetPay">
-                        <div class="node-circle"><i class="fa-solid fa-hand-holding-dollar"></i></div>
-                        <div class="node-label">5. ลูกค้าต้องชำระเงินเพิ่ม</div>
-                        <div class="node-value" id="valNetPay">รอชำระ</div>
-                    </div>
-
-                    <div class="node" id="nodeBilling">
-                        <div class="node-circle"><i class="fa-solid fa-file-invoice-dollar"></i></div>
-                        <div class="node-label">3. เงินมัดจำที่ทำคืนในงวดนี้</div>
-                        <div class="node-value" id="valBilling">หักมัดจำงวดนี้</div>
-                    </div>
-
-                    <div class="node" id="nodeRevenue">
-                        <div class="node-circle"><i class="fa-solid fa-building-columns"></i></div>
-                        <div class="node-label">4. รายได้รับจริงบริษัท</div>
-                        <div class="node-value highlight" id="valRevenue">0 THB</div>
-                    </div>
-                </div>
-
-                <div class="sim-btn-container">
-                    <button class="btn btn-primary" id="btnNextStep" disabled><i class="fa-solid fa-play"></i> ตัดจ่ายงวดถัดไป</button>
-                    <button class="btn btn-outline" id="btnResetSim"><i class="fa-solid fa-rotate-right"></i> รีเซ็ต</button>
-                    <span id="simStatusMsg" style="margin-left: auto; align-self: center; font-size: 14px; font-weight: 500; color: var(--danger);">
-                        <i class="fa-solid fa-lock"></i> กรุณากรอกข้อมูลลูกค้าและ SO ให้ครบถ้วน
-                    </span>
-                </div>
+    <!-- LOG TAB (ประวัติ SO) -->
+    <div id="logTab" class="tab-content">
+        <div class="card">
+            <div class="panel-title">
+                <i class="fa-solid fa-database"></i> ประวัติงาน Sales Orders (Log)
             </div>
-
-            <div class="card">
-                <div class="panel-title">
-                    <i class="fa-solid fa-table-list"></i> ตารางคำนวณงวดการส่งมอบและการหักล้างเงินมัดจำ 
-                </div>
-                
-                <div class="table-responsive">
-                    <table id="scheduleTable">
-                        <thead>
-                            <tr>
-                                <th>งวดที่</th>
-                                <th>สัดส่วนสินค้า (%)</th>
-                                <th>มูลค่าส่งมอบจริง (Gross)</th>
-                                <th>🔁 หักล้างเงินมัดจำออก (Same %)</th>
-                                <th>💰 ยอดเงินสดที่ลูกค้าต้องจ่ายเพิ่ม</th>
-                                <th>ยอดมัดจำคงเหลือค้างในระบบ</th>
-                                <th>สถานะ</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody">
-                        </tbody>
-                    </table>
-                </div>
+            
+            <div class="table-responsive">
+                <table id="logTable">
+                    <thead>
+                        <tr>
+                            <th>หมายเลข SO</th>
+                            <th>รหัสลูกค้า</th>
+                            <th>ชื่อลูกค้า</th>
+                            <th>ยอดคำสั่งซื้อรวม</th>
+                            <th>% มัดจำ</th>
+                            <th>จำนวนงวด</th>
+                            <th>การจัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logTableBody">
+                        <!-- จะถูกสร้างด้วย JS -->
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
 
 <script>
+    // System Variables for Saving SOs
+    const STORAGE_KEY = 'mockup_saved_sos';
+    let savedSOs = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
     // Elements (Text Inputs)
     const inputSONumber = document.getElementById('inputSONumber');
     const inputCustomerName = document.getElementById('inputCustomerName');
     const inputCustomerCode = document.getElementById('inputCustomerCode');
     const requiredFields = document.querySelectorAll('.required-field');
+    const editingSOIdInput = document.getElementById('editingSOId');
 
     // Elements (Settings & Values)
     const inputTotalSO = document.getElementById('inputTotalSO');
@@ -343,8 +414,11 @@
     const lblCustomerNode = document.getElementById('lblCustomerNode');
     
     const tableBody = document.getElementById('tableBody');
+    const logTableBody = document.getElementById('logTableBody');
+    
     const btnNextStep = document.getElementById('btnNextStep');
     const btnResetSim = document.getElementById('btnResetSim');
+    const btnSaveSO = document.getElementById('btnSaveSO');
     const simStatusMsg = document.getElementById('simStatusMsg');
     const routeSvg = document.getElementById('routeSvg');
 
@@ -358,6 +432,22 @@
         return new Intl.NumberFormat('th-TH', { style: 'decimal', maximumFractionDigits: 0 }).format(num) + ' THB';
     }
 
+    // Tabs Control
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        
+        if (tabName === 'main') {
+            document.getElementById('mainTab').classList.add('active');
+            document.getElementById('tabMainBtn').classList.add('active');
+            setTimeout(drawSVGConnections, 100); // Redraw SVG when tab becomes visible
+        } else if (tabName === 'log') {
+            document.getElementById('logTab').classList.add('active');
+            document.getElementById('tabLogBtn').classList.add('active');
+            renderLogTable(); // Refresh table when opening
+        }
+    }
+
     // สร้างช่องกรอก % ตามงวด
     function renderCustomPctInputs() {
         const count = parseInt(inputInstallments.value);
@@ -367,9 +457,11 @@
 
         for (let i = 0; i < count; i++) {
             let defaultVal = 0;
+            // ถ้าเป็นการ Edit หรือจำลองจำนวนงวดเดิม ให้ใช้ค่า % เดิม
             if (i < customPercentages.length && customPercentages.length === count) {
                 defaultVal = customPercentages[i];
             } else {
+                // Auto calculate ค่าเฉลี่ย
                 if (i === count - 1) {
                     defaultVal = 100 - totalAssigned;
                 } else {
@@ -406,7 +498,6 @@
 
     // ตรวจสอบความถูกต้องของ Input และ %
     function validateAndCalculate() {
-        // 1. เช็คสัดส่วน % รวม
         let sum = customPercentages.reduce((a, b) => a + b, 0);
         sum = Math.round(sum * 100) / 100;
         isConfigValid = (sum === 100);
@@ -420,18 +511,18 @@
             pctSuccess.style.display = 'block';
         }
 
-        // 2. เช็คว่ากรอกข้อมูลลูกค้าและ SO ครบหรือไม่
         areFieldsValid = (
             inputSONumber.value.trim() !== '' &&
             inputCustomerName.value.trim() !== '' &&
             inputCustomerCode.value.trim() !== ''
         );
 
-        // จัดการสถานะปุ่มและข้อความ
         if (isConfigValid && areFieldsValid) {
             btnNextStep.disabled = false;
+            btnSaveSO.disabled = false;
         } else {
             btnNextStep.disabled = true;
+            btnSaveSO.disabled = true;
         }
 
         updateCalculations();
@@ -508,7 +599,6 @@
             }
         }
 
-        // ดึงชื่อลูกค้าและเลข SO มาโชว์บนกราฟฟิก Node แบบ Real-time
         let custNameDisp = inputCustomerName.value.trim() || "ลูกค้า";
         let soDisp = inputSONumber.value.trim() || "ไม่ระบุ SO";
         lblCustomerNode.textContent = `1. ${custNameDisp}`;
@@ -517,7 +607,6 @@
         valDepositHold.innerHTML = `คงเหลือ: <strong>${formatCurrency(liveDepositWalletState)}</strong>`;
         valRevenue.innerHTML = `ยอดรับรวม: <strong>${formatCurrency(liveRevenueRealized)}</strong>`;
 
-        // กำหนดสถานะ Simulation Status
         if (!areFieldsValid) {
             simStatusMsg.innerHTML = '<i class="fa-solid fa-lock"></i> กรุณากรอกข้อมูลลูกค้าและ SO ให้ครบถ้วนเพื่อเริ่มต้น';
             simStatusMsg.style.color = "var(--danger)";
@@ -552,7 +641,6 @@
             document.getElementById('nodeRevenue').classList.add('active');
         }
 
-        // Render ตาราง
         calculatedDataRows.forEach((row, index) => {
             const tr = document.createElement('tr');
             let statusText = "";
@@ -630,6 +718,127 @@
         }
     }
 
+    // ---------------------------------------------------------
+    // ฟังก์ชันใหม่: การบันทึก และการจัดการ Log (Save / Edit / Delete)
+    // ---------------------------------------------------------
+
+    function createNewSO() {
+        inputSONumber.value = '';
+        inputCustomerName.value = '';
+        inputCustomerCode.value = '';
+        inputTotalSO.value = '1000000';
+        inputDepositPct.value = '30';
+        inputInstallments.value = '4';
+        editingSOIdInput.value = '';
+        
+        currentActiveInstallment = 0;
+        customPercentages = []; // Reset percentages
+        renderCustomPctInputs(); // Will auto-calculate defaults
+        switchTab('main');
+    }
+
+    btnSaveSO.addEventListener('click', () => {
+        if (!isConfigValid || !areFieldsValid) return;
+
+        const soData = {
+            id: editingSOIdInput.value || Date.now().toString(), // ถ้ามี ID เดิมให้ใช้เดิม ถ้าไม่มีให้สร้างใหม่
+            soNumber: inputSONumber.value.trim(),
+            custName: inputCustomerName.value.trim(),
+            custCode: inputCustomerCode.value.trim(),
+            totalSO: parseFloat(inputTotalSO.value),
+            depositPct: parseInt(inputDepositPct.value),
+            installments: parseInt(inputInstallments.value),
+            customPercentages: [...customPercentages], // Copy array
+            dateSaved: new Date().toLocaleString('th-TH')
+        };
+
+        if (editingSOIdInput.value) {
+            // โหมดอัปเดตงานเดิม
+            const index = savedSOs.findIndex(s => s.id === editingSOIdInput.value);
+            if(index !== -1) savedSOs[index] = soData;
+        } else {
+            // โหมดสร้างงานใหม่
+            savedSOs.push(soData);
+            editingSOIdInput.value = soData.id; // เซ็ต ID ให้รู้ว่าเซฟแล้ว (เผื่อกดเซฟซ้ำ)
+        }
+
+        // Save to Local Storage
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(savedSOs));
+        
+        alert(`บันทึกข้อมูล SO: ${soData.soNumber} เรียบร้อยแล้ว!`);
+    });
+
+    function renderLogTable() {
+        logTableBody.innerHTML = '';
+
+        if (savedSOs.length === 0) {
+            logTableBody.innerHTML = `<tr><td colspan="7">
+                <div class="empty-state">
+                    <i class="fa-solid fa-folder-open"></i>
+                    <p>ยังไม่มีประวัติ SO ในระบบ</p>
+                </div>
+            </td></tr>`;
+            return;
+        }
+
+        savedSOs.forEach(so => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="font-weight:600; color:var(--primary);">${so.soNumber}</td>
+                <td>${so.custCode}</td>
+                <td>${so.custName}</td>
+                <td style="font-weight:500;">${formatCurrency(so.totalSO)}</td>
+                <td>${so.depositPct}%</td>
+                <td>${so.installments} งวด</td>
+                <td>
+                    <div class="action-btns">
+                        <button class="action-btn edit-btn" onclick="editSO('${so.id}')"><i class="fa-solid fa-pen"></i> แก้ไข</button>
+                        <button class="action-btn delete-btn" onclick="deleteSO('${so.id}')"><i class="fa-solid fa-trash"></i> ลบ</button>
+                    </div>
+                </td>
+            `;
+            logTableBody.appendChild(tr);
+        });
+    }
+
+    window.editSO = function(id) {
+        const so = savedSOs.find(s => s.id === id);
+        if (!so) return;
+
+        // ดึงค่าใส่ฟอร์ม
+        editingSOIdInput.value = so.id;
+        inputSONumber.value = so.soNumber;
+        inputCustomerName.value = so.custName;
+        inputCustomerCode.value = so.custCode;
+        inputTotalSO.value = so.totalSO;
+        inputDepositPct.value = so.depositPct;
+        inputInstallments.value = so.installments;
+        
+        // คืนค่า % ที่เซฟไว้
+        customPercentages = [...so.customPercentages]; 
+        
+        currentActiveInstallment = 0; // Reset simulation step
+        renderCustomPctInputs();
+        
+        switchTab('main'); // ย้ายไปหน้าจอแก้ไข
+    };
+
+    window.deleteSO = function(id) {
+        if (confirm('คุณแน่ใจหรือไม่ว่าต้องการลบ SO นี้ออกจากประวัติ?')) {
+            savedSOs = savedSOs.filter(s => s.id !== id);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(savedSOs));
+            
+            // ถ้ากำลังแก้ไขไฟล์นี้อยู่ ให้ Clear ฟอร์มด้วย
+            if (editingSOIdInput.value === id) {
+                createNewSO(); 
+                switchTab('log'); // กลับไปหน้า Log เพราะฟอร์มเคลียร์แล้ว
+            } else {
+                renderLogTable(); // แค่ลบและอัปเดตตาราง
+            }
+        }
+    };
+
+
     // Event สำหรับจำลองการเดินเงิน
     btnNextStep.addEventListener('click', () => {
         if (!isConfigValid || !areFieldsValid) return;
@@ -658,7 +867,6 @@
         renderCustomPctInputs(); 
     });
 
-    // เพิ่ม Event Listener ให้ Text Field ทั้ง 3 ช่อง
     requiredFields.forEach(input => {
         input.addEventListener('input', validateAndCalculate);
     });
