@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sourcing Product - Dynamic Money Route Tracker (V3)</title>
+    <title>Sourcing Product - Dynamic Money Route Tracker (V4)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -25,7 +25,7 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Prompt', 'Sarabun', sans-serif; }
         body { background-color: var(--background); color: var(--text-main); padding: 24px; min-height: 100vh; }
-        .container { max-width: 1400px; margin: 0 auto; }
+        .container { max-width: 1500px; margin: 0 auto; } /* ขยายความกว้างเพื่อรองรับตาราง */
 
         header {
             background: linear-gradient(135deg, var(--primary) 0%, #001a3a 100%);
@@ -60,7 +60,7 @@
         .tab-content.active { display: block; animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .dashboard-grid { display: grid; grid-template-columns: 350px 1fr; gap: 24px; }
+        .dashboard-grid { display: grid; grid-template-columns: 380px 1fr; gap: 24px; }
         @media (max-width: 1024px) { .dashboard-grid { grid-template-columns: 1fr; } }
 
         .card { background-color: var(--card-bg); border-radius: 16px; border: 1px solid var(--border); padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); }
@@ -73,6 +73,8 @@
         .form-control { width: 100%; padding: 10px 14px 10px 40px; border: 1px solid var(--border); border-radius: 10px; font-size: 14px; color: var(--text-main); transition: all 0.3s; background-color: #fafafa; }
         .form-control:focus { outline: none; border-color: var(--primary); background-color: #fff; box-shadow: 0 0 0 3px rgba(0, 45, 98, 0.1); }
         .required-asterisk { color: var(--danger); }
+        
+        .table-input { padding: 6px 10px !important; background-color: #fff !important; width: 100%; text-align: center; }
         
         .section-divider { border-top: 1px dashed var(--border); margin: 20px 0; }
         .section-label { font-size: 14px; font-weight: 600; color: var(--primary-light); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
@@ -121,7 +123,7 @@
         @keyframes flowDash { to { stroke-dashoffset: -1000; } }
 
         .sim-btn-container { display: flex; gap: 12px; margin-top: 15px; flex-wrap: wrap; }
-        .btn { padding: 10px 16px; border-radius: 8px; border: none; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
+        .btn { padding: 10px 16px; border-radius: 8px; border: none; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; justify-content: center; }
         .btn-primary { background-color: var(--primary); color: white; }
         .btn-primary:hover:not(:disabled) { background-color: var(--primary-light); }
         .btn-outline { background-color: transparent; border: 1px solid var(--border); color: var(--text-muted); }
@@ -129,13 +131,13 @@
         .btn-success { background-color: var(--success); color: white; }
         .btn-success:hover:not(:disabled) { background-color: #059669; }
         .btn-danger { background-color: #fee2e2; color: var(--danger); }
-        .btn-danger:hover { background-color: #fca5a5; }
+        .btn-danger:hover:not(:disabled) { background-color: #fca5a5; }
         .btn:disabled { background-color: #cbd5e1; cursor: not-allowed; opacity: 0.7; }
 
         .table-responsive { width: 100%; overflow-x: auto; margin-top: 15px; }
-        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
-        th { background-color: #f1f5f9; color: var(--primary); padding: 14px 16px; font-weight: 600; border-bottom: 2px solid var(--border); }
-        td { padding: 14px 16px; border-bottom: 1px solid var(--border); color: var(--text-main); }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
+        th { background-color: #f1f5f9; color: var(--primary); padding: 12px 10px; font-weight: 600; border-bottom: 2px solid var(--border); text-align: center;}
+        td { padding: 10px; border-bottom: 1px solid var(--border); color: var(--text-main); text-align: center;}
         tr:hover { background-color: #f8fafc; }
         .tr-active-now { background-color: #eff6ff !important; border-left: 4px solid var(--primary); }
         .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; gap: 4px; }
@@ -144,7 +146,7 @@
         .status-completed { background-color: #d1fae5; color: #065f46; }
 
         /* Action buttons in Log Table */
-        .action-btns { display: flex; gap: 8px; }
+        .action-btns { display: flex; gap: 8px; justify-content: center; }
         .action-btn { padding: 6px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; border: none; font-weight: 500; transition: 0.2s;}
         .edit-btn { background-color: #dbeafe; color: var(--primary); }
         .edit-btn:hover { background-color: #bfdbfe; }
@@ -161,7 +163,7 @@
     <header>
         <div>
             <h1><i class="fa-solid fa-route"></i> Deposit SO Tracking</h1>
-            <p>ระบบติดตาม SO ที่มีการชำระมัดจำ</p>
+            <p>ระบบติดตาม SO ที่มีการชำระมัดจำ (เพิ่มการจัดการสินค้า และ DN Reference)</p>
         </div>
         <div class="badge-live">
             <div class="dot"></div>
@@ -180,8 +182,8 @@
         <div class="dashboard-grid">
             <div class="card">
                 <div class="panel-title">
-                    <span><i class="fa-solid fa-sliders"></i> ข้อมูล Mockup</span>
-                    <button class="btn btn-outline" style="padding: 6px 12px; font-size: 12px;" onclick="createNewSO()"><i class="fa-solid fa-plus"></i> สร้างใหม่ (Clear)</button>
+                    <span><i class="fa-solid fa-sliders"></i> ข้อมูลเบื้องต้น</span>
+                    <button class="btn btn-outline" style="padding: 6px 12px; font-size: 12px;" onclick="createNewSO()"><i class="fa-solid fa-plus"></i> สร้างใหม่</button>
                 </div>
                 
                 <!-- ข้อมูลลูกค้าและเอกสาร -->
@@ -210,14 +212,22 @@
                     </div>
                 </div>
 
+                <!-- เพิ่มรายการสินค้า -->
                 <div class="section-divider"></div>
-                <div class="section-label"><i class="fa-solid fa-calculator"></i> ข้อมูลการเงิน</div>
+                <div class="section-label"><i class="fa-solid fa-boxes-stacked"></i> 4. รายการสินค้า</div>
+                <div id="productListContainer">
+                    <!-- Dynamic Product Rows -->
+                </div>
+                <button class="btn btn-outline" onclick="addProductRow()" style="margin-top: 10px; width: 100%;"><i class="fa-solid fa-plus"></i> เพิ่มสินค้า (Item)</button>
+
+                <div class="section-divider"></div>
+                <div class="section-label"><i class="fa-solid fa-calculator"></i> ข้อมูลการเงินและการแบ่งงวด</div>
 
                 <div class="form-group">
-                    <label for="inputTotalSO">ยอดคำสั่งซื้อรวม (Total SO Value)</label>
+                    <label for="inputTotalSO">ยอดคำสั่งซื้อรวม (คำนวณจากรายการสินค้า)</label>
                     <div class="input-wrapper">
                         <i class="fa-solid fa-money-bill-wave"></i>
-                        <input type="number" id="inputTotalSO" class="form-control" value="1000000" step="50000" min="100000">
+                        <input type="number" id="inputTotalSO" class="form-control" value="0" readonly style="background-color: #e2e8f0; font-weight: bold;">
                     </div>
                 </div>
 
@@ -234,9 +244,9 @@
                 <div class="form-group">
                     <label for="inputInstallments">จำนวนงวดส่งมอบต่องาน: <span id="lblInstallments" style="font-weight:700; color:var(--primary);">4</span> งวด</label>
                     <div class="slider-group">
-                        <input type="range" id="inputInstallments" min="2" max="6" value="4" step="1">
+                        <input type="range" id="inputInstallments" min="1" max="10" value="4" step="1">
                         <div class="slider-labels">
-                            <span>2 งวด</span><span>4 งวด</span><span>6 งวด</span>
+                            <span>1 งวด</span><span>5 งวด</span><span>10 งวด</span>
                         </div>
                     </div>
                     
@@ -250,11 +260,11 @@
                 <div class="summary-box">
                     <div class="summary-item">
                         <span>💰 เงินมัดจำก้อนแรกครังแรก:</span>
-                        <span id="sumInitialDeposit" style="font-weight: 600; color: var(--accent);">300,000 THB</span>
+                        <span id="sumInitialDeposit" style="font-weight: 600; color: var(--accent);">0 THB</span>
                     </div>
                     <div class="summary-item">
                         <span>📦 ยอดที่เหลือรอเรียกเก็บงวด:</span>
-                        <span id="sumRemainingSO">700,000 THB</span>
+                        <span id="sumRemainingSO">0 THB</span>
                     </div>
                     <div class="summary-item">
                         <span>📊 อัตราตัดจ่ายต่องวด:</span>
@@ -262,7 +272,7 @@
                     </div>
                     <div class="summary-item">
                         <span>🧾 ยอดรวมมูลค่าโครงการ:</span>
-                        <span id="sumTotalSO" style="color: var(--primary);">1,000,000 THB</span>
+                        <span id="sumTotalSO" style="color: var(--primary);">0 THB</span>
                     </div>
                 </div>
             </div>
@@ -312,7 +322,6 @@
                     <div class="sim-btn-container">
                         <button class="btn btn-primary" id="btnNextStep" disabled><i class="fa-solid fa-play"></i> ตัดจ่ายงวดถัดไป</button>
                         <button class="btn btn-outline" id="btnResetSim"><i class="fa-solid fa-rotate-right"></i> รีเซ็ต</button>
-                        <!-- เพิ่มปุ่ม SAVE ที่นี่ -->
                         <button class="btn btn-success" id="btnSaveSO" disabled><i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูล SO</button>
 
                         <span id="simStatusMsg" style="margin-left: auto; align-self: center; font-size: 14px; font-weight: 500; color: var(--danger);">
@@ -330,13 +339,15 @@
                         <table id="scheduleTable">
                             <thead>
                                 <tr>
-                                    <th>งวดที่</th>
-                                    <th>สัดส่วนสินค้า (%)</th>
-                                    <th>มูลค่าส่งมอบจริง (Gross)</th>
-                                    <th>🔁 หักล้างเงินมัดจำออก (Same %)</th>
-                                    <th>💰 ยอดเงินสดที่ลูกค้าต้องจ่ายเพิ่ม</th>
-                                    <th>ยอดมัดจำคงเหลือค้างในระบบ</th>
-                                    <th>สถานะ</th>
+                                    <th style="width: 70px;">งวดที่</th>
+                                    <th style="width: 150px;">เลข DN (อ้างอิง)</th>
+                                    <th>% งวด</th>
+                                    <th>ส่งมอบจริง (Gross)</th>
+                                    <th>🔁 หักล้างมัดจำ</th>
+                                    <th>💰 ลูกค้าจ่ายเพิ่ม</th>
+                                    <th>มัดจำคงเหลือ</th>
+                                    <th style="width: 100px;">% ส่งมอบ</th>
+                                    <th style="width: 120px;">สถานะ</th>
                                 </tr>
                             </thead>
                             <tbody id="tableBody">
@@ -379,7 +390,7 @@
 
 <script>
     // System Variables for Saving SOs
-    const STORAGE_KEY = 'mockup_saved_sos';
+    const STORAGE_KEY = 'mockup_saved_sos_v4';
     let savedSOs = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
     // Elements (Text Inputs)
@@ -425,11 +436,16 @@
     let currentActiveInstallment = 0; 
     let calculatedDataRows = [];
     let customPercentages = [];
-    let isConfigValid = true; // For Percentage Check
-    let areFieldsValid = false; // For Required Info Check
+    
+    // ตัวแปรใหม่ที่เพิ่มเข้ามา
+    let productItems = [{ name: 'สินค้าตัวอย่าง 1', price: 500000 }, { name: 'สินค้าตัวอย่าง 2', price: 500000 }];
+    let installmentExtraDetails = []; // เก็บ {dn: '', progress: 0}
+
+    let isConfigValid = true; 
+    let areFieldsValid = false; 
 
     function formatCurrency(num) {
-        return new Intl.NumberFormat('th-TH', { style: 'decimal', maximumFractionDigits: 0 }).format(num) + ' THB';
+        return new Intl.NumberFormat('th-TH', { style: 'decimal', maximumFractionDigits: 0 }).format(num) + ' ฿';
     }
 
     // Tabs Control
@@ -440,13 +456,61 @@
         if (tabName === 'main') {
             document.getElementById('mainTab').classList.add('active');
             document.getElementById('tabMainBtn').classList.add('active');
-            setTimeout(drawSVGConnections, 100); // Redraw SVG when tab becomes visible
+            setTimeout(drawSVGConnections, 100); 
         } else if (tabName === 'log') {
             document.getElementById('logTab').classList.add('active');
             document.getElementById('tabLogBtn').classList.add('active');
-            renderLogTable(); // Refresh table when opening
+            renderLogTable(); 
         }
     }
+
+    // ฟังก์ชันจัดการรายการสินค้า (เพิ่มใหม่)
+    function renderProductInputs() {
+        const container = document.getElementById('productListContainer');
+        container.innerHTML = '';
+        let totalVal = 0;
+        
+        productItems.forEach((item, idx) => {
+            totalVal += (item.price || 0);
+            container.innerHTML += `
+                <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                    <div style="flex-grow: 1; position: relative;">
+                        <i class="fa-solid fa-box" style="position: absolute; left: 12px; top: 10px; color: var(--text-muted); font-size: 13px;"></i>
+                        <input type="text" class="form-control" style="padding-left: 32px;" placeholder="ชื่อสินค้า/รุ่น" value="${item.name}" oninput="updateProductData(${idx}, 'name', this.value)">
+                    </div>
+                    <div style="width: 150px; position: relative;">
+                        <i class="fa-solid fa-tag" style="position: absolute; left: 12px; top: 10px; color: var(--text-muted); font-size: 13px;"></i>
+                        <input type="number" class="form-control" style="padding-left: 32px;" placeholder="มูลค่า" value="${item.price || ''}" oninput="updateProductData(${idx}, 'price', this.value)">
+                    </div>
+                    <button class="btn btn-danger" style="padding: 10px;" onclick="removeProductRow(${idx})" ${productItems.length === 1 ? 'disabled' : ''} title="ลบรายการ"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            `;
+        });
+        
+        inputTotalSO.value = totalVal;
+        updateCalculations();
+    }
+
+    window.updateProductData = function(idx, field, val) {
+        if (field === 'name') productItems[idx].name = val;
+        if (field === 'price') productItems[idx].price = parseFloat(val) || 0;
+        
+        let totalVal = productItems.reduce((sum, item) => sum + (item.price || 0), 0);
+        inputTotalSO.value = totalVal;
+        updateCalculations();
+    };
+
+    window.addProductRow = function() {
+        productItems.push({ name: '', price: 0 });
+        renderProductInputs();
+    };
+
+    window.removeProductRow = function(idx) {
+        if (productItems.length > 1) {
+            productItems.splice(idx, 1);
+            renderProductInputs();
+        }
+    };
 
     // สร้างช่องกรอก % ตามงวด
     function renderCustomPctInputs() {
@@ -457,11 +521,9 @@
 
         for (let i = 0; i < count; i++) {
             let defaultVal = 0;
-            // ถ้าเป็นการ Edit หรือจำลองจำนวนงวดเดิม ให้ใช้ค่า % เดิม
             if (i < customPercentages.length && customPercentages.length === count) {
                 defaultVal = customPercentages[i];
             } else {
-                // Auto calculate ค่าเฉลี่ย
                 if (i === count - 1) {
                     defaultVal = 100 - totalAssigned;
                 } else {
@@ -514,7 +576,8 @@
         areFieldsValid = (
             inputSONumber.value.trim() !== '' &&
             inputCustomerName.value.trim() !== '' &&
-            inputCustomerCode.value.trim() !== ''
+            inputCustomerCode.value.trim() !== '' &&
+            parseFloat(inputTotalSO.value) > 0
         );
 
         if (isConfigValid && areFieldsValid) {
@@ -577,9 +640,22 @@
         drawSVGConnections();
     }
 
+    window.updateExtraDetail = function(idx, field, val) {
+        if (!installmentExtraDetails[idx]) {
+            installmentExtraDetails[idx] = { dn: '', progress: 0 };
+        }
+        if (field === 'dn') installmentExtraDetails[idx].dn = val;
+        if (field === 'progress') {
+            let num = parseInt(val) || 0;
+            if(num > 100) num = 100;
+            if(num < 0) num = 0;
+            installmentExtraDetails[idx].progress = num;
+        }
+    };
+
     function renderTableAndNodes() {
         if (!isConfigValid) {
-            tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--danger); padding:20px;">⚠️ กรุณาปรับสัดส่วนรวมให้เท่ากับ 100% เพื่อคำนวณตาราง</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:var(--danger); padding:20px;">⚠️ กรุณาปรับสัดส่วนรวมให้เท่ากับ 100% เพื่อคำนวณตาราง</td></tr>';
             return;
         }
 
@@ -608,16 +684,16 @@
         valRevenue.innerHTML = `ยอดรับรวม: <strong>${formatCurrency(liveRevenueRealized)}</strong>`;
 
         if (!areFieldsValid) {
-            simStatusMsg.innerHTML = '<i class="fa-solid fa-lock"></i> กรุณากรอกข้อมูลลูกค้าและ SO ให้ครบถ้วนเพื่อเริ่มต้น';
+            simStatusMsg.innerHTML = '<i class="fa-solid fa-lock"></i> กรุณากรอกข้อมูลและรายการสินค้าให้ครบถ้วน';
             simStatusMsg.style.color = "var(--danger)";
         } else {
             simStatusMsg.style.color = "var(--success)";
             if (currentActiveInstallment === 0) {
-                simStatusMsg.innerHTML = "🟢 รับเงินมัดจำแล้วเรียบร้อย | พร้อมตัดจ่ายงวดแรก";
+                simStatusMsg.innerHTML = "🟢 รับเงินมัดจำแล้วเรียบร้อย | พร้อมดำเนินการส่งมอบ";
             } else if (currentActiveInstallment === installmentCount) {
                 simStatusMsg.innerHTML = "🏆 เสร็จสมบูรณ์ทุกกระบวนการปิดจบ SO";
             } else {
-                simStatusMsg.innerHTML = `⚡ กำลังดำเนินการตัดจ่ายงวดที่ ${currentActiveInstallment}`;
+                simStatusMsg.innerHTML = `⚡ กำลังดำเนินการตัดจ่ายและติดตามของ งวดที่ ${currentActiveInstallment}`;
             }
         }
 
@@ -632,7 +708,6 @@
             document.getElementById('nodeRevenue').classList.remove('active');
         } else {
             const activeRow = calculatedDataRows[currentActiveInstallment - 1];
-            
             valBilling.innerHTML = `หักงวดนี้: <strong>${formatCurrency(activeRow.deduction)}</strong>`;
             valNetPay.innerHTML = `จ่ายเพิ่มงวดนี้: <strong>${formatCurrency(activeRow.net)}</strong>`;
 
@@ -647,24 +722,35 @@
             let statusClass = "status-pending";
             
             if (index + 1 < currentActiveInstallment) {
-                statusText = '<i class="fa-solid fa-circle-check"></i> ตัดจ่ายสำเร็จ';
+                statusText = '<i class="fa-solid fa-circle-check"></i> เสร็จสิ้น';
                 statusClass = "status-completed";
             } else if (index + 1 === currentActiveInstallment) {
-                statusText = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังดำเนินการ';
+                statusText = '<i class="fa-solid fa-spinner fa-spin"></i> ดำเนินการ';
                 statusClass = "status-current";
                 tr.className = "tr-active-now";
             } else {
-                statusText = '<i class="fa-solid fa-clock"></i> รอคิวส่งมอบ';
+                statusText = '<i class="fa-solid fa-clock"></i> รอคิวส่ง';
                 statusClass = "status-pending";
             }
 
+            let extra = installmentExtraDetails[index] || { dn: '', progress: 0 };
+
             tr.innerHTML = `
-                <td style="font-weight:600; text-align:center;">งวดที่ ${row.instNo}</td>
+                <td style="font-weight:600;">งวดที่ ${row.instNo}</td>
+                <td>
+                    <input type="text" class="form-control table-input" placeholder="ระบุ DN" value="${extra.dn}" onchange="updateExtraDetail(${index}, 'dn', this.value)">
+                </td>
                 <td>${row.pct.toFixed(2)}%</td>
                 <td style="font-weight:500;">${formatCurrency(row.gross)}</td>
                 <td style="color:var(--accent); font-weight:500;">-${formatCurrency(row.deduction)}</td>
                 <td style="color:var(--success); font-weight:600;">${formatCurrency(row.net)}</td>
                 <td style="color:var(--text-muted);">${formatCurrency(row.remainingDeposit)}</td>
+                <td>
+                    <div style="display:flex; align-items:center;">
+                        <input type="number" class="form-control table-input" min="0" max="100" value="${extra.progress}" onchange="updateExtraDetail(${index}, 'progress', this.value)"> 
+                        <span style="margin-left:4px;">%</span>
+                    </div>
+                </td>
                 <td><span class="status-badge ${statusClass}">${statusText}</span></td>
             `;
             tableBody.appendChild(tr);
@@ -722,18 +808,21 @@
     // ฟังก์ชันใหม่: การบันทึก และการจัดการ Log (Save / Edit / Delete)
     // ---------------------------------------------------------
 
-    function createNewSO() {
+    window.createNewSO = function() {
         inputSONumber.value = '';
         inputCustomerName.value = '';
         inputCustomerCode.value = '';
-        inputTotalSO.value = '1000000';
         inputDepositPct.value = '30';
         inputInstallments.value = '4';
         editingSOIdInput.value = '';
         
         currentActiveInstallment = 0;
-        customPercentages = []; // Reset percentages
-        renderCustomPctInputs(); // Will auto-calculate defaults
+        customPercentages = []; 
+        productItems = [{ name: 'สินค้าใหม่', price: 1000000 }];
+        installmentExtraDetails = [];
+        
+        renderProductInputs();
+        renderCustomPctInputs(); 
         switchTab('main');
     }
 
@@ -741,30 +830,28 @@
         if (!isConfigValid || !areFieldsValid) return;
 
         const soData = {
-            id: editingSOIdInput.value || Date.now().toString(), // ถ้ามี ID เดิมให้ใช้เดิม ถ้าไม่มีให้สร้างใหม่
+            id: editingSOIdInput.value || Date.now().toString(),
             soNumber: inputSONumber.value.trim(),
             custName: inputCustomerName.value.trim(),
             custCode: inputCustomerCode.value.trim(),
             totalSO: parseFloat(inputTotalSO.value),
             depositPct: parseInt(inputDepositPct.value),
             installments: parseInt(inputInstallments.value),
-            customPercentages: [...customPercentages], // Copy array
+            customPercentages: [...customPercentages],
+            products: [...productItems], // บันทึกรายการสินค้า
+            details: [...installmentExtraDetails], // บันทึก DN และ %ส่งมอบ
             dateSaved: new Date().toLocaleString('th-TH')
         };
 
         if (editingSOIdInput.value) {
-            // โหมดอัปเดตงานเดิม
             const index = savedSOs.findIndex(s => s.id === editingSOIdInput.value);
             if(index !== -1) savedSOs[index] = soData;
         } else {
-            // โหมดสร้างงานใหม่
             savedSOs.push(soData);
-            editingSOIdInput.value = soData.id; // เซ็ต ID ให้รู้ว่าเซฟแล้ว (เผื่อกดเซฟซ้ำ)
+            editingSOIdInput.value = soData.id;
         }
 
-        // Save to Local Storage
         localStorage.setItem(STORAGE_KEY, JSON.stringify(savedSOs));
-        
         alert(`บันทึกข้อมูล SO: ${soData.soNumber} เรียบร้อยแล้ว!`);
     });
 
@@ -805,22 +892,21 @@
         const so = savedSOs.find(s => s.id === id);
         if (!so) return;
 
-        // ดึงค่าใส่ฟอร์ม
         editingSOIdInput.value = so.id;
         inputSONumber.value = so.soNumber;
         inputCustomerName.value = so.custName;
         inputCustomerCode.value = so.custCode;
-        inputTotalSO.value = so.totalSO;
         inputDepositPct.value = so.depositPct;
         inputInstallments.value = so.installments;
         
-        // คืนค่า % ที่เซฟไว้
-        customPercentages = [...so.customPercentages]; 
+        customPercentages = [...(so.customPercentages || [])]; 
+        productItems = [...(so.products || [{ name: 'สินค้าเดิม', price: so.totalSO }])];
+        installmentExtraDetails = [...(so.details || [])];
         
-        currentActiveInstallment = 0; // Reset simulation step
+        currentActiveInstallment = 0; 
+        renderProductInputs();
         renderCustomPctInputs();
-        
-        switchTab('main'); // ย้ายไปหน้าจอแก้ไข
+        switchTab('main'); 
     };
 
     window.deleteSO = function(id) {
@@ -828,18 +914,15 @@
             savedSOs = savedSOs.filter(s => s.id !== id);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(savedSOs));
             
-            // ถ้ากำลังแก้ไขไฟล์นี้อยู่ ให้ Clear ฟอร์มด้วย
             if (editingSOIdInput.value === id) {
                 createNewSO(); 
-                switchTab('log'); // กลับไปหน้า Log เพราะฟอร์มเคลียร์แล้ว
+                switchTab('log'); 
             } else {
-                renderLogTable(); // แค่ลบและอัปเดตตาราง
+                renderLogTable(); 
             }
         }
     };
 
-
-    // Event สำหรับจำลองการเดินเงิน
     btnNextStep.addEventListener('click', () => {
         if (!isConfigValid || !areFieldsValid) return;
         let installmentCount = parseInt(inputInstallments.value);
@@ -858,8 +941,7 @@
         drawSVGConnections();
     });
 
-    // Event Listeners การแก้ไขค่าต่างๆ
-    inputTotalSO.addEventListener('input', updateCalculations);
+    // Event Listeners
     inputDepositPct.addEventListener('input', updateCalculations);
     
     inputInstallments.addEventListener('input', () => {
@@ -872,6 +954,7 @@
     });
 
     window.addEventListener('load', () => {
+        renderProductInputs();
         renderCustomPctInputs();
         setTimeout(drawSVGConnections, 200);
     });
