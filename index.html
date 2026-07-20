@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sourcing Product - Dynamic Money Route Tracker (V4.1)</title>
+    <title>Sourcing Product - Dynamic Money Route Tracker (V4.2)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -83,7 +83,6 @@
         .slider-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-top: 4px; }
         input[type="range"] { width: 100%; accent-color: var(--primary); cursor: pointer; }
 
-        /* Custom Installment Inputs */
         .custom-pct-container { background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-top: 15px; }
         .custom-pct-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
         .custom-pct-row:last-child { margin-bottom: 0; }
@@ -145,7 +144,6 @@
         .status-current { background-color: #dbeafe; color: var(--primary-light); }
         .status-completed { background-color: #d1fae5; color: #065f46; }
 
-        /* Action buttons in Log Table */
         .action-btns { display: flex; gap: 8px; justify-content: center; }
         .action-btn { padding: 6px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; border: none; font-weight: 500; transition: 0.2s;}
         .edit-btn { background-color: #dbeafe; color: var(--primary); }
@@ -171,7 +169,6 @@
         </div>
     </header>
 
-    <!-- Tab Navigation -->
     <div class="tabs-container">
         <button class="tab-btn active" id="tabMainBtn" onclick="switchTab('main')"><i class="fa-solid fa-pen-to-square"></i> สร้าง/จำลอง SO</button>
         <button class="tab-btn" id="tabLogBtn" onclick="switchTab('log')"><i class="fa-solid fa-folder-open"></i> ประวัติ SO (Log)</button>
@@ -186,7 +183,6 @@
                     <button class="btn btn-outline" style="padding: 6px 12px; font-size: 12px;" onclick="createNewSO()"><i class="fa-solid fa-plus"></i> สร้างใหม่</button>
                 </div>
                 
-                <!-- ข้อมูลลูกค้าและเอกสาร -->
                 <div class="section-label"><i class="fa-solid fa-address-card"></i> ข้อมูลลูกค้าและเอกสาร (จำเป็น)</div>
                 <input type="hidden" id="editingSOId" value="">
                 
@@ -212,11 +208,9 @@
                     </div>
                 </div>
 
-                <!-- เพิ่มรายการสินค้า -->
                 <div class="section-divider"></div>
                 <div class="section-label"><i class="fa-solid fa-boxes-stacked"></i> 4. รายการสินค้า</div>
                 <div id="productListContainer">
-                    <!-- Dynamic Product Rows -->
                 </div>
                 <button class="btn btn-outline" onclick="addProductRow()" style="margin-top: 10px; width: 100%;"><i class="fa-solid fa-plus"></i> เพิ่มสินค้า (Item)</button>
 
@@ -251,7 +245,6 @@
                     </div>
                     
                     <div class="custom-pct-container" id="customPctContainer">
-                        <!-- จะถูกสร้างด้วย JS -->
                     </div>
                     <div id="pctWarning" class="alert-msg alert-warning"><i class="fa-solid fa-triangle-exclamation"></i> ผลรวมมูลค่าต้องเท่ากับยอดสั่งซื้อรวม (ตอนนี้: <span id="currentPctSum"></span>)</div>
                     <div id="pctSuccess" class="alert-msg alert-success"><i class="fa-solid fa-check"></i> ผลรวมมูลค่าถูกต้องตรงกับยอดสั่งซื้อ</div>
@@ -364,7 +357,8 @@
     <div id="logTab" class="tab-content">
         <div class="card">
             <div class="panel-title">
-                <i class="fa-solid fa-database"></i> ประวัติงาน Sales Orders (Log)
+                <span><i class="fa-solid fa-database"></i> ประวัติงาน Sales Orders (Log)</span>
+                <button class="btn btn-success" style="font-size: 14px; padding: 6px 14px;" onclick="exportExcel()"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
             </div>
             
             <div class="table-responsive">
@@ -374,14 +368,15 @@
                             <th>หมายเลข SO</th>
                             <th>รหัสลูกค้า</th>
                             <th>ชื่อลูกค้า</th>
+                            <th>เลข DN (อ้างอิง)</th>
                             <th>ยอดคำสั่งซื้อรวม</th>
                             <th>% มัดจำ</th>
                             <th>จำนวนงวด</th>
+                            <th>เวลาทำรายการ</th>
                             <th>การจัดการ</th>
                         </tr>
                     </thead>
                     <tbody id="logTableBody">
-                        <!-- จะถูกสร้างด้วย JS -->
                     </tbody>
                 </table>
             </div>
@@ -390,18 +385,15 @@
 </div>
 
 <script>
-    // System Variables for Saving SOs
-    const STORAGE_KEY = 'mockup_saved_sos_v4_1';
+    const STORAGE_KEY = 'mockup_saved_sos_v4_2';
     let savedSOs = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
-    // Elements (Text Inputs)
     const inputSONumber = document.getElementById('inputSONumber');
     const inputCustomerName = document.getElementById('inputCustomerName');
     const inputCustomerCode = document.getElementById('inputCustomerCode');
     const requiredFields = document.querySelectorAll('.required-field');
     const editingSOIdInput = document.getElementById('editingSOId');
 
-    // Elements (Settings & Values)
     const inputTotalSO = document.getElementById('inputTotalSO');
     const inputDepositPct = document.getElementById('inputDepositPct');
     const inputInstallments = document.getElementById('inputInstallments');
@@ -435,16 +427,14 @@
     const routeSvg = document.getElementById('routeSvg');
 
     let currentActiveInstallment = 0; 
+    let isCurrentInstallmentActive = false; // ตัวแปรคุมสถานะว่า เริ่มตัดจ่าย หรือยัง
     let calculatedDataRows = [];
     
-    // เปลี่ยนจาก customPercentages เป็น customAmounts
     let customAmounts = [];
-    
     let productItems = [{ name: 'สินค้าตัวอย่าง 1', price: 500000 }, { name: 'สินค้าตัวอย่าง 2', price: 500000 }];
-    let installmentExtraDetails = []; // เก็บ {dn: '', progress: 0}
+    let installmentExtraDetails = []; 
     
-    // เพิ่มตัวแปรสำหรับเก็บ Timestamp แต่ละงวด
-    let actionTimestamps = []; // [{start: '...', confirm: '...'}, ...]
+    let actionTimestamps = []; 
 
     let isConfigValid = true; 
     let areFieldsValid = false; 
@@ -453,7 +443,6 @@
         return new Intl.NumberFormat('th-TH', { style: 'decimal', maximumFractionDigits: 2 }).format(num) + ' ฿';
     }
 
-    // Tabs Control
     function switchTab(tabName) {
         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -469,7 +458,6 @@
         }
     }
 
-    // ฟังก์ชันจัดการรายการสินค้า
     function renderProductInputs() {
         const container = document.getElementById('productListContainer');
         container.innerHTML = '';
@@ -493,8 +481,6 @@
         });
         
         inputTotalSO.value = totalVal;
-        
-        // เมื่อยอดรวมสินค้าเปลี่ยน ให้รีเซ็ตการแบ่งงวดใหม่
         customAmounts = [];
         renderCustomPctInputs();
     }
@@ -506,7 +492,6 @@
         let totalVal = productItems.reduce((sum, item) => sum + (item.price || 0), 0);
         inputTotalSO.value = totalVal;
         
-        // ถ้าค่าเปลี่ยน ให้จัดสัดส่วนใหม่
         customAmounts = [];
         renderCustomPctInputs();
     };
@@ -523,7 +508,6 @@
         }
     };
 
-    // สร้างช่องกรอกมูลค่าตามงวด และคำนวณ % ให้
     function renderCustomPctInputs() {
         const count = parseInt(inputInstallments.value);
         const totalSO = parseFloat(inputTotalSO.value) || 0;
@@ -533,11 +517,9 @@
 
         for (let i = 0; i < count; i++) {
             let defaultVal = 0;
-            // ถ้าระบุค่าไว้แล้วและจำนวนงวดเท่าเดิม ให้ใช้ค่าเดิม
             if (i < customAmounts.length && customAmounts.length === count) {
                 defaultVal = customAmounts[i];
             } else {
-                // คำนวณหารเฉลี่ยให้ใหม่
                 if (i === count - 1) {
                     defaultVal = totalSO - totalAssigned;
                 } else {
@@ -548,7 +530,6 @@
             if (defaultVal < 0) defaultVal = 0;
             newCustomAmt.push(defaultVal);
             
-            // ระบบคำนวณ % อัตโนมัติจากมูลค่าเงินที่แบ่ง
             let pctDisp = totalSO > 0 ? ((defaultVal / totalSO) * 100).toFixed(2) : "0.00";
             
             html += `
@@ -565,7 +546,6 @@
         customAmounts = newCustomAmt;
         customPctContainer.innerHTML = html;
         
-        // เมื่อพิมพ์เปลี่ยนตัวเลขมูลค่า ให้คำนวณ % ด้านหลังสดๆ
         document.querySelectorAll('.dyn-pct').forEach(input => {
             input.addEventListener('input', (e) => {
                 const idx = parseInt(e.target.dataset.idx);
@@ -583,7 +563,6 @@
         validateAndCalculate();
     }
 
-    // ตรวจสอบความถูกต้องของ Input
     function validateAndCalculate() {
         let sum = customAmounts.reduce((a, b) => a + b, 0);
         sum = Math.round(sum * 100) / 100;
@@ -647,7 +626,7 @@
         for (let i = 1; i <= installmentCount; i++) {
             let itemAmt = customAmounts[i-1] || 0;
             let itemPct = totalSOVal > 0 ? (itemAmt / totalSOVal) * 100 : 0;
-            const grossValue = itemAmt; // มูลค่างานที่กรอกเข้ามา
+            const grossValue = itemAmt; 
             
             let depositDeduction = grossValue * (depositPctVal / 100);
 
@@ -674,15 +653,9 @@
 
     window.updateExtraDetail = function(idx, field, val) {
         if (!installmentExtraDetails[idx]) {
-            installmentExtraDetails[idx] = { dn: '', progress: 0 };
+            installmentExtraDetails[idx] = { dn: '' };
         }
         if (field === 'dn') installmentExtraDetails[idx].dn = val;
-        if (field === 'progress') {
-            let num = parseInt(val) || 0;
-            if(num > 100) num = 100;
-            if(num < 0) num = 0;
-            installmentExtraDetails[idx].progress = num;
-        }
     };
 
     function renderTableAndNodes() {
@@ -700,11 +673,18 @@
         let liveDepositWalletState = totalDepositAmount;
         let liveRevenueRealized = 0;
         
-        for (let idx = 0; idx < currentActiveInstallment; idx++) {
+        // คำนวณยอดเงินรวมเฉพาะงวดที่เสร็จสิ้นแล้ว
+        for (let idx = 0; idx < currentActiveInstallment - 1; idx++) {
             if (idx < calculatedDataRows.length) {
                 liveDepositWalletState -= calculatedDataRows[idx].deduction;
                 liveRevenueRealized += calculatedDataRows[idx].gross;
             }
+        }
+        
+        // ถ้างวดยังไม่เสร็จสิ้น แต่เป็นงวดที่กำลัง Active อยู่
+        if (isCurrentInstallmentActive && currentActiveInstallment > 0 && currentActiveInstallment <= installmentCount) {
+             liveDepositWalletState -= calculatedDataRows[currentActiveInstallment - 1].deduction;
+             liveRevenueRealized += calculatedDataRows[currentActiveInstallment - 1].gross;
         }
 
         let custNameDisp = inputCustomerName.value.trim() || "ลูกค้า";
@@ -715,7 +695,6 @@
         valDepositHold.innerHTML = `คงเหลือ: <strong>${formatCurrency(liveDepositWalletState)}</strong>`;
         valRevenue.innerHTML = `ยอดรับรวม: <strong>${formatCurrency(liveRevenueRealized)}</strong>`;
 
-        // ------------------ อัปเดตข้อความปุ่มและข้อความสถานะ ------------------
         if (!areFieldsValid) {
             simStatusMsg.innerHTML = '<i class="fa-solid fa-lock"></i> กรุณากรอกข้อมูลและรายการสินค้าให้ครบถ้วน';
             simStatusMsg.style.color = "var(--danger)";
@@ -731,13 +710,18 @@
                 btnNextStep.innerHTML = '<i class="fa-solid fa-flag-checkered"></i> เสร็จสิ้นกระบวนการทั้งหมด';
                 btnNextStep.disabled = true;
             } else {
-                simStatusMsg.innerHTML = `⚡ กำลังดำเนินการตัดจ่ายและติดตามของ งวดที่ ${currentActiveInstallment}`;
-                btnNextStep.innerHTML = `<i class="fa-solid fa-check"></i> ยืนยันคืนมัดจำงวดที่ ${currentActiveInstallment}`;
+                if (!isCurrentInstallmentActive) {
+                    simStatusMsg.innerHTML = `⏳ รอเริ่มดำเนินการตัดจ่าย งวดที่ ${currentActiveInstallment}`;
+                    btnNextStep.innerHTML = `<i class="fa-solid fa-play"></i> เริ่มตัดจ่ายงวดที่ ${currentActiveInstallment}`;
+                } else {
+                    simStatusMsg.innerHTML = `⚡ กำลังดำเนินการตัดจ่ายและติดตามของ งวดที่ ${currentActiveInstallment}`;
+                    btnNextStep.innerHTML = `<i class="fa-solid fa-check"></i> ยืนยันคืนมัดจำงวดที่ ${currentActiveInstallment}`;
+                }
                 btnNextStep.disabled = false;
             }
         }
 
-        if (currentActiveInstallment === 0 || currentActiveInstallment > installmentCount) {
+        if (currentActiveInstallment === 0 || currentActiveInstallment > installmentCount || (!isCurrentInstallmentActive && currentActiveInstallment > 0)) {
             valBilling.textContent = (currentActiveInstallment === 0) ? "รอเริ่มตัดส่งของ" : "หักล้างครบถ้วนแล้ว";
             valNetPay.textContent = "-";
             
@@ -761,21 +745,26 @@
             let statusText = "";
             let statusClass = "status-pending";
             
-            if (index + 1 < currentActiveInstallment || currentActiveInstallment > installmentCount) {
+            if (index + 1 < currentActiveInstallment) {
                 statusText = '<i class="fa-solid fa-circle-check"></i> เสร็จสิ้น';
                 statusClass = "status-completed";
             } else if (index + 1 === currentActiveInstallment) {
-                statusText = '<i class="fa-solid fa-spinner fa-spin"></i> ดำเนินการ';
-                statusClass = "status-current";
-                tr.className = "tr-active-now";
+                if (isCurrentInstallmentActive) {
+                    statusText = '<i class="fa-solid fa-spinner fa-spin"></i> ดำเนินการ';
+                    statusClass = "status-current";
+                    tr.className = "tr-active-now";
+                } else {
+                    statusText = '<i class="fa-solid fa-clock"></i> รอคิวส่ง';
+                    statusClass = "status-pending";
+                    tr.className = "tr-active-now";
+                }
             } else {
                 statusText = '<i class="fa-solid fa-clock"></i> รอคิวส่ง';
                 statusClass = "status-pending";
             }
 
-            let extra = installmentExtraDetails[index] || { dn: '', progress: 0 };
+            let extra = installmentExtraDetails[index] || { dn: '' };
             
-            // แสดงข้อมูล Timestamp ของงวดนั้นๆ
             let ts = actionTimestamps[index] || {};
             let timeHtml = "";
             if (ts.start) timeHtml += `<div style="font-size:11px; color:var(--primary); margin-bottom: 2px;"><i class="fa-solid fa-play"></i> เริ่ม: ${ts.start}</div>`;
@@ -785,7 +774,7 @@
             tr.innerHTML = `
                 <td style="font-weight:600;">งวดที่ ${row.instNo}</td>
                 <td>
-                    <input type="text" class="form-control table-input" placeholder="ระบุ DN" value="${extra.dn}" onchange="updateExtraDetail(${index}, 'dn', this.value)">
+                    <input type="text" class="form-control table-input" placeholder="ระบุ DN" value="${extra.dn || ''}" onchange="updateExtraDetail(${index}, 'dn', this.value)">
                 </td>
                 <td style="font-weight:500;">${formatCurrency(row.gross)}</td>
                 <td>${row.pct.toFixed(2)}%</td>
@@ -793,10 +782,8 @@
                 <td style="color:var(--success); font-weight:600;">${formatCurrency(row.net)}</td>
                 <td style="color:var(--text-muted);">${formatCurrency(row.remainingDeposit)}</td>
                 <td>
-                    <div style="display:flex; align-items:center;">
-                        <input type="number" class="form-control table-input" min="0" max="100" value="${extra.progress}" onchange="updateExtraDetail(${index}, 'progress', this.value)"> 
-                        <span style="margin-left:4px;">%</span>
-                    </div>
+                    <!-- 2. ให้ระบบคำนวณอัตโนมัติ (ไม่สามารถกรอกเองได้) -->
+                    <input type="text" class="form-control table-input" value="${row.pct.toFixed(2)}%" readonly style="background-color: #f1f5f9; cursor: not-allowed; color: var(--text-muted); font-weight: 500;">
                 </td>
                 <td style="text-align:left; line-height: 1.3;">${timeHtml}</td>
                 <td><span class="status-badge ${statusClass}">${statusText}</span></td>
@@ -841,7 +828,7 @@
             const paths = [pathInitDep, pathDedHold, pathDedRev, pathNetPayFlow, pathNetRev];
             paths.forEach(p => p.className.baseVal = "connection-path");
 
-            if (currentActiveInstallment === 0 || currentActiveInstallment > parseInt(inputInstallments.value)) {
+            if (currentActiveInstallment === 0 || currentActiveInstallment > parseInt(inputInstallments.value) || (!isCurrentInstallmentActive && currentActiveInstallment > 0)) {
                 pathInitDep.className.baseVal = "connection-path deposit-path";
             } else {
                 pathDedHold.className.baseVal = "connection-path deposit-path";
@@ -852,10 +839,6 @@
         }
     }
 
-    // ---------------------------------------------------------
-    // การบันทึก และการจัดการ Log (Save / Edit / Delete)
-    // ---------------------------------------------------------
-
     window.createNewSO = function() {
         inputSONumber.value = '';
         inputCustomerName.value = '';
@@ -865,10 +848,11 @@
         editingSOIdInput.value = '';
         
         currentActiveInstallment = 0;
+        isCurrentInstallmentActive = false;
         customAmounts = []; 
         productItems = [{ name: 'สินค้าใหม่', price: 1000000 }];
         installmentExtraDetails = [];
-        actionTimestamps = []; // รีเซ็ตเวลาด้วย
+        actionTimestamps = []; 
         
         renderProductInputs();
         switchTab('main');
@@ -889,6 +873,8 @@
             products: [...productItems],
             details: [...installmentExtraDetails],
             actionTimestamps: [...actionTimestamps],
+            currentActiveInstallment: currentActiveInstallment,
+            isCurrentInstallmentActive: isCurrentInstallmentActive,
             dateSaved: new Date().toLocaleString('th-TH')
         };
 
@@ -908,7 +894,7 @@
         logTableBody.innerHTML = '';
 
         if (savedSOs.length === 0) {
-            logTableBody.innerHTML = `<tr><td colspan="7">
+            logTableBody.innerHTML = `<tr><td colspan="9">
                 <div class="empty-state">
                     <i class="fa-solid fa-folder-open"></i>
                     <p>ยังไม่มีประวัติ SO ในระบบ</p>
@@ -918,14 +904,23 @@
         }
 
         savedSOs.forEach(so => {
+            // ดึงเลข DN มาต่อกัน
+            let dns = so.details ? so.details.map(d => d.dn).filter(dn => dn && dn.trim() !== '').join(', ') : '-';
+            if (dns === '') dns = '-';
+            
+            // ดึงเวลาทำรายการล่าสุด หรือสร้างใหม่
+            let actionTime = so.dateSaved || '-';
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td style="font-weight:600; color:var(--primary);">${so.soNumber}</td>
                 <td>${so.custCode}</td>
                 <td>${so.custName}</td>
+                <td style="color:var(--text-muted); font-size: 12px;">${dns}</td>
                 <td style="font-weight:500;">${formatCurrency(so.totalSO)}</td>
                 <td>${so.depositPct}%</td>
                 <td>${so.installments} งวด</td>
+                <td style="font-size:12px; color:var(--text-muted);">${actionTime}</td>
                 <td>
                     <div class="action-btns">
                         <button class="action-btn edit-btn" onclick="editSO('${so.id}')"><i class="fa-solid fa-pen"></i> แก้ไข</button>
@@ -935,6 +930,42 @@
             `;
             logTableBody.appendChild(tr);
         });
+    }
+
+    window.exportExcel = function() {
+        if(savedSOs.length === 0) {
+            alert("ไม่มีข้อมูลใน Log สำหรับการ Export");
+            return;
+        }
+        
+        let csvContent = "\uFEFF"; // สำหรับรองรับภาษาไทย (BOM)
+        csvContent += "หมายเลข SO,รหัสลูกค้า,ชื่อลูกค้า,เลข DN (อ้างอิง),ยอดคำสั่งซื้อรวม,% มัดจำ,จำนวนงวด,เวลาทำรายการล่าสุด\n";
+        
+        savedSOs.forEach(so => {
+            let dns = so.details ? so.details.map(d => d.dn).filter(dn => dn && dn.trim() !== '').join('; ') : '-';
+            if(dns === '') dns = '-';
+            
+            let row = [
+                `"${so.soNumber}"`,
+                `"${so.custCode}"`,
+                `"${so.custName}"`,
+                `"${dns}"`,
+                `"${so.totalSO}"`,
+                `"${so.depositPct}%"`,
+                `"${so.installments}"`,
+                `"${so.dateSaved || '-'}"`
+            ];
+            csvContent += row.join(",") + "\n";
+        });
+        
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", "SO_Log_Export.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     window.editSO = function(id) {
@@ -953,7 +984,9 @@
         installmentExtraDetails = [...(so.details || [])];
         actionTimestamps = [...(so.actionTimestamps || [])];
         
-        currentActiveInstallment = 0; 
+        currentActiveInstallment = so.currentActiveInstallment !== undefined ? so.currentActiveInstallment : 0; 
+        isCurrentInstallmentActive = so.isCurrentInstallmentActive || false;
+
         renderProductInputs();
         switchTab('main'); 
     };
@@ -972,41 +1005,36 @@
         }
     };
 
-    // ---------------------------------------------------------
-    // ปุ่มรันจำลอง + เพิ่ม Timestamp (Requirement 3)
-    // ---------------------------------------------------------
+    // 1. กดเริ่มทำงานแต่ละงวดแยกจากกัน 
     btnNextStep.addEventListener('click', () => {
         if (!isConfigValid || !areFieldsValid) return;
         let installmentCount = parseInt(inputInstallments.value);
         
-        // สร้าง String เวลารูปแบบ วัน/เดือน/ปี ชั่ว/นาที
         const now = new Date().toLocaleString('th-TH', { 
             day: '2-digit', month: 'short', year: '2-digit', 
             hour: '2-digit', minute: '2-digit' 
         });
         
         if (currentActiveInstallment === 0) {
-            // สเต็ปแรก: เริ่มดำเนินการงวดที่ 1 (เปลี่ยนสถานะ รอคิว -> ดำเนินการ)
-            actionTimestamps[0] = actionTimestamps[0] || {};
-            actionTimestamps[0].start = now;
-            currentActiveInstallment++;
-        } else if (currentActiveInstallment <= installmentCount) {
-            // สเต็ปต่อมา: ยืนยันการคืนมัดจำ (เปลี่ยนสถานะ ดำเนินการ -> เสร็จสิ้น)
-            const isConfirmed = confirm(`ยืนยันว่าทำการคืนเงินมัดจำสำหรับงวดที่ ${currentActiveInstallment} เสร็จสมบูรณ์แล้วใช่หรือไม่?\n\n(หากกดยืนยัน สถานะจะเปลี่ยนจาก "ดำเนินการ" เป็น "เสร็จสิ้น")`);
-            
-            if (isConfirmed) {
-                // บันทึกเวลาที่กดยืนยัน ของงวดปัจจุบัน
-                actionTimestamps[currentActiveInstallment - 1].confirm = now;
-                
-                currentActiveInstallment++;
-                
-                // ถ้ามีงวดถัดไป ให้บันทึกเวลาเริ่มตัดจ่ายของงวดถัดไปทันที
-                if (currentActiveInstallment <= installmentCount) {
-                    actionTimestamps[currentActiveInstallment - 1] = actionTimestamps[currentActiveInstallment - 1] || {};
-                    actionTimestamps[currentActiveInstallment - 1].start = now;
-                }
+            currentActiveInstallment = 1;
+        }
+        
+        if (currentActiveInstallment <= installmentCount) {
+            if (!isCurrentInstallmentActive) {
+                // กด "เริ่มดำเนินการ" ในงวดนั้นๆ เพื่อ Stamp เวลาเริ่ม
+                actionTimestamps[currentActiveInstallment - 1] = actionTimestamps[currentActiveInstallment - 1] || {};
+                actionTimestamps[currentActiveInstallment - 1].start = now;
+                isCurrentInstallmentActive = true;
             } else {
-                return; 
+                // กด "ยืนยันการทำรายการ" เพิ่อปิดจบงวด
+                const isConfirmed = confirm(`ยืนยันว่าทำการคืนเงินมัดจำสำหรับงวดที่ ${currentActiveInstallment} เสร็จสมบูรณ์แล้วใช่หรือไม่?`);
+                if (isConfirmed) {
+                    actionTimestamps[currentActiveInstallment - 1].confirm = now;
+                    isCurrentInstallmentActive = false; // รีเซ็ตเพื่อรอให้คนกดเริ่มงวดถัดไปเอง
+                    currentActiveInstallment++;
+                } else {
+                    return; 
+                }
             }
         }
         
@@ -1016,17 +1044,18 @@
 
     btnResetSim.addEventListener('click', () => {
         currentActiveInstallment = 0;
-        actionTimestamps = []; // ล้างเวลาทิ้งเมื่อกด Reset
+        isCurrentInstallmentActive = false;
+        actionTimestamps = []; 
         btnNextStep.disabled = false;
         renderTableAndNodes();
         drawSVGConnections();
     });
 
-    // Event Listeners
     inputDepositPct.addEventListener('input', updateCalculations);
     
     inputInstallments.addEventListener('input', () => {
         currentActiveInstallment = 0;
+        isCurrentInstallmentActive = false;
         actionTimestamps = [];
         renderCustomPctInputs(); 
     });
