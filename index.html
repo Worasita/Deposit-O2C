@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sourcing Product - Dynamic Money Route Tracker (V4)</title>
+    <title>Sourcing Product - Dynamic Money Route Tracker (V4.1)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -25,7 +25,7 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Prompt', 'Sarabun', sans-serif; }
         body { background-color: var(--background); color: var(--text-main); padding: 24px; min-height: 100vh; }
-        .container { max-width: 1500px; margin: 0 auto; }
+        .container { max-width: 1550px; margin: 0 auto; }
 
         header {
             background: linear-gradient(135deg, var(--primary) 0%, #001a3a 100%);
@@ -60,7 +60,7 @@
         .tab-content.active { display: block; animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .dashboard-grid { display: grid; grid-template-columns: 380px 1fr; gap: 24px; }
+        .dashboard-grid { display: grid; grid-template-columns: 420px 1fr; gap: 24px; }
         @media (max-width: 1024px) { .dashboard-grid { grid-template-columns: 1fr; } }
 
         .card { background-color: var(--card-bg); border-radius: 16px; border: 1px solid var(--border); padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); }
@@ -87,7 +87,7 @@
         .custom-pct-container { background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-top: 15px; }
         .custom-pct-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
         .custom-pct-row:last-child { margin-bottom: 0; }
-        .custom-pct-input { width: 80px; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; text-align: right; }
+        .custom-pct-input { width: 120px; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; text-align: right; }
         
         .alert-msg { font-size: 12px; margin-top: 8px; display: none; font-weight: 500; }
         .alert-warning { color: var(--danger); }
@@ -136,11 +136,11 @@
 
         .table-responsive { width: 100%; overflow-x: auto; margin-top: 15px; }
         table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
-        th { background-color: #f1f5f9; color: var(--primary); padding: 12px 10px; font-weight: 600; border-bottom: 2px solid var(--border); text-align: center;}
-        td { padding: 10px; border-bottom: 1px solid var(--border); color: var(--text-main); text-align: center;}
+        th { background-color: #f1f5f9; color: var(--primary); padding: 12px 10px; font-weight: 600; border-bottom: 2px solid var(--border); text-align: center; white-space: nowrap;}
+        td { padding: 10px; border-bottom: 1px solid var(--border); color: var(--text-main); text-align: center; vertical-align: middle;}
         tr:hover { background-color: #f8fafc; }
         .tr-active-now { background-color: #eff6ff !important; border-left: 4px solid var(--primary); }
-        .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; gap: 4px; }
+        .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
         .status-pending { background-color: #f1f5f9; color: var(--text-muted); }
         .status-current { background-color: #dbeafe; color: var(--primary-light); }
         .status-completed { background-color: #d1fae5; color: #065f46; }
@@ -221,7 +221,7 @@
                 <button class="btn btn-outline" onclick="addProductRow()" style="margin-top: 10px; width: 100%;"><i class="fa-solid fa-plus"></i> เพิ่มสินค้า (Item)</button>
 
                 <div class="section-divider"></div>
-                <div class="section-label"><i class="fa-solid fa-calculator"></i> ข้อมูลการเงินและการแบ่งงวด</div>
+                <div class="section-label"><i class="fa-solid fa-calculator"></i> ข้อมูลการเงินและการแบ่งงวด (ระบุมูลค่า)</div>
 
                 <div class="form-group">
                     <label for="inputTotalSO">ยอดคำสั่งซื้อรวม (คำนวณจากรายการสินค้า)</label>
@@ -253,8 +253,8 @@
                     <div class="custom-pct-container" id="customPctContainer">
                         <!-- จะถูกสร้างด้วย JS -->
                     </div>
-                    <div id="pctWarning" class="alert-msg alert-warning"><i class="fa-solid fa-triangle-exclamation"></i> ผลรวมสัดส่วนต้องเท่ากับ 100% (ตอนนี้: <span id="currentPctSum"></span>%)</div>
-                    <div id="pctSuccess" class="alert-msg alert-success"><i class="fa-solid fa-check"></i> สัดส่วนรวม 100% ถูกต้อง</div>
+                    <div id="pctWarning" class="alert-msg alert-warning"><i class="fa-solid fa-triangle-exclamation"></i> ผลรวมมูลค่าต้องเท่ากับยอดสั่งซื้อรวม (ตอนนี้: <span id="currentPctSum"></span>)</div>
+                    <div id="pctSuccess" class="alert-msg alert-success"><i class="fa-solid fa-check"></i> ผลรวมมูลค่าถูกต้องตรงกับยอดสั่งซื้อ</div>
                 </div>
 
                 <div class="summary-box">
@@ -332,7 +332,7 @@
 
                 <div class="card">
                     <div class="panel-title">
-                        <i class="fa-solid fa-table-list">ตารางคำนวณงวดการส่งมอบและการหักล้างเงินมัดจำ </i>
+                        <i class="fa-solid fa-table-list"> ตารางคำนวณงวดการส่งมอบและการหักล้างเงินมัดจำ</i>
                     </div>
                     
                     <div class="table-responsive">
@@ -340,14 +340,15 @@
                             <thead>
                                 <tr>
                                     <th style="width: 70px;">งวดที่</th>
-                                    <th style="width: 150px;">เลข DN (อ้างอิง)</th>
-                                    <th>% งวด</th>
+                                    <th style="width: 120px;">เลข DN (อ้างอิง)</th>
                                     <th>ส่งมอบจริง (Gross)</th>
+                                    <th>% ของงาน</th>
                                     <th>🔁 หักล้างมัดจำ</th>
                                     <th>💰 ลูกค้าจ่ายเพิ่ม</th>
                                     <th>มัดจำคงเหลือ</th>
                                     <th style="width: 100px;">% ส่งมอบ</th>
-                                    <th style="width: 120px;">สถานะ</th>
+                                    <th style="width: 150px;">เวลาทำรายการ</th>
+                                    <th style="width: 100px;">สถานะ</th>
                                 </tr>
                             </thead>
                             <tbody id="tableBody">
@@ -390,7 +391,7 @@
 
 <script>
     // System Variables for Saving SOs
-    const STORAGE_KEY = 'mockup_saved_sos_v4';
+    const STORAGE_KEY = 'mockup_saved_sos_v4_1';
     let savedSOs = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
     // Elements (Text Inputs)
@@ -435,17 +436,21 @@
 
     let currentActiveInstallment = 0; 
     let calculatedDataRows = [];
-    let customPercentages = [];
     
-    // ตัวแปรใหม่ที่เพิ่มเข้ามา
+    // เปลี่ยนจาก customPercentages เป็น customAmounts
+    let customAmounts = [];
+    
     let productItems = [{ name: 'สินค้าตัวอย่าง 1', price: 500000 }, { name: 'สินค้าตัวอย่าง 2', price: 500000 }];
     let installmentExtraDetails = []; // เก็บ {dn: '', progress: 0}
+    
+    // เพิ่มตัวแปรสำหรับเก็บ Timestamp แต่ละงวด
+    let actionTimestamps = []; // [{start: '...', confirm: '...'}, ...]
 
     let isConfigValid = true; 
     let areFieldsValid = false; 
 
     function formatCurrency(num) {
-        return new Intl.NumberFormat('th-TH', { style: 'decimal', maximumFractionDigits: 0 }).format(num) + ' ฿';
+        return new Intl.NumberFormat('th-TH', { style: 'decimal', maximumFractionDigits: 2 }).format(num) + ' ฿';
     }
 
     // Tabs Control
@@ -464,7 +469,7 @@
         }
     }
 
-    // ฟังก์ชันจัดการรายการสินค้า (เพิ่มใหม่)
+    // ฟังก์ชันจัดการรายการสินค้า
     function renderProductInputs() {
         const container = document.getElementById('productListContainer');
         container.innerHTML = '';
@@ -488,7 +493,10 @@
         });
         
         inputTotalSO.value = totalVal;
-        updateCalculations();
+        
+        // เมื่อยอดรวมสินค้าเปลี่ยน ให้รีเซ็ตการแบ่งงวดใหม่
+        customAmounts = [];
+        renderCustomPctInputs();
     }
 
     window.updateProductData = function(idx, field, val) {
@@ -497,7 +505,10 @@
         
         let totalVal = productItems.reduce((sum, item) => sum + (item.price || 0), 0);
         inputTotalSO.value = totalVal;
-        updateCalculations();
+        
+        // ถ้าค่าเปลี่ยน ให้จัดสัดส่วนใหม่
+        customAmounts = [];
+        renderCustomPctInputs();
     };
 
     window.addProductRow = function() {
@@ -512,45 +523,59 @@
         }
     };
 
-    // สร้างช่องกรอก % ตามงวด
+    // สร้างช่องกรอกมูลค่าตามงวด และคำนวณ % ให้
     function renderCustomPctInputs() {
         const count = parseInt(inputInstallments.value);
+        const totalSO = parseFloat(inputTotalSO.value) || 0;
         let html = '';
-        let newCustomPct = [];
+        let newCustomAmt = [];
         let totalAssigned = 0;
 
         for (let i = 0; i < count; i++) {
             let defaultVal = 0;
-            if (i < customPercentages.length && customPercentages.length === count) {
-                defaultVal = customPercentages[i];
+            // ถ้าระบุค่าไว้แล้วและจำนวนงวดเท่าเดิม ให้ใช้ค่าเดิม
+            if (i < customAmounts.length && customAmounts.length === count) {
+                defaultVal = customAmounts[i];
             } else {
+                // คำนวณหารเฉลี่ยให้ใหม่
                 if (i === count - 1) {
-                    defaultVal = 100 - totalAssigned;
+                    defaultVal = totalSO - totalAssigned;
                 } else {
-                    defaultVal = Math.floor(100 / count);
+                    defaultVal = Math.floor(totalSO / count);
                     totalAssigned += defaultVal;
                 }
             }
-            newCustomPct.push(defaultVal);
+            if (defaultVal < 0) defaultVal = 0;
+            newCustomAmt.push(defaultVal);
+            
+            // ระบบคำนวณ % อัตโนมัติจากมูลค่าเงินที่แบ่ง
+            let pctDisp = totalSO > 0 ? ((defaultVal / totalSO) * 100).toFixed(2) : "0.00";
             
             html += `
                 <div class="custom-pct-row">
                     <span>งวดที่ ${i + 1}:</span>
-                    <div>
-                        <input type="number" class="custom-pct-input dyn-pct" data-idx="${i}" value="${defaultVal}" min="0" max="100"> %
+                    <div style="display:flex; align-items:center; gap: 8px;">
+                        <input type="number" class="custom-pct-input dyn-pct" data-idx="${i}" value="${defaultVal}" min="0"> ฿
+                        <span style="font-size:13px; color:var(--text-muted); width: 60px; text-align:right; font-weight:600;">(${pctDisp}%)</span>
                     </div>
                 </div>
             `;
         }
         
-        customPercentages = newCustomPct;
+        customAmounts = newCustomAmt;
         customPctContainer.innerHTML = html;
         
+        // เมื่อพิมพ์เปลี่ยนตัวเลขมูลค่า ให้คำนวณ % ด้านหลังสดๆ
         document.querySelectorAll('.dyn-pct').forEach(input => {
             input.addEventListener('input', (e) => {
                 const idx = parseInt(e.target.dataset.idx);
                 let val = parseFloat(e.target.value) || 0;
-                customPercentages[idx] = val;
+                customAmounts[idx] = val;
+                
+                const tot = parseFloat(inputTotalSO.value) || 0;
+                const pct = tot > 0 ? ((val / tot) * 100).toFixed(2) : "0.00";
+                e.target.nextElementSibling.textContent = `(${pct}%)`;
+                
                 validateAndCalculate();
             });
         });
@@ -558,16 +583,18 @@
         validateAndCalculate();
     }
 
-    // ตรวจสอบความถูกต้องของ Input และ %
+    // ตรวจสอบความถูกต้องของ Input
     function validateAndCalculate() {
-        let sum = customPercentages.reduce((a, b) => a + b, 0);
+        let sum = customAmounts.reduce((a, b) => a + b, 0);
         sum = Math.round(sum * 100) / 100;
-        isConfigValid = (sum === 100);
+        let totalSO = parseFloat(inputTotalSO.value) || 0;
+        
+        isConfigValid = (sum === totalSO && totalSO > 0);
 
         if (!isConfigValid) {
             pctWarning.style.display = 'block';
             pctSuccess.style.display = 'none';
-            currentPctSum.textContent = sum;
+            currentPctSum.textContent = formatCurrency(sum);
         } else {
             pctWarning.style.display = 'none';
             pctSuccess.style.display = 'block';
@@ -577,7 +604,7 @@
             inputSONumber.value.trim() !== '' &&
             inputCustomerName.value.trim() !== '' &&
             inputCustomerCode.value.trim() !== '' &&
-            parseFloat(inputTotalSO.value) > 0
+            totalSO > 0
         );
 
         if (isConfigValid && areFieldsValid) {
@@ -618,8 +645,10 @@
         let remainingDepositAccum = totalDepositAmount;
         
         for (let i = 1; i <= installmentCount; i++) {
-            let itemPct = customPercentages[i-1] || 0;
-            const grossValue = totalSOVal * (itemPct / 100);
+            let itemAmt = customAmounts[i-1] || 0;
+            let itemPct = totalSOVal > 0 ? (itemAmt / totalSOVal) * 100 : 0;
+            const grossValue = itemAmt; // มูลค่างานที่กรอกเข้ามา
+            
             let depositDeduction = grossValue * (depositPctVal / 100);
 
             if (i === installmentCount) {
@@ -658,7 +687,7 @@
 
     function renderTableAndNodes() {
         if (!isConfigValid) {
-            tableBody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:var(--danger); padding:20px;">⚠️ กรุณาปรับสัดส่วนรวมให้เท่ากับ 100% เพื่อคำนวณตาราง</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="10" style="text-align:center; color:var(--danger); padding:20px;">⚠️ กรุณาปรับมูลค่าในแต่ละงวดให้ผลรวมเท่ากับยอดสั่งซื้อรวม เพื่อทำการคำนวณตาราง</td></tr>';
             return;
         }
 
@@ -707,7 +736,6 @@
                 btnNextStep.disabled = false;
             }
         }
-        // ---------------------------------------------------------------------
 
         if (currentActiveInstallment === 0 || currentActiveInstallment > installmentCount) {
             valBilling.textContent = (currentActiveInstallment === 0) ? "รอเริ่มตัดส่งของ" : "หักล้างครบถ้วนแล้ว";
@@ -746,14 +774,21 @@
             }
 
             let extra = installmentExtraDetails[index] || { dn: '', progress: 0 };
+            
+            // แสดงข้อมูล Timestamp ของงวดนั้นๆ
+            let ts = actionTimestamps[index] || {};
+            let timeHtml = "";
+            if (ts.start) timeHtml += `<div style="font-size:11px; color:var(--primary); margin-bottom: 2px;"><i class="fa-solid fa-play"></i> เริ่ม: ${ts.start}</div>`;
+            if (ts.confirm) timeHtml += `<div style="font-size:11px; color:var(--success);"><i class="fa-solid fa-check-double"></i> จบ: ${ts.confirm}</div>`;
+            if (!timeHtml) timeHtml = "-";
 
             tr.innerHTML = `
                 <td style="font-weight:600;">งวดที่ ${row.instNo}</td>
                 <td>
                     <input type="text" class="form-control table-input" placeholder="ระบุ DN" value="${extra.dn}" onchange="updateExtraDetail(${index}, 'dn', this.value)">
                 </td>
-                <td>${row.pct.toFixed(2)}%</td>
                 <td style="font-weight:500;">${formatCurrency(row.gross)}</td>
+                <td>${row.pct.toFixed(2)}%</td>
                 <td style="color:var(--accent); font-weight:500;">-${formatCurrency(row.deduction)}</td>
                 <td style="color:var(--success); font-weight:600;">${formatCurrency(row.net)}</td>
                 <td style="color:var(--text-muted);">${formatCurrency(row.remainingDeposit)}</td>
@@ -763,6 +798,7 @@
                         <span style="margin-left:4px;">%</span>
                     </div>
                 </td>
+                <td style="text-align:left; line-height: 1.3;">${timeHtml}</td>
                 <td><span class="status-badge ${statusClass}">${statusText}</span></td>
             `;
             tableBody.appendChild(tr);
@@ -829,12 +865,12 @@
         editingSOIdInput.value = '';
         
         currentActiveInstallment = 0;
-        customPercentages = []; 
+        customAmounts = []; 
         productItems = [{ name: 'สินค้าใหม่', price: 1000000 }];
         installmentExtraDetails = [];
+        actionTimestamps = []; // รีเซ็ตเวลาด้วย
         
         renderProductInputs();
-        renderCustomPctInputs(); 
         switchTab('main');
     }
 
@@ -849,9 +885,10 @@
             totalSO: parseFloat(inputTotalSO.value),
             depositPct: parseInt(inputDepositPct.value),
             installments: parseInt(inputInstallments.value),
-            customPercentages: [...customPercentages],
+            customAmounts: [...customAmounts],
             products: [...productItems],
             details: [...installmentExtraDetails],
+            actionTimestamps: [...actionTimestamps],
             dateSaved: new Date().toLocaleString('th-TH')
         };
 
@@ -911,13 +948,13 @@
         inputDepositPct.value = so.depositPct;
         inputInstallments.value = so.installments;
         
-        customPercentages = [...(so.customPercentages || [])]; 
+        customAmounts = [...(so.customAmounts || [])]; 
         productItems = [...(so.products || [{ name: 'สินค้าเดิม', price: so.totalSO }])];
         installmentExtraDetails = [...(so.details || [])];
+        actionTimestamps = [...(so.actionTimestamps || [])];
         
         currentActiveInstallment = 0; 
         renderProductInputs();
-        renderCustomPctInputs();
         switchTab('main'); 
     };
 
@@ -936,24 +973,40 @@
     };
 
     // ---------------------------------------------------------
-    // แก้ไข Event Listener ของปุ่ม Next Step ตามคำขอ
+    // ปุ่มรันจำลอง + เพิ่ม Timestamp (Requirement 3)
     // ---------------------------------------------------------
     btnNextStep.addEventListener('click', () => {
         if (!isConfigValid || !areFieldsValid) return;
         let installmentCount = parseInt(inputInstallments.value);
         
+        // สร้าง String เวลารูปแบบ วัน/เดือน/ปี ชั่ว/นาที
+        const now = new Date().toLocaleString('th-TH', { 
+            day: '2-digit', month: 'short', year: '2-digit', 
+            hour: '2-digit', minute: '2-digit' 
+        });
+        
         if (currentActiveInstallment === 0) {
             // สเต็ปแรก: เริ่มดำเนินการงวดที่ 1 (เปลี่ยนสถานะ รอคิว -> ดำเนินการ)
+            actionTimestamps[0] = actionTimestamps[0] || {};
+            actionTimestamps[0].start = now;
             currentActiveInstallment++;
         } else if (currentActiveInstallment <= installmentCount) {
-            // สเต็ปต่อมา: มีปุ่มให้กดยืนยันการคืนมัดจำ (เปลี่ยนสถานะ ดำเนินการ -> เสร็จสิ้น)
+            // สเต็ปต่อมา: ยืนยันการคืนมัดจำ (เปลี่ยนสถานะ ดำเนินการ -> เสร็จสิ้น)
             const isConfirmed = confirm(`ยืนยันว่าทำการคืนเงินมัดจำสำหรับงวดที่ ${currentActiveInstallment} เสร็จสมบูรณ์แล้วใช่หรือไม่?\n\n(หากกดยืนยัน สถานะจะเปลี่ยนจาก "ดำเนินการ" เป็น "เสร็จสิ้น")`);
             
             if (isConfirmed) {
-                // ขยับไปงวดถัดไป (ถ้างวดถัดไปเกินจำนวนงวด จะกลายเป็นสถานะ เสร็จสิ้นทั้งหมด)
+                // บันทึกเวลาที่กดยืนยัน ของงวดปัจจุบัน
+                actionTimestamps[currentActiveInstallment - 1].confirm = now;
+                
                 currentActiveInstallment++;
+                
+                // ถ้ามีงวดถัดไป ให้บันทึกเวลาเริ่มตัดจ่ายของงวดถัดไปทันที
+                if (currentActiveInstallment <= installmentCount) {
+                    actionTimestamps[currentActiveInstallment - 1] = actionTimestamps[currentActiveInstallment - 1] || {};
+                    actionTimestamps[currentActiveInstallment - 1].start = now;
+                }
             } else {
-                return; // ถ้ากดยกเลิกใน popup ก็ไม่ต้องทำอะไรต่อ
+                return; 
             }
         }
         
@@ -963,7 +1016,8 @@
 
     btnResetSim.addEventListener('click', () => {
         currentActiveInstallment = 0;
-        btnNextStep.disabled = false; // เปิดปุ่มอีกครั้งเมื่อรีเซ็ตการจำลอง
+        actionTimestamps = []; // ล้างเวลาทิ้งเมื่อกด Reset
+        btnNextStep.disabled = false;
         renderTableAndNodes();
         drawSVGConnections();
     });
@@ -972,7 +1026,8 @@
     inputDepositPct.addEventListener('input', updateCalculations);
     
     inputInstallments.addEventListener('input', () => {
-        currentActiveInstallment = 0; 
+        currentActiveInstallment = 0;
+        actionTimestamps = [];
         renderCustomPctInputs(); 
     });
 
@@ -982,7 +1037,6 @@
 
     window.addEventListener('load', () => {
         renderProductInputs();
-        renderCustomPctInputs();
         setTimeout(drawSVGConnections, 200);
     });
 
