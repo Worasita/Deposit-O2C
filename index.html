@@ -9,7 +9,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        
         :root {
             --primary: #002D62;
             --primary-light: #1e40af;
@@ -26,7 +25,7 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Prompt', 'Sarabun', sans-serif; }
         body { background-color: var(--background); color: var(--text-main); padding: 24px; min-height: 100vh; }
-        .container { max-width: 1500px; margin: 0 auto; } /* ขยายความกว้างเพื่อรองรับตาราง */
+        .container { max-width: 1500px; margin: 0 auto; }
 
         header {
             background: linear-gradient(135deg, var(--primary) 0%, #001a3a 100%);
@@ -321,7 +320,7 @@
                     </div>
 
                     <div class="sim-btn-container">
-                        <button class="btn btn-primary" id="btnNextStep" disabled><i class="fa-solid fa-play"></i> ตัดจ่ายงวดถัดไป</button>
+                        <button class="btn btn-primary" id="btnNextStep" disabled><i class="fa-solid fa-play"></i> เริ่มดำเนินการตัดจ่าย</button>
                         <button class="btn btn-outline" id="btnResetSim"><i class="fa-solid fa-rotate-right"></i> รีเซ็ต</button>
                         <button class="btn btn-success" id="btnSaveSO" disabled><i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูล SO</button>
 
@@ -582,7 +581,10 @@
         );
 
         if (isConfigValid && areFieldsValid) {
-            btnNextStep.disabled = false;
+            let installmentCount = parseInt(inputInstallments.value);
+            if (currentActiveInstallment <= installmentCount) {
+                btnNextStep.disabled = false;
+            }
             btnSaveSO.disabled = false;
         } else {
             btnNextStep.disabled = true;
@@ -684,22 +686,31 @@
         valDepositHold.innerHTML = `คงเหลือ: <strong>${formatCurrency(liveDepositWalletState)}</strong>`;
         valRevenue.innerHTML = `ยอดรับรวม: <strong>${formatCurrency(liveRevenueRealized)}</strong>`;
 
+        // ------------------ อัปเดตข้อความปุ่มและข้อความสถานะ ------------------
         if (!areFieldsValid) {
             simStatusMsg.innerHTML = '<i class="fa-solid fa-lock"></i> กรุณากรอกข้อมูลและรายการสินค้าให้ครบถ้วน';
             simStatusMsg.style.color = "var(--danger)";
+            btnNextStep.innerHTML = '<i class="fa-solid fa-play"></i> เริ่มดำเนินการตัดจ่าย';
         } else {
             simStatusMsg.style.color = "var(--success)";
             if (currentActiveInstallment === 0) {
                 simStatusMsg.innerHTML = "🟢 รับเงินมัดจำแล้วเรียบร้อย | พร้อมดำเนินการส่งมอบ";
-            } else if (currentActiveInstallment === installmentCount) {
+                btnNextStep.innerHTML = '<i class="fa-solid fa-play"></i> เริ่มตัดจ่ายงวดที่ 1';
+                btnNextStep.disabled = false;
+            } else if (currentActiveInstallment > installmentCount) {
                 simStatusMsg.innerHTML = "🏆 เสร็จสมบูรณ์ทุกกระบวนการปิดจบ SO";
+                btnNextStep.innerHTML = '<i class="fa-solid fa-flag-checkered"></i> เสร็จสิ้นกระบวนการทั้งหมด';
+                btnNextStep.disabled = true;
             } else {
                 simStatusMsg.innerHTML = `⚡ กำลังดำเนินการตัดจ่ายและติดตามของ งวดที่ ${currentActiveInstallment}`;
+                btnNextStep.innerHTML = `<i class="fa-solid fa-check"></i> ยืนยันคืนมัดจำงวดที่ ${currentActiveInstallment}`;
+                btnNextStep.disabled = false;
             }
         }
+        // ---------------------------------------------------------------------
 
-        if (currentActiveInstallment === 0) {
-            valBilling.textContent = "รอเริ่มตัดส่งของ";
+        if (currentActiveInstallment === 0 || currentActiveInstallment > installmentCount) {
+            valBilling.textContent = (currentActiveInstallment === 0) ? "รอเริ่มตัดส่งของ" : "หักล้างครบถ้วนแล้ว";
             valNetPay.textContent = "-";
             
             document.getElementById('nodeCustomer').classList.add('active');
@@ -722,7 +733,7 @@
             let statusText = "";
             let statusClass = "status-pending";
             
-            if (index + 1 < currentActiveInstallment) {
+            if (index + 1 < currentActiveInstallment || currentActiveInstallment > installmentCount) {
                 statusText = '<i class="fa-solid fa-circle-check"></i> เสร็จสิ้น';
                 statusClass = "status-completed";
             } else if (index + 1 === currentActiveInstallment) {
@@ -794,7 +805,7 @@
             const paths = [pathInitDep, pathDedHold, pathDedRev, pathNetPayFlow, pathNetRev];
             paths.forEach(p => p.className.baseVal = "connection-path");
 
-            if (currentActiveInstallment === 0) {
+            if (currentActiveInstallment === 0 || currentActiveInstallment > parseInt(inputInstallments.value)) {
                 pathInitDep.className.baseVal = "connection-path deposit-path";
             } else {
                 pathDedHold.className.baseVal = "connection-path deposit-path";
@@ -806,7 +817,7 @@
     }
 
     // ---------------------------------------------------------
-    // ฟังก์ชันใหม่: การบันทึก และการจัดการ Log (Save / Edit / Delete)
+    // การบันทึก และการจัดการ Log (Save / Edit / Delete)
     // ---------------------------------------------------------
 
     window.createNewSO = function() {
@@ -839,8 +850,8 @@
             depositPct: parseInt(inputDepositPct.value),
             installments: parseInt(inputInstallments.value),
             customPercentages: [...customPercentages],
-            products: [...productItems], // บันทึกรายการสินค้า
-            details: [...installmentExtraDetails], // บันทึก DN และ %ส่งมอบ
+            products: [...productItems],
+            details: [...installmentExtraDetails],
             dateSaved: new Date().toLocaleString('th-TH')
         };
 
@@ -924,20 +935,35 @@
         }
     };
 
+    // ---------------------------------------------------------
+    // แก้ไข Event Listener ของปุ่ม Next Step ตามคำขอ
+    // ---------------------------------------------------------
     btnNextStep.addEventListener('click', () => {
         if (!isConfigValid || !areFieldsValid) return;
         let installmentCount = parseInt(inputInstallments.value);
-        if (currentActiveInstallment < installmentCount) {
+        
+        if (currentActiveInstallment === 0) {
+            // สเต็ปแรก: เริ่มดำเนินการงวดที่ 1 (เปลี่ยนสถานะ รอคิว -> ดำเนินการ)
             currentActiveInstallment++;
-        } else {
-            currentActiveInstallment = 0; 
+        } else if (currentActiveInstallment <= installmentCount) {
+            // สเต็ปต่อมา: มีปุ่มให้กดยืนยันการคืนมัดจำ (เปลี่ยนสถานะ ดำเนินการ -> เสร็จสิ้น)
+            const isConfirmed = confirm(`ยืนยันว่าทำการคืนเงินมัดจำสำหรับงวดที่ ${currentActiveInstallment} เสร็จสมบูรณ์แล้วใช่หรือไม่?\n\n(หากกดยืนยัน สถานะจะเปลี่ยนจาก "ดำเนินการ" เป็น "เสร็จสิ้น")`);
+            
+            if (isConfirmed) {
+                // ขยับไปงวดถัดไป (ถ้างวดถัดไปเกินจำนวนงวด จะกลายเป็นสถานะ เสร็จสิ้นทั้งหมด)
+                currentActiveInstallment++;
+            } else {
+                return; // ถ้ากดยกเลิกใน popup ก็ไม่ต้องทำอะไรต่อ
+            }
         }
+        
         renderTableAndNodes();
         drawSVGConnections();
     });
 
     btnResetSim.addEventListener('click', () => {
         currentActiveInstallment = 0;
+        btnNextStep.disabled = false; // เปิดปุ่มอีกครั้งเมื่อรีเซ็ตการจำลอง
         renderTableAndNodes();
         drawSVGConnections();
     });
