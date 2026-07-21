@@ -74,9 +74,6 @@
         .form-control:focus { outline: none; border-color: var(--primary); background-color: #fff; box-shadow: 0 0 0 3px rgba(0, 45, 98, 0.1); }
         .required-asterisk { color: var(--danger); }
         
-        .table-input { padding: 6px 10px !important; background-color: #fff !important; width: 100%; text-align: center; }
-        .table-input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(0, 45, 98, 0.1); }
-        
         .section-divider { border-top: 1px dashed var(--border); margin: 20px 0; }
         .section-label { font-size: 14px; font-weight: 600; color: var(--primary-light); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
 
@@ -126,9 +123,6 @@
         .cancel-btn { background-color: #fee2e2; color: var(--danger); }
         .cancel-btn:hover { background-color: #fca5a5; }
 
-        .empty-state { text-align: center; padding: 40px; color: var(--text-muted); }
-        .empty-state i { font-size: 40px; margin-bottom: 15px; color: #cbd5e1; }
-        
         .dn-setup-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
         .dn-setup-row input { padding-left: 10px !important; }
         .chk-column { width: 40px; cursor: pointer; }
@@ -215,9 +209,7 @@
                             <span>1 งวด</span><span>5 งวด</span><span>10 งวด</span>
                         </div>
                     </div>
-                    <div class="custom-pct-container" id="instSetupContainer">
-                        <!-- JS Dynamically rendered setup fields for Installments -->
-                    </div>
+                    <div class="custom-pct-container" id="instSetupContainer"></div>
                     <div id="instWarning" class="alert-msg alert-warning"><i class="fa-solid fa-triangle-exclamation"></i> ผลรวมงวดชำระต้องเท่ากับยอดสั่งซื้อรวม (ตอนนี้: <span id="currentInstSum"></span>)</div>
                     <div id="instSuccess" class="alert-msg alert-success"><i class="fa-solid fa-check"></i> ผลรวมงวดชำระถูกต้อง</div>
                 </div>
@@ -231,11 +223,7 @@
                             <span>1 คัน</span><span>10 คัน</span><span>20 คัน</span>
                         </div>
                     </div>
-                    
-                    <div class="custom-pct-container" id="dnSetupContainer">
-                        <!-- JS Dynamically rendered setup fields for DN -->
-                    </div>
-                    
+                    <div class="custom-pct-container" id="dnSetupContainer"></div>
                     <div id="pctWarning" class="alert-msg alert-warning"><i class="fa-solid fa-triangle-exclamation"></i> ผลรวมมูลค่า DN ต้องเท่ากับยอดสั่งซื้อรวม (ตอนนี้: <span id="currentPctSum"></span>)</div>
                     <div id="pctSuccess" class="alert-msg alert-success"><i class="fa-solid fa-check"></i> ผลรวมมูลค่า DN ถูกต้องตรงกับยอดสั่งซื้อ</div>
                 </div>
@@ -243,7 +231,6 @@
 
             <!-- Right Column: Summary & Table -->
             <div class="main-content">
-                
                 <div class="card" id="summaryCard">
                     <div class="panel-title" style="margin-bottom: 5px;">
                         <i class="fa-solid fa-chart-pie"> สรุปข้อมูลโครงการ </i>
@@ -290,8 +277,7 @@
                                     <th>มูลค่าเรียกเก็บ (Gross)</th>
                                 </tr>
                             </thead>
-                            <tbody id="instTableBody">
-                            </tbody>
+                            <tbody id="instTableBody"></tbody>
                         </table>
                     </div>
                 </div>
@@ -318,8 +304,7 @@
                                     <th style="width: 100px;">สถานะ</th>
                                 </tr>
                             </thead>
-                            <tbody id="tableBody">
-                            </tbody>
+                            <tbody id="tableBody"></tbody>
                         </table>
                     </div>
                 </div>
@@ -350,8 +335,7 @@
                             <th>สถานะ/การจัดการ</th>
                         </tr>
                     </thead>
-                    <tbody id="logTableBody">
-                    </tbody>
+                    <tbody id="logTableBody"></tbody>
                 </table>
             </div>
         </div>
@@ -359,7 +343,6 @@
 </div>
 
 <script>
-    // อัปเดต Key สำหรับข้อมูล V4.5
     const STORAGE_KEY = 'mockup_saved_sos_v4_5';
     let savedSOs = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
@@ -398,10 +381,9 @@
     const btnSaveSO = document.getElementById('btnSaveSO');
     const chkSelectAll = document.getElementById('chkSelectAll');
 
-    // โครงสร้างข้อมูล
     let productItems = [{ name: 'สินค้าตัวอย่าง 1', price: 500000 }, { name: 'สินค้าตัวอย่าง 2', price: 500000 }];
-    let instData = []; // Array สำหรับงวดชำระ
-    let dnData = []; // Array สำหรับ DN
+    let instData = [];
+    let dnData = [];
     
     let isConfigValid = true; 
     let areFieldsValid = false; 
@@ -464,7 +446,6 @@
         let totalVal = productItems.reduce((sum, item) => sum + (item.price || 0), 0);
         inputTotalSO.value = totalVal;
         
-        // Auto adjust remaining amount to the last DN and Inst
         if(dnData.length > 0) {
             let sumFirst = 0;
             for(let i=0; i<dnData.length - 1; i++) sumFirst += dnData[i].amount;
@@ -628,48 +609,229 @@
     function validateAndCalculate() {
         let totalSO = parseFloat(inputTotalSO.value) || 0;
         
-        // Validate Installmentsได้เลยครับ ผมได้ทำการปรับปรุง Source Code ให้ตามที่คุณต้องการ โดยมีรายละเอียดการแก้ไขดังนี้:
+        // Validate Installment Sum
+        let sumInst = instData.reduce((acc, curr) => acc + (curr.amount || 0), 0);
+        currentInstSum.innerText = formatCurrency(sumInst);
+        let isInstValid = Math.abs(sumInst - totalSO) < 0.01;
 
-1.  **เปลี่ยนชื่อตาราง:** แก้ไขชื่อจาก "ตารางจัดการรอบจัดส่งและการหักล้างเงินมัดจำ (DN)" เป็น **"ตารางคำนวนมูลค่าเงินคืนจากเงินมัดจำ"** เรียบร้อยแล้ว[cite: 7]
-2.  **เพิ่มระบบ "งวดการเรียกเก็บเงิน":** สร้าง Section ใหม่สำหรับตั้งค่าและแสดงผลงวดชำระเงิน (Payment Installments) แยกออกจากรอบการจัดส่ง (DN) อย่างอิสระ[cite: 7] ทำให้คุณสามารถตั้งค่าบิล 100,000 บาท ให้แบ่งจัดส่ง 3 DN แต่เรียกเก็บเพียง 2 งวด (เช่น 50% และ 50%) ได้ตามโจทย์ที่ต้องการครับ[cite: 7]
-
-สามารถคัดลอกโค้ดด้านล่างไปใช้งานได้เลยครับ
-
-```html
-<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sourcing Product - Dynamic Money Route Tracker (V4.5)</title>
-    <link rel="preconnect" href="[https://fonts.googleapis.com](https://fonts.googleapis.com)">
-    <link rel="preconnect" href="[https://fonts.gstatic.com](https://fonts.gstatic.com)" crossorigin>
-    <link href="[https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap](https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap)" rel="stylesheet">
-    <link rel="stylesheet" href="[https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css](https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css)">
-    <style>
-        :root {
-            --primary: #002D62;
-            --primary-light: #1e40af;
-            --accent: #C5A021;
-            --accent-light: #f59e0b;
-            --success: #10b981;
-            --danger: #ef4444;
-            --background: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
+        if (isInstValid) {
+            instWarning.style.display = 'none';
+            instSuccess.style.display = 'block';
+        } else {
+            instWarning.style.display = 'block';
+            instSuccess.style.display = 'none';
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Prompt', 'Sarabun', sans-serif; }
-        body { background-color: var(--background); color: var(--text-main); padding: 24px; min-height: 100vh; }
-        .container { max-width: 1550px; margin: 0 auto; }
+        // Validate DN Sum
+        let sumDN = dnData.reduce((acc, curr) => acc + (curr.amount || 0), 0);
+        currentPctSum.innerText = formatCurrency(sumDN);
+        let isDNValid = Math.abs(sumDN - totalSO) < 0.01;
 
-        header {
-            background: linear-gradient(135deg, var(--primary) 0%, #001a3a 100%);
-            color: white; padding: 30px; border-radius: 16px; margin-bottom: 24px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08); display: flex; justify-content: space-between;
-            align-items: center; position: relative; overflow: hidden;
+        if (isDNValid) {
+            pctWarning.style.display = 'none';
+            pctSuccess.style.display = 'block';
+        } else {
+            pctWarning.style.display = 'block';
+            pctSuccess.style.display = 'none';
         }
-        header::after {
-            content
+
+        isConfigValid = isInstValid && isDNValid;
+        btnSaveSO.disabled = !(isConfigValid && areFieldsValid);
+
+        renderBillingScheduleTable(totalSO);
+        renderScheduleTable(totalSO);
+        updateSummaryBox(totalSO);
+    }
+
+    function updateSummaryBox(totalSO) {
+        sumTotalSO.innerText = formatCurrency(totalSO);
+        let initialDep = instData.length > 0 ? (instData[0].amount || 0) : 0;
+        sumInitialDeposit.innerText = formatCurrency(initialDep);
+        sumRemainingSO.innerText = formatCurrency(totalSO);
+    }
+
+    function renderBillingScheduleTable(totalSO) {
+        let html = '';
+        instData.forEach((inst, i) => {
+            let pct = totalSO > 0 ? ((inst.amount / totalSO) * 100).toFixed(2) : "0.00";
+            html += `
+                <tr>
+                    <td style="font-weight:600; color:var(--accent);">งวดที่ ${i+1}</td>
+                    <td style="text-align:left; padding-left:15px;">${inst.name || '-'}</td>
+                    <td>${pct}%</td>
+                    <td style="font-weight:600;">${formatCurrency(inst.amount)}</td>
+                </tr>
+            `;
+        });
+        instTableBody.innerHTML = html;
+    }
+
+    function renderScheduleTable(totalSO) {
+        let html = '';
+        let initialDeposit = instData.length > 0 ? (instData[0].amount || 0) : 0;
+        
+        dnData.forEach((dn, i) => {
+            let pct = totalSO > 0 ? (dn.amount / totalSO) : 0;
+            let deduction = initialDeposit * pct;
+            let customerPay = Math.max(0, dn.amount - deduction);
+            
+            let statusBadge = `<span class="status-badge status-pending"><i class="fa-solid fa-clock"></i> รอดำเนินการ</span>`;
+            if (dn.status === 'processing') statusBadge = `<span class="status-badge status-processing"><i class="fa-solid fa-spinner"></i> กำลังส่งมอบ</span>`;
+            if (dn.status === 'completed') statusBadge = `<span class="status-badge status-completed"><i class="fa-solid fa-circle-check"></i> เสร็จสิ้น</span>`;
+
+            html += `
+                <tr class="${dn.status === 'processing' ? 'tr-active-now' : ''}">
+                    <td class="chk-column"><input type="checkbox" class="row-checkbox" data-idx="${i}" ${dn.status === 'completed' ? 'checked disabled' : ''} onchange="handleRowCheckboxChange()"></td>
+                    <td>${i+1}</td>
+                    <td style="font-weight:600; color:var(--primary);">${dn.dnNumber || `DN-0${i+1}`}</td>
+                    <td style="font-weight:600;">${formatCurrency(dn.amount)}</td>
+                    <td>${(pct * 100).toFixed(2)}%</td>
+                    <td style="color:var(--danger); font-weight:500;">-${formatCurrency(deduction)}</td>
+                    <td style="color:var(--success); font-weight:600;">${formatCurrency(customerPay)}</td>
+                    <td><input type="text" class="form-control" style="padding:4px 8px; font-size:12px;" placeholder="ระบุเลขที่ CN" value="${dn.cnNumber || ''}" oninput="updateDNField(${i}, 'cnNumber', this.value)"></td>
+                    <td style="font-size:11px; color:var(--text-muted);">${dn.timeConfirm || '-'}</td>
+                    <td>${statusBadge}</td>
+                </tr>
+            `;
+        });
+        tableBody.innerHTML = html;
+    }
+
+    window.updateDNField = function(idx, field, val) {
+        if(field === 'cnNumber') dnData[idx].cnNumber = val;
+    }
+
+    // Event Listeners for Validation
+    [inputSONumber, inputCustomerName, inputCustomerCode].forEach(input => {
+        input.addEventListener('input', () => {
+            areFieldsValid = inputSONumber.value.trim() !== '' && 
+                             inputCustomerName.value.trim() !== '' && 
+                             inputCustomerCode.value.trim() !== '';
+            btnSaveSO.disabled = !(isConfigValid && areFieldsValid);
+        });
+    });
+
+    inputInstCount.addEventListener('input', (e) => {
+        lblInstCount.innerText = e.target.value;
+        syncInstArraySize();
+    });
+
+    inputDNCount.addEventListener('input', (e) => {
+        lblDNCount.innerText = e.target.value;
+        syncDNArraySize();
+    });
+
+    window.createNewSO = function() {
+        inputSONumber.value = '';
+        inputCustomerName.value = '';
+        inputCustomerCode.value = '';
+        editingSOIdInput.value = '';
+        productItems = [{ name: 'สินค้าตัวอย่าง 1', price: 500000 }, { name: 'สินค้าตัวอย่าง 2', price: 500000 }];
+        inputInstCount.value = 2;
+        lblInstCount.innerText = 2;
+        inputDNCount.value = 2;
+        lblDNCount.innerText = 2;
+        renderProductInputs();
+        btnSaveSO.disabled = true;
+    }
+
+    btnSaveSO.addEventListener('click', () => {
+        const soId = editingSOIdInput.value || 'SO_' + Date.now();
+        const soObj = {
+            id: soId,
+            soNumber: inputSONumber.value,
+            customerName: inputCustomerName.value,
+            customerCode: inputCustomerCode.value,
+            user: currentSessionUser,
+            totalSO: parseFloat(inputTotalSO.value) || 0,
+            instCount: instData.length,
+            dnCount: dnData.length,
+            products: JSON.parse(JSON.stringify(productItems)),
+            installments: JSON.parse(JSON.stringify(instData)),
+            dnList: JSON.parse(JSON.stringify(dnData)),
+            updatedAt: getNowStr()
+        };
+
+        const existingIdx = savedSOs.findIndex(item => item.id === soId);
+        if (existingIdx >= 0) {
+            savedSOs[existingIdx] = soObj;
+        } else {
+            savedSOs.push(soObj);
+        }
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(savedSOs));
+        alert('บันทึกข้อมูล SO เรียบร้อยแล้ว!');
+        switchTab('log');
+    });
+
+    function renderLogTable() {
+        let html = '';
+        if (savedSOs.length === 0) {
+            logTableBody.innerHTML = `<tr><td colspan="9" class="empty-state"><i class="fa-solid fa-folder-open"></i><p>ยังไม่มีประวัติการบันทึก SO</p></td></tr>`;
+            return;
+        }
+
+        savedSOs.forEach((so) => {
+            html += `
+                <tr>
+                    <td style="font-weight:600; color:var(--primary);">${so.soNumber}</td>
+                    <td>${so.customerCode}</td>
+                    <td style="text-align:left;">${so.customerName}</td>
+                    <td>${so.user}</td>
+                    <td>${so.instCount} งวด</td>
+                    <td>${so.dnCount} คัน</td>
+                    <td style="font-weight:600;">${formatCurrency(so.totalSO)}</td>
+                    <td style="font-size:12px; color:var(--text-muted);">${so.updatedAt}</td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="action-btn edit-btn" onclick="loadSOForEdit('${so.id}')"><i class="fa-solid fa-pen"></i> แก้ไข</button>
+                            <button class="action-btn cancel-btn" onclick="deleteSO('${so.id}')"><i class="fa-solid fa-trash"></i> ลบ</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+        logTableBody.innerHTML = html;
+    }
+
+    window.loadSOForEdit = function(id) {
+        const so = savedSOs.find(item => item.id === id);
+        if (!so) return;
+
+        editingSOIdInput.value = so.id;
+        inputSONumber.value = so.soNumber;
+        inputCustomerName.value = so.customerName;
+        inputCustomerCode.value = so.customerCode;
+        
+        productItems = JSON.parse(JSON.stringify(so.products));
+        instData = JSON.parse(JSON.stringify(so.installments));
+        dnData = JSON.parse(JSON.stringify(so.dnList));
+
+        inputInstCount.value = so.instCount;
+        lblInstCount.innerText = so.instCount;
+        inputDNCount.value = so.dnCount;
+        lblDNCount.innerText = so.dnCount;
+
+        renderProductInputs();
+        switchTab('main');
+        areFieldsValid = true;
+        btnSaveSO.disabled = false;
+    }
+
+    window.deleteSO = function(id) {
+        if(confirm('คุณต้องการลบข้อมูล SO นี้ใช่หรือไม่?')) {
+            savedSOs = savedSOs.filter(item => item.id !== id);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(savedSOs));
+            renderLogTable();
+        }
+    }
+
+    window.exportExcel = function() {
+        alert('ฟังก์ชัน Export Excel จำลองทำงานเรียบร้อย');
+    }
+
+    // เริ่มต้นทำงานครั้งแรก
+    renderProductInputs();
+</script>
+</body>
+</html>
