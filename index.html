@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sourcing Product - Dynamic Money Route Tracker (V4.2)</title>
+    <title>Sourcing Product - Dynamic Money Route Tracker (V4.3)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -75,6 +75,7 @@
         .required-asterisk { color: var(--danger); }
         
         .table-input { padding: 6px 10px !important; background-color: #fff !important; width: 100%; text-align: center; }
+        .table-input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(0, 45, 98, 0.1); }
         
         .section-divider { border-top: 1px dashed var(--border); margin: 20px 0; }
         .section-label { font-size: 14px; font-weight: 600; color: var(--primary-light); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
@@ -92,41 +93,18 @@
         .alert-warning { color: var(--danger); }
         .alert-success { color: var(--success); }
 
-        .summary-box { background-color: var(--background); border-radius: 12px; padding: 16px; margin-top: 24px; border-left: 4px solid var(--accent); }
-        .summary-item { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; }
-        .summary-item:last-child { margin-bottom: 0; padding-top: 10px; border-top: 1px dashed var(--border); font-weight: 600; }
+        .summary-box { background-color: var(--background); border-radius: 12px; padding: 20px; margin-top: 15px; border-left: 5px solid var(--accent); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .summary-item { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 15px; }
+        .summary-item:last-child { margin-bottom: 0; padding-top: 12px; border-top: 1px dashed var(--border); font-weight: 600; font-size: 16px;}
 
         .main-content { display: flex; flex-direction: column; gap: 24px; }
-        .route-map-card { position: relative; overflow: hidden; }
-        .route-container { position: relative; min-height: 400px; background: radial-gradient(circle at 50% 50%, #fcfdfe 0%, var(--background) 100%); border-radius: 12px; border: 1px solid var(--border); margin-top: 15px; }
 
-        .node { position: absolute; display: flex; flex-direction: column; align-items: center; width: 170px; z-index: 2; }
-        #nodeCustomer { top: 30px; left: 30px; }
-        #nodeDeposit { bottom: 30px; left: 30px; }
-        #nodeNetPay { top: 30px; left: 50%; transform: translateX(-50%); }
-        #nodeBilling { bottom: 30px; left: 50%; transform: translateX(-50%); }
-        #nodeRevenue { top: 50%; right: 30px; transform: translateY(-50%); }
-
-        .node-circle { width: 64px; height: 64px; border-radius: 50%; background-color: white; border: 3px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--text-muted); box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .node.active .node-circle { border-color: var(--primary); color: var(--primary); background-color: #eff6ff; transform: scale(1.08); box-shadow: 0 0 15px rgba(0, 45, 98, 0.2); }
-        .node.accent .node-circle { border-color: var(--accent); color: var(--accent); background-color: #fffbeb; box-shadow: 0 0 15px rgba(197, 160, 33, 0.2); }
-        .node-label { margin-top: 12px; font-size: 14px; font-weight: 600; text-align: center; color: var(--text-main); line-height: 1.3; }
-        .node-value { font-size: 13px; color: var(--primary); font-weight: 500; margin-top: 6px; background: #f1f5f9; padding: 4px 10px; border-radius: 12px; min-height: 22px; text-align: center; border: 1px solid #e2e8f0; line-height: 1.4;}
-        .node-value.highlight { background-color: #dbeafe; color: var(--primary-light); border-color: #bfdbfe; }
-        .node-value.highlight-accent { background-color: #fef3c7; color: #d97706; border-color: #fde68a; }
-
-        .route-svg-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
-        .connection-path { fill: none; stroke: #cbd5e1; stroke-width: 4; stroke-dasharray: 8 4; transition: all 0.5s; opacity: 0.3; }
-        .connection-path.active-path { stroke: var(--success); opacity: 1; animation: flowDash 30s linear infinite; }
-        .connection-path.deposit-path { stroke: var(--accent); opacity: 1; animation: flowDash 30s linear infinite; }
-        @keyframes flowDash { to { stroke-dashoffset: -1000; } }
-
-        .sim-btn-container { display: flex; gap: 12px; margin-top: 15px; flex-wrap: wrap; }
+        .sim-btn-container { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid var(--border); }
         .btn { padding: 10px 16px; border-radius: 8px; border: none; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; justify-content: center; }
         .btn-primary { background-color: var(--primary); color: white; }
         .btn-primary:hover:not(:disabled) { background-color: var(--primary-light); }
-        .btn-outline { background-color: transparent; border: 1px solid var(--border); color: var(--text-muted); }
-        .btn-outline:hover:not(:disabled) { background-color: #f1f5f9; color: var(--text-main); }
+        .btn-outline { background-color: white; border: 1px solid var(--border); color: var(--text-main); }
+        .btn-outline:hover:not(:disabled) { background-color: #f1f5f9; }
         .btn-success { background-color: var(--success); color: white; }
         .btn-success:hover:not(:disabled) { background-color: #059669; }
         .btn-danger { background-color: #fee2e2; color: var(--danger); }
@@ -148,8 +126,8 @@
         .action-btn { padding: 6px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; border: none; font-weight: 500; transition: 0.2s;}
         .edit-btn { background-color: #dbeafe; color: var(--primary); }
         .edit-btn:hover { background-color: #bfdbfe; }
-        .delete-btn { background-color: #fee2e2; color: var(--danger); }
-        .delete-btn:hover { background-color: #fca5a5; }
+        .cancel-btn { background-color: #fee2e2; color: var(--danger); }
+        .cancel-btn:hover { background-color: #fca5a5; }
 
         .empty-state { text-align: center; padding: 40px; color: var(--text-muted); }
         .empty-state i { font-size: 40px; margin-bottom: 15px; color: #cbd5e1; }
@@ -161,11 +139,11 @@
     <header>
         <div>
             <h1><i class="fa-solid fa-route"></i> Deposit SO Tracking</h1>
-            <p>ระบบติดตาม SO ที่มีการชำระมัดจำ (เพิ่มการจัดการสินค้า และ DN Reference)</p>
+            <p>ระบบติดตาม SO ที่มีการชำระมัดจำ (เพิ่มการจัดการเลขที่ใบลดหนี้ & สถานะยกเลิก)</p>
         </div>
         <div class="badge-live">
             <div class="dot"></div>
-            <span>Mockup website</span>
+            <span>Mockup website V4.3</span>
         </div>
     </header>
 
@@ -177,6 +155,8 @@
     <!-- MAIN TAB (จำลอง SO) -->
     <div id="mainTab" class="tab-content active">
         <div class="dashboard-grid">
+            
+            <!-- Left Column: Inputs -->
             <div class="card">
                 <div class="panel-title">
                     <span><i class="fa-solid fa-sliders"></i> ข้อมูลเบื้องต้น</span>
@@ -249,66 +229,32 @@
                     <div id="pctWarning" class="alert-msg alert-warning"><i class="fa-solid fa-triangle-exclamation"></i> ผลรวมมูลค่าต้องเท่ากับยอดสั่งซื้อรวม (ตอนนี้: <span id="currentPctSum"></span>)</div>
                     <div id="pctSuccess" class="alert-msg alert-success"><i class="fa-solid fa-check"></i> ผลรวมมูลค่าถูกต้องตรงกับยอดสั่งซื้อ</div>
                 </div>
-
-                <div class="summary-box">
-                    <div class="summary-item">
-                        <span>💰 เงินมัดจำก้อนแรกครังแรก:</span>
-                        <span id="sumInitialDeposit" style="font-weight: 600; color: var(--accent);">0 THB</span>
-                    </div>
-                    <div class="summary-item">
-                        <span>📦 ยอดที่เหลือรอเรียกเก็บงวด:</span>
-                        <span id="sumRemainingSO">0 THB</span>
-                    </div>
-                    <div class="summary-item">
-                        <span>📊 อัตราตัดจ่ายต่องวด:</span>
-                        <span>ตามสัดส่วนสินค้าจริง</span>
-                    </div>
-                    <div class="summary-item">
-                        <span>🧾 ยอดรวมมูลค่าโครงการ:</span>
-                        <span id="sumTotalSO" style="color: var(--primary);">0 THB</span>
-                    </div>
-                </div>
             </div>
 
+            <!-- Right Column: Summary & Table -->
             <div class="main-content">
-                <div class="card route-map-card">
+                
+                <div class="card" id="summaryCard">
                     <div class="panel-title" style="margin-bottom: 5px;">
-                        <i class="fa-solid fa-diagram-project"> แผนผังติดตามสถานะ SO </i>
+                        <i class="fa-solid fa-chart-pie"> สรุปข้อมูลโครงการ </i>
                     </div>
-                    <p style="font-size: 13px; color: var(--text-muted);">SO Route map Tracking</p>
                     
-                    <div class="route-container">
-                        <svg class="route-svg-layer" id="routeSvg">
-                            <path id="pathInitDep" class="connection-path" d="" /> <path id="pathDedHold" class="connection-path" d="" /> <path id="pathDedRev" class="connection-path" d="" />  <path id="pathNetPayFlow" class="connection-path" d="" />  <path id="pathNetRev" class="connection-path" d="" />  </svg>
-
-                        <div class="node active" id="nodeCustomer">
-                            <div class="node-circle"><i class="fa-solid fa-wallet"></i></div>
-                            <div class="node-label" id="lblCustomerNode">1. ลูกค้า (Customer)</div>
-                            <div class="node-value highlight-accent" id="valCustomer">มัดจำรวม: 0 THB</div>
+                    <div class="summary-box">
+                        <div class="summary-item">
+                            <span>💰 เงินมัดจำก้อนแรกครังแรก:</span>
+                            <span id="sumInitialDeposit" style="font-weight: 600; color: var(--accent);">0 THB</span>
                         </div>
-
-                        <div class="node accent" id="nodeDeposit">
-                            <div class="node-circle"><i class="fa-solid fa-vault"></i></div>
-                            <div class="node-label">2. ยอดเงินมัดจำที่เหลือ</div>
-                            <div class="node-value" id="valDepositHold">0 THB</div>
+                        <div class="summary-item">
+                            <span>📦 ยอดที่เหลือรอเรียกเก็บงวด:</span>
+                            <span id="sumRemainingSO">0 THB</span>
                         </div>
-
-                        <div class="node" id="nodeNetPay">
-                            <div class="node-circle"><i class="fa-solid fa-hand-holding-dollar"></i></div>
-                            <div class="node-label">5. ลูกค้าต้องชำระเงินเพิ่ม</div>
-                            <div class="node-value" id="valNetPay">รอชำระ</div>
+                        <div class="summary-item">
+                            <span>📊 อัตราตัดจ่ายต่องวด:</span>
+                            <span>ตามสัดส่วนสินค้าจริง</span>
                         </div>
-
-                        <div class="node" id="nodeBilling">
-                            <div class="node-circle"><i class="fa-solid fa-file-invoice-dollar"></i></div>
-                            <div class="node-label">3. เงินมัดจำที่ทำคืนในงวดนี้</div>
-                            <div class="node-value" id="valBilling">หักมัดจำงวดนี้</div>
-                        </div>
-
-                        <div class="node" id="nodeRevenue">
-                            <div class="node-circle"><i class="fa-solid fa-building-columns"></i></div>
-                            <div class="node-label">4. รายได้รับจริงบริษัท</div>
-                            <div class="node-value highlight" id="valRevenue">0 THB</div>
+                        <div class="summary-item">
+                            <span>🧾 ยอดรวมมูลค่าโครงการ:</span>
+                            <span id="sumTotalSO" style="color: var(--primary);">0 THB</span>
                         </div>
                     </div>
 
@@ -339,7 +285,7 @@
                                     <th>🔁 หักล้างมัดจำ</th>
                                     <th>💰 ลูกค้าจ่ายเพิ่ม</th>
                                     <th>มัดจำคงเหลือ</th>
-                                    <th style="width: 100px;">% ส่งมอบ</th>
+                                    <th style="width: 130px;">เลขที่ใบลดหนี้</th>
                                     <th style="width: 150px;">เวลาทำรายการ</th>
                                     <th style="width: 100px;">สถานะ</th>
                                 </tr>
@@ -368,12 +314,13 @@
                             <th>หมายเลข SO</th>
                             <th>รหัสลูกค้า</th>
                             <th>ชื่อลูกค้า</th>
+                            <th>ผู้ทำรายการ (User)</th>
                             <th>เลข DN (อ้างอิง)</th>
                             <th>ยอดคำสั่งซื้อรวม</th>
                             <th>% มัดจำ</th>
                             <th>จำนวนงวด</th>
                             <th>เวลาทำรายการ</th>
-                            <th>การจัดการ</th>
+                            <th>สถานะ/การจัดการ</th>
                         </tr>
                     </thead>
                     <tbody id="logTableBody">
@@ -385,7 +332,8 @@
 </div>
 
 <script>
-    const STORAGE_KEY = 'mockup_saved_sos_v4_2';
+    // ปรับชื่อคีย์ใหม่สำหรับเวอร์ชั่น 4.3 เพื่อความสดใหม่และป้องกัน Data conflict
+    const STORAGE_KEY = 'mockup_saved_sos_v4_3';
     let savedSOs = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
     const inputSONumber = document.getElementById('inputSONumber');
@@ -410,13 +358,6 @@
     const sumRemainingSO = document.getElementById('sumRemainingSO');
     const sumTotalSO = document.getElementById('sumTotalSO');
     
-    const valCustomer = document.getElementById('valCustomer');
-    const valDepositHold = document.getElementById('valDepositHold');
-    const valNetPay = document.getElementById('valNetPay');
-    const valBilling = document.getElementById('valBilling');
-    const valRevenue = document.getElementById('valRevenue');
-    const lblCustomerNode = document.getElementById('lblCustomerNode');
-    
     const tableBody = document.getElementById('tableBody');
     const logTableBody = document.getElementById('logTableBody');
     
@@ -424,10 +365,9 @@
     const btnResetSim = document.getElementById('btnResetSim');
     const btnSaveSO = document.getElementById('btnSaveSO');
     const simStatusMsg = document.getElementById('simStatusMsg');
-    const routeSvg = document.getElementById('routeSvg');
 
     let currentActiveInstallment = 0; 
-    let isCurrentInstallmentActive = false; // ตัวแปรคุมสถานะว่า เริ่มตัดจ่าย หรือยัง
+    let isCurrentInstallmentActive = false;
     let calculatedDataRows = [];
     
     let customAmounts = [];
@@ -435,9 +375,11 @@
     let installmentExtraDetails = []; 
     
     let actionTimestamps = []; 
-
     let isConfigValid = true; 
     let areFieldsValid = false; 
+    
+    // จำลอง User Login Session สำหรับฟีเจอร์ Log
+    const currentSessionUser = "Mock_Admin_01"; 
 
     function formatCurrency(num) {
         return new Intl.NumberFormat('th-TH', { style: 'decimal', maximumFractionDigits: 2 }).format(num) + ' ฿';
@@ -450,7 +392,6 @@
         if (tabName === 'main') {
             document.getElementById('mainTab').classList.add('active');
             document.getElementById('tabMainBtn').classList.add('active');
-            setTimeout(drawSVGConnections, 100); 
         } else if (tabName === 'log') {
             document.getElementById('logTab').classList.add('active');
             document.getElementById('tabLogBtn').classList.add('active');
@@ -648,14 +589,15 @@
         }
 
         renderTableAndNodes();
-        drawSVGConnections();
     }
 
+    // ฟังก์ชั่นอัพเดท DN และ CN (เลขที่ใบลดหนี้)
     window.updateExtraDetail = function(idx, field, val) {
         if (!installmentExtraDetails[idx]) {
-            installmentExtraDetails[idx] = { dn: '' };
+            installmentExtraDetails[idx] = { dn: '', cn: '' };
         }
         if (field === 'dn') installmentExtraDetails[idx].dn = val;
+        if (field === 'cn') installmentExtraDetails[idx].cn = val;
     };
 
     function renderTableAndNodes() {
@@ -665,35 +607,7 @@
         }
 
         tableBody.innerHTML = '';
-        
-        let totalSOVal = parseFloat(inputTotalSO.value) || 0;
-        let depositPctVal = parseInt(inputDepositPct.value);
         let installmentCount = parseInt(inputInstallments.value);
-        let totalDepositAmount = totalSOVal * (depositPctVal / 100);
-        let liveDepositWalletState = totalDepositAmount;
-        let liveRevenueRealized = 0;
-        
-        // คำนวณยอดเงินรวมเฉพาะงวดที่เสร็จสิ้นแล้ว
-        for (let idx = 0; idx < currentActiveInstallment - 1; idx++) {
-            if (idx < calculatedDataRows.length) {
-                liveDepositWalletState -= calculatedDataRows[idx].deduction;
-                liveRevenueRealized += calculatedDataRows[idx].gross;
-            }
-        }
-        
-        // ถ้างวดยังไม่เสร็จสิ้น แต่เป็นงวดที่กำลัง Active อยู่
-        if (isCurrentInstallmentActive && currentActiveInstallment > 0 && currentActiveInstallment <= installmentCount) {
-             liveDepositWalletState -= calculatedDataRows[currentActiveInstallment - 1].deduction;
-             liveRevenueRealized += calculatedDataRows[currentActiveInstallment - 1].gross;
-        }
-
-        let custNameDisp = inputCustomerName.value.trim() || "ลูกค้า";
-        let soDisp = inputSONumber.value.trim() || "ไม่ระบุ SO";
-        lblCustomerNode.textContent = `1. ${custNameDisp}`;
-        
-        valCustomer.innerHTML = `มัดจำรวม: <strong>${formatCurrency(totalDepositAmount)}</strong><br><span style="font-size:11px; color:var(--text-muted);">Ref: ${soDisp}</span>`;
-        valDepositHold.innerHTML = `คงเหลือ: <strong>${formatCurrency(liveDepositWalletState)}</strong>`;
-        valRevenue.innerHTML = `ยอดรับรวม: <strong>${formatCurrency(liveRevenueRealized)}</strong>`;
 
         if (!areFieldsValid) {
             simStatusMsg.innerHTML = '<i class="fa-solid fa-lock"></i> กรุณากรอกข้อมูลและรายการสินค้าให้ครบถ้วน';
@@ -714,30 +628,11 @@
                     simStatusMsg.innerHTML = `⏳ รอเริ่มดำเนินการตัดจ่าย งวดที่ ${currentActiveInstallment}`;
                     btnNextStep.innerHTML = `<i class="fa-solid fa-play"></i> เริ่มตัดจ่ายงวดที่ ${currentActiveInstallment}`;
                 } else {
-                    simStatusMsg.innerHTML = `⚡ กำลังดำเนินการตัดจ่ายและติดตามของ งวดที่ ${currentActiveInstallment}`;
+                    simStatusMsg.innerHTML = `⚡ กำลังดำเนินการตัดจ่ายและรอรับ "เลขที่ใบลดหนี้" งวดที่ ${currentActiveInstallment}`;
                     btnNextStep.innerHTML = `<i class="fa-solid fa-check"></i> ยืนยันคืนมัดจำงวดที่ ${currentActiveInstallment}`;
                 }
                 btnNextStep.disabled = false;
             }
-        }
-
-        if (currentActiveInstallment === 0 || currentActiveInstallment > installmentCount || (!isCurrentInstallmentActive && currentActiveInstallment > 0)) {
-            valBilling.textContent = (currentActiveInstallment === 0) ? "รอเริ่มตัดส่งของ" : "หักล้างครบถ้วนแล้ว";
-            valNetPay.textContent = "-";
-            
-            document.getElementById('nodeCustomer').classList.add('active');
-            document.getElementById('nodeDeposit').classList.add('accent');
-            document.getElementById('nodeBilling').classList.remove('active');
-            document.getElementById('nodeNetPay').classList.remove('active');
-            document.getElementById('nodeRevenue').classList.remove('active');
-        } else {
-            const activeRow = calculatedDataRows[currentActiveInstallment - 1];
-            valBilling.innerHTML = `หักงวดนี้: <strong>${formatCurrency(activeRow.deduction)}</strong>`;
-            valNetPay.innerHTML = `จ่ายเพิ่มงวดนี้: <strong>${formatCurrency(activeRow.net)}</strong>`;
-
-            document.getElementById('nodeBilling').classList.add('active');
-            document.getElementById('nodeNetPay').classList.add('active');
-            document.getElementById('nodeRevenue').classList.add('active');
         }
 
         calculatedDataRows.forEach((row, index) => {
@@ -763,7 +658,7 @@
                 statusClass = "status-pending";
             }
 
-            let extra = installmentExtraDetails[index] || { dn: '' };
+            let extra = installmentExtraDetails[index] || { dn: '', cn: '' };
             
             let ts = actionTimestamps[index] || {};
             let timeHtml = "";
@@ -782,61 +677,13 @@
                 <td style="color:var(--success); font-weight:600;">${formatCurrency(row.net)}</td>
                 <td style="color:var(--text-muted);">${formatCurrency(row.remainingDeposit)}</td>
                 <td>
-                    <!-- 2. ให้ระบบคำนวณอัตโนมัติ (ไม่สามารถกรอกเองได้) -->
-                    <input type="text" class="form-control table-input" value="${row.pct.toFixed(2)}%" readonly style="background-color: #f1f5f9; cursor: not-allowed; color: var(--text-muted); font-weight: 500;">
+                    <input type="text" class="form-control table-input" placeholder="ระบุเลขที่ใบลดหนี้" value="${extra.cn || ''}" onchange="updateExtraDetail(${index}, 'cn', this.value)" style="border-color: ${isCurrentInstallmentActive && index + 1 === currentActiveInstallment && !extra.cn ? 'var(--accent-light)' : ''};">
                 </td>
                 <td style="text-align:left; line-height: 1.3;">${timeHtml}</td>
                 <td><span class="status-badge ${statusClass}">${statusText}</span></td>
             `;
             tableBody.appendChild(tr);
         });
-    }
-
-    function drawSVGConnections() {
-        if(!isConfigValid) return;
-
-        const getCenter = (id) => {
-            const el = document.getElementById(id);
-            if(!el) return {x:0, y:0};
-            const box = el.getBoundingClientRect();
-            const svgBox = routeSvg.getBoundingClientRect();
-            return {
-                x: (box.left + box.width / 2) - svgBox.left,
-                y: (box.top + box.height / 2) - svgBox.top
-            };
-        };
-
-        const pCust = getCenter('nodeCustomer');
-        const pDep = getCenter('nodeDeposit');
-        const pBill = getCenter('nodeBilling');
-        const pNet = getCenter('nodeNetPay');
-        const pRev = getCenter('nodeRevenue');
-
-        const pathInitDep = document.getElementById('pathInitDep');
-        const pathDedHold = document.getElementById('pathDedHold');
-        const pathDedRev = document.getElementById('pathDedRev');
-        const pathNetPayFlow = document.getElementById('pathNetPayFlow');
-        const pathNetRev = document.getElementById('pathNetRev');
-
-        if(pathInitDep && pathDedHold && pathDedRev && pathNetPayFlow && pathNetRev) {
-            pathInitDep.setAttribute('d', `M ${pCust.x} ${pCust.y} L ${pDep.x} ${pDep.y}`);
-            pathDedHold.setAttribute('d', `M ${pDep.x} ${pDep.y} L ${pBill.x} ${pBill.y}`);
-            pathNetPayFlow.setAttribute('d', `M ${pCust.x} ${pCust.y} L ${pNet.x} ${pNet.y}`);
-            pathDedRev.setAttribute('d', `M ${pBill.x} ${pBill.y} Q ${pRev.x} ${pBill.y} ${pRev.x} ${pRev.y}`);
-            pathNetRev.setAttribute('d', `M ${pNet.x} ${pNet.y} Q ${pRev.x} ${pNet.y} ${pRev.x} ${pRev.y}`);
-
-            const paths = [pathInitDep, pathDedHold, pathDedRev, pathNetPayFlow, pathNetRev];
-            paths.forEach(p => p.className.baseVal = "connection-path");
-
-            if (currentActiveInstallment === 0 || currentActiveInstallment > parseInt(inputInstallments.value) || (!isCurrentInstallmentActive && currentActiveInstallment > 0)) {
-                pathInitDep.className.baseVal = "connection-path deposit-path";
-            } else {
-                pathDedHold.className.baseVal = "connection-path deposit-path";
-                pathDedRev.className.baseVal = "connection-path deposit-path";
-                pathNetPayFlow.className.baseVal = "connection-path active-path";
-                pathNetRev.className.baseVal = "connection-path active-path";
-            }
-        }
     }
 
     window.createNewSO = function() {
@@ -866,6 +713,7 @@
             soNumber: inputSONumber.value.trim(),
             custName: inputCustomerName.value.trim(),
             custCode: inputCustomerCode.value.trim(),
+            user: currentSessionUser, // บันทึกชื่อผู้ทำรายการ
             totalSO: parseFloat(inputTotalSO.value),
             depositPct: parseInt(inputDepositPct.value),
             installments: parseInt(inputInstallments.value),
@@ -875,6 +723,7 @@
             actionTimestamps: [...actionTimestamps],
             currentActiveInstallment: currentActiveInstallment,
             isCurrentInstallmentActive: isCurrentInstallmentActive,
+            status: 'active', // เพิ่ม status ปกติเพื่อรองรับการกด 'ยกเลิก'
             dateSaved: new Date().toLocaleString('th-TH')
         };
 
@@ -894,7 +743,7 @@
         logTableBody.innerHTML = '';
 
         if (savedSOs.length === 0) {
-            logTableBody.innerHTML = `<tr><td colspan="9">
+            logTableBody.innerHTML = `<tr><td colspan="10">
                 <div class="empty-state">
                     <i class="fa-solid fa-folder-open"></i>
                     <p>ยังไม่มีประวัติ SO ในระบบ</p>
@@ -903,30 +752,49 @@
             return;
         }
 
-        savedSOs.forEach(so => {
-            // ดึงเลข DN มาต่อกัน
+        // เรียงลำดับจากใหม่ไปเก่า
+        const sortedSOs = [...savedSOs].reverse();
+
+        sortedSOs.forEach(so => {
             let dns = so.details ? so.details.map(d => d.dn).filter(dn => dn && dn.trim() !== '').join(', ') : '-';
             if (dns === '') dns = '-';
-            
-            // ดึงเวลาทำรายการล่าสุด หรือสร้างใหม่
             let actionTime = so.dateSaved || '-';
+            
+            let statusActionHtml = '';
+            if (so.status === 'cancelled') {
+                statusActionHtml = `
+                    <div style="color: var(--danger); font-size: 13px; font-weight: 600; line-height: 1.4;">
+                        <i class="fa-solid fa-ban"></i> ยกเลิกแล้ว<br>
+                        <span style="font-size: 11px; font-weight: 400; color: var(--text-muted);">เหตุผล: ${so.cancelReason}</span>
+                    </div>
+                `;
+            } else {
+                statusActionHtml = `
+                    <div class="action-btns">
+                        <button class="action-btn edit-btn" onclick="editSO('${so.id}')"><i class="fa-solid fa-pen"></i> แก้ไข</button>
+                        <button class="action-btn cancel-btn" onclick="cancelSO('${so.id}')"><i class="fa-solid fa-ban"></i> ยกเลิก</button>
+                    </div>
+                `;
+            }
 
             const tr = document.createElement('tr');
+            // ทำไฮไลท์สีเทาหากเป็น Status: Cancelled
+            if(so.status === 'cancelled') {
+                tr.style.backgroundColor = '#f8fafc';
+                tr.style.opacity = '0.7';
+            }
+
             tr.innerHTML = `
                 <td style="font-weight:600; color:var(--primary);">${so.soNumber}</td>
                 <td>${so.custCode}</td>
                 <td>${so.custName}</td>
+                <td style="font-size: 12px; color:var(--primary-light);"><i class="fa-solid fa-circle-user"></i> ${so.user || 'Unknown'}</td>
                 <td style="color:var(--text-muted); font-size: 12px;">${dns}</td>
                 <td style="font-weight:500;">${formatCurrency(so.totalSO)}</td>
                 <td>${so.depositPct}%</td>
                 <td>${so.installments} งวด</td>
                 <td style="font-size:12px; color:var(--text-muted);">${actionTime}</td>
-                <td>
-                    <div class="action-btns">
-                        <button class="action-btn edit-btn" onclick="editSO('${so.id}')"><i class="fa-solid fa-pen"></i> แก้ไข</button>
-                        <button class="action-btn delete-btn" onclick="deleteSO('${so.id}')"><i class="fa-solid fa-trash"></i> ลบ</button>
-                    </div>
-                </td>
+                <td>${statusActionHtml}</td>
             `;
             logTableBody.appendChild(tr);
         });
@@ -938,8 +806,8 @@
             return;
         }
         
-        let csvContent = "\uFEFF"; // สำหรับรองรับภาษาไทย (BOM)
-        csvContent += "หมายเลข SO,รหัสลูกค้า,ชื่อลูกค้า,เลข DN (อ้างอิง),ยอดคำสั่งซื้อรวม,% มัดจำ,จำนวนงวด,เวลาทำรายการล่าสุด\n";
+        let csvContent = "\uFEFF"; 
+        csvContent += "หมายเลข SO,รหัสลูกค้า,ชื่อลูกค้า,ผู้ทำรายการ,เลข DN (อ้างอิง),ยอดคำสั่งซื้อรวม,% มัดจำ,จำนวนงวด,สถานะ,เหตุผลที่ยกเลิก,เวลาทำรายการล่าสุด\n";
         
         savedSOs.forEach(so => {
             let dns = so.details ? so.details.map(d => d.dn).filter(dn => dn && dn.trim() !== '').join('; ') : '-';
@@ -949,10 +817,13 @@
                 `"${so.soNumber}"`,
                 `"${so.custCode}"`,
                 `"${so.custName}"`,
+                `"${so.user || '-'}"`,
                 `"${dns}"`,
                 `"${so.totalSO}"`,
                 `"${so.depositPct}%"`,
                 `"${so.installments}"`,
+                `"${so.status === 'cancelled' ? 'ยกเลิก' : 'ปกติ'}"`,
+                `"${so.cancelReason || '-'}"`,
                 `"${so.dateSaved || '-'}"`
             ];
             csvContent += row.join(",") + "\n";
@@ -991,21 +862,35 @@
         switchTab('main'); 
     };
 
-    window.deleteSO = function(id) {
-        if (confirm('คุณแน่ใจหรือไม่ว่าต้องการลบ SO นี้ออกจากประวัติ?')) {
-            savedSOs = savedSOs.filter(s => s.id !== id);
+    // ฟังก์ชั่นยกเลิก Log โดยบังคับกรอกเหตุผล
+    window.cancelSO = function(id) {
+        const reason = prompt('กรุณาระบุเหตุผลที่ต้องการยกเลิก SO นี้:');
+        
+        if (reason === null) {
+            return; // กรณีผู้ใช้กด Cancel ปิดหน้าต่าง Prompt
+        }
+        
+        if (reason.trim() === '') {
+            alert('จำเป็นต้องระบุเหตุผลเพื่อทำการยกเลิก SO ครับ');
+            return;
+        }
+
+        const index = savedSOs.findIndex(s => s.id === id);
+        if (index !== -1) {
+            savedSOs[index].status = 'cancelled';
+            savedSOs[index].cancelReason = reason;
             localStorage.setItem(STORAGE_KEY, JSON.stringify(savedSOs));
             
+            // ถ้ารายการที่กำลังแก้ตรงกับที่ยกเลิก ให้ล้างหน้าจอ Main
             if (editingSOIdInput.value === id) {
-                createNewSO(); 
-                switchTab('log'); 
+                createNewSO();
+                switchTab('log');
             } else {
                 renderLogTable(); 
             }
         }
     };
 
-    // 1. กดเริ่มทำงานแต่ละงวดแยกจากกัน 
     btnNextStep.addEventListener('click', () => {
         if (!isConfigValid || !areFieldsValid) return;
         let installmentCount = parseInt(inputInstallments.value);
@@ -1021,16 +906,27 @@
         
         if (currentActiveInstallment <= installmentCount) {
             if (!isCurrentInstallmentActive) {
-                // กด "เริ่มดำเนินการ" ในงวดนั้นๆ เพื่อ Stamp เวลาเริ่ม
                 actionTimestamps[currentActiveInstallment - 1] = actionTimestamps[currentActiveInstallment - 1] || {};
                 actionTimestamps[currentActiveInstallment - 1].start = now;
                 isCurrentInstallmentActive = true;
             } else {
-                // กด "ยืนยันการทำรายการ" เพิ่อปิดจบงวด
+                // เช็คบังคับกรอก "เลขที่ใบลดหนี้" ก่อนยืนยันคืนมัดจำ
+                const activeDetails = installmentExtraDetails[currentActiveInstallment - 1] || {};
+                if (!activeDetails.cn || activeDetails.cn.trim() === '') {
+                    alert(`กรุณาระบุ "เลขที่ใบลดหนี้" ในตารางสำหรับงวดที่ ${currentActiveInstallment} ก่อนกดยืนยันคืนมัดจำครับ`);
+                    // Focus ไปที่ input ลดหนี้ของแถวนั้นเพื่อความสะดวก
+                    const tableInputs = tableBody.querySelectorAll('tr');
+                    if (tableInputs[currentActiveInstallment - 1]) {
+                        const inputs = tableInputs[currentActiveInstallment - 1].querySelectorAll('input');
+                        if(inputs.length >= 2) inputs[1].focus(); // Index 1 คือช่อง CN
+                    }
+                    return;
+                }
+
                 const isConfirmed = confirm(`ยืนยันว่าทำการคืนเงินมัดจำสำหรับงวดที่ ${currentActiveInstallment} เสร็จสมบูรณ์แล้วใช่หรือไม่?`);
                 if (isConfirmed) {
                     actionTimestamps[currentActiveInstallment - 1].confirm = now;
-                    isCurrentInstallmentActive = false; // รีเซ็ตเพื่อรอให้คนกดเริ่มงวดถัดไปเอง
+                    isCurrentInstallmentActive = false; 
                     currentActiveInstallment++;
                 } else {
                     return; 
@@ -1039,7 +935,6 @@
         }
         
         renderTableAndNodes();
-        drawSVGConnections();
     });
 
     btnResetSim.addEventListener('click', () => {
@@ -1048,7 +943,6 @@
         actionTimestamps = []; 
         btnNextStep.disabled = false;
         renderTableAndNodes();
-        drawSVGConnections();
     });
 
     inputDepositPct.addEventListener('input', updateCalculations);
@@ -1066,10 +960,8 @@
 
     window.addEventListener('load', () => {
         renderProductInputs();
-        setTimeout(drawSVGConnections, 200);
     });
 
-    window.addEventListener('resize', drawSVGConnections);
 </script>
 
 </body>
