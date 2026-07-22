@@ -227,7 +227,7 @@
 
                 <!-- รอบคันรถ (DN) Section -->
                 <div class="form-group">
-                    <label for="inputDNCount">จำนวนรอบการจัดส่ง (DN): <span id="lblDNCount" style="font-weight:700; color:var(--primary);">2</span> คันรถ</label>
+                    <label for="inputDNCount">จำนวนเลข DN: <span id="lblDNCount" style="font-weight:700; color:var(--primary);">2</span> คันรถ</label>
                     <div class="slider-group">
                         <input type="range" id="inputDNCount" min="1" max="20" value="2" step="1">
                         <div class="slider-labels">
@@ -262,7 +262,7 @@
                             <span id="sumRemainingSO">0 THB</span>
                         </div>
                         <div class="summary-item">
-                            <span>📊 อัตราการหักคืนมัดจำต่อคัน (DN):</span>
+                            <span>📊 อัตราการคืนมัดจำ:</span>
                             <span id="sumDeductionRate">คำนวณสัดส่วนตามเงินมัดจำงวดแรก</span>
                         </div>
                         <div class="summary-item">
@@ -436,7 +436,7 @@
         });
         
         inputTotalSO.value = totalVal;
-        syncInstArraySize(false); // Do not auto-resize if just updating total, but update amounts
+        syncInstArraySize(false); 
         syncDNArraySize(false);
     }
 
@@ -512,13 +512,20 @@
             let pctDisp = totalSO > 0 ? ((item.amount / totalSO) * 100).toFixed(2) : "0.00";
             let labelDisp = i === 0 ? "งวดที่ 1<br>(มัดจำ)" : `งวดที่ ${i+1}`;
             
+            let extraInput = '';
+            let valWidth = '150px';
+            if (i === 0) {
+                extraInput = `<div style="position:relative; width:80px; margin-right:8px;"><input type="number" class="form-control inst-pct-input" data-idx="${i}" value="${parseFloat(pctDisp)}" placeholder="%"><span style="position:absolute; right:10px; top:10px; font-size:12px; color:var(--text-muted); pointer-events: none;">%</span></div>`;
+                valWidth = '238px'; 
+            }
+
             html += `
                 <div class="dn-setup-row">
                     <div style="width: 65px; font-weight:600; font-size: 12px; color: var(--accent); line-height:1.2;">${labelDisp}</div>
                     <input type="text" class="form-control inst-name-input" data-idx="${i}" placeholder="ชื่องวด (เช่น งวดมัดจำ, งวดก่อนส่งมอบ)" value="${item.name}" style="flex: 1;">
-                    <div style="position:relative; width: 150px;">
-                        <input type="number" class="form-control inst-val-input" data-idx="${i}" value="${item.amount}" min="0">
-                        <span style="position:absolute; right:-45px; top:10px; font-size:12px; color:var(--text-muted);">(${pctDisp}%)</span>
+                    <div style="display:flex; width: ${valWidth};">
+                        ${extraInput}
+                        <input type="number" class="form-control inst-val-input" data-idx="${i}" value="${item.amount}" min="0" style="flex: 1;">
                     </div>
                 </div>
             `;
@@ -532,9 +539,44 @@
             });
         });
 
+        document.querySelectorAll('.inst-pct-input').forEach(input => {
+            input.addEventListener('input', (e) => {
+                const totalSO = parseFloat(inputTotalSO.value) || 0;
+                let pct = parseFloat(e.target.value) || 0;
+                let amt = (totalSO * pct) / 100;
+                let idx = parseInt(e.target.dataset.idx);
+                instData[idx].amount = amt;
+                
+                const valInput = document.querySelector(`.inst-val-input[data-idx="${idx}"]`);
+                if(valInput) valInput.value = amt;
+
+                if (instData.length > 1) {
+                    let sumFirst = 0;
+                    for (let j = 0; j < instData.length - 1; j++) {
+                        sumFirst += instData[j].amount;
+                    }
+                    instData[instData.length - 1].amount = Math.max(0, totalSO - sumFirst);
+                    const lastValInput = document.querySelector(`.inst-val-input[data-idx="${instData.length - 1}"]`);
+                    if(lastValInput) lastValInput.value = instData[instData.length - 1].amount;
+                }
+                
+                validateAndCalculate();
+            });
+        });
+
         document.querySelectorAll('.inst-val-input').forEach(input => {
             input.addEventListener('input', (e) => {
-                instData[parseInt(e.target.dataset.idx)].amount = parseFloat(e.target.value) || 0;
+                let idx = parseInt(e.target.dataset.idx);
+                instData[idx].amount = parseFloat(e.target.value) || 0;
+                
+                if (idx === 0) {
+                    const totalSO = parseFloat(inputTotalSO.value) || 0;
+                    const pctInput = document.querySelector(`.inst-pct-input[data-idx="0"]`);
+                    if(pctInput && totalSO > 0) {
+                        pctInput.value = ((instData[idx].amount / totalSO) * 100).toFixed(2);
+                    }
+                }
+                
                 validateAndCalculate();
             });
         });
@@ -574,15 +616,12 @@
         const totalSO = parseFloat(inputTotalSO.value) || 0;
 
         dnData.forEach((item, i) => {
-            let pctDisp = totalSO > 0 ? ((item.amount / totalSO) * 100).toFixed(2) : "0.00";
-            
             html += `
                 <div class="dn-setup-row">
                     <div style="width: 45px; font-weight:600; font-size: 13px; color: var(--primary);">DN #${i+1}</div>
                     <input type="text" class="form-control dn-name-input" data-idx="${i}" placeholder="เลข DN (เช่น DN-01)" value="${item.dnNumber}" style="flex: 1;">
                     <div style="position:relative; width: 150px;">
                         <input type="number" class="form-control dn-val-input" data-idx="${i}" value="${item.amount}" min="0">
-                        <span style="position:absolute; right:-45px; top:10px; font-size:12px; color:var(--text-muted);">(${pctDisp}%)</span>
                     </div>
                 </div>
             `;
@@ -717,8 +756,8 @@
             let itemPct = (inputTotalSO.value > 0) ? (row.amount / inputTotalSO.value) * 100 : 0;
             
             let timeHtml = "";
-            if (row.timeStart) timeHtml += `<div style="font-size:11px; color:var(--primary); margin-bottom: 2px;"><i class="fa-solid fa-play"></i> เริ่ม: ${row.timeStart}</div>`;
-            if (row.timeConfirm) timeHtml += `<div style="font-size:11px; color:var(--success);"><i class="fa-solid fa-check-double"></i> จบ: ${row.timeConfirm}</div>`;
+            if (row.timeStart) timeHtml += `<div style="font-size:11px; color:var(--primary); margin-bottom: 2px;"><i class="fa-solid fa-play"></i> GI: ${row.timeStart}</div>`;
+            if (row.timeConfirm) timeHtml += `<div style="font-size:11px; color:var(--success);"><i class="fa-solid fa-check-double"></i> คืนเงิน: ${row.timeConfirm}</div>`;
             if (!timeHtml) timeHtml = "-";
 
             let dnDisplay = row.dnNumber ? `<span style="font-weight:600; color:var(--primary);">${row.dnNumber}</span>` : `<span style="color:#cbd5e1; font-style:italic;">(ระบุด้านซ้าย)</span>`;
