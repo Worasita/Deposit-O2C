@@ -140,12 +140,12 @@
 <div class="container">
     <header>
         <div>
-            <h1><i class="fa-solid fa-truck-fast"></i> Deposit SO & DN Tracking</h1>
-            <p>ระบบติดตาม SO และการคืนเงินมัดจำตามรอบคันรถ (DN) พร้อมระบบ Multi-select</p>
+            <h1><i class="fa-solid fa-truck-fast"></i> Deposit SO Tracking</h1>
+            <p>ระบบติดตาม SO ที่มีการเงินมัดจำ</p>
         </div>
         <div class="badge-live">
             <div class="dot"></div>
-            <span>Mockup website V4.5</span>
+            <span>Mockup website</span>
         </div>
     </header>
 
@@ -161,7 +161,7 @@
             <!-- Left Column: Inputs -->
             <div class="card">
                 <div class="panel-title">
-                    <span><i class="fa-solid fa-sliders"></i> ข้อมูลเบื้องต้น</span>
+                    <span><i class="fa-solid fa-sliders"></i> รายละเอียด</span>
                     <button class="btn btn-outline" style="padding: 6px 12px; font-size: 12px;" onclick="createNewSO()"><i class="fa-solid fa-plus"></i> สร้างใหม่</button>
                 </div>
                 
@@ -191,7 +191,7 @@
                 </div>
 
                 <div class="section-divider"></div>
-                <div class="section-label"><i class="fa-solid fa-boxes-stacked"></i> 4. รายการสินค้าใน SO</div>
+                <div class="section-label"><i class="fa-solid fa-boxes-stacked"></i> รายการสินค้าใน SO</div>
                 <div id="productListContainer">
                 </div>
                 <button class="btn btn-outline" onclick="addProductRow()" style="margin-top: 10px; width: 100%;"><i class="fa-solid fa-plus"></i> เพิ่มสินค้า (Item)</button>
@@ -227,7 +227,7 @@
 
                 <!-- รอบคันรถ (DN) Section -->
                 <div class="form-group">
-                    <label for="inputDNCount">จำนวนเลข DN: <span id="lblDNCount" style="font-weight:700; color:var(--primary);">2</span> คันรถ</label>
+                    <label for="inputDNCount">จำนวนเลข DN: <span id="lblDNCount" style="font-weight:700; color:var(--primary);">2</span> DN</label>
                     <div class="slider-group">
                         <input type="range" id="inputDNCount" min="1" max="20" value="2" step="1">
                         <div class="slider-labels">
@@ -290,10 +290,10 @@
                                     <th class="chk-column"><input type="checkbox" id="chkSelectAll" onchange="toggleAllCheckboxes(this)"></th>
                                     <th style="width: 50px;">ลำดับ</th>
                                     <th style="width: 130px;">เลข DN</th>
-                                    <th>มูลค่าส่งมอบ (Gross)</th>
+                                    <th>มูลค่าที่รับสินค้า (GI)</th>
                                     <th>% ของงาน</th>
-                                    <th>🔁 หักล้างมัดจำ</th>
-                                    <th>💰 ลูกค้าจ่ายเพิ่ม</th>
+                                    <th>เงินมัดจำที่ต้องคืน</th>
+                                    <th>ยอดเรียกเก็บเพิ่ม</th>
                                     <th style="width: 140px;">เลขที่ใบลดหนี้ (CN)</th>
                                     <th style="width: 150px;">เวลาทำรายการ</th>
                                     <th style="width: 100px;">สถานะ</th>
@@ -712,7 +712,7 @@
         sumTotalSO.textContent = formatCurrency(totalSOVal);
         sumInitialDeposit.textContent = formatCurrency(firstDepositAmount);
         sumRemainingSO.textContent = formatCurrency(remainingSOAmount);
-        sumDeductionRate.textContent = `${(depositRatio * 100).toFixed(2)}% ของแต่ละคันรถ`;
+        sumDeductionRate.textContent = `${(depositRatio * 100).toFixed(2)}% ของแต่ละ DN`;
 
         // คำนวณ Deduction สัดส่วนตามมูลค่า DN โดยอิงจากมัดจำงวดแรก
         dnData.forEach((item, idx) => {
