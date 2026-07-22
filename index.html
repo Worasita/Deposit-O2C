@@ -381,8 +381,8 @@
     const chkSelectAll = document.getElementById('chkSelectAll');
 
     // โครงสร้างข้อมูล
-    let productItems = [{ name: 'สินค้าตัวอย่าง 1', price: 50000 }, { name: 'สินค้าตัวอย่าง 2', price: 50000 }];
-    let instData = [{ name: 'งวดที่ 1 (มัดจำ 50%)', amount: 50000 }, { name: 'งวดที่ 2 (ส่วนที่เหลือ)', amount: 50000 }]; 
+    let productItems = [{ name: 'สินค้า 1', price: 50000 }, { name: 'สินค้า 2', price: 50000 }];
+    let instData = [{ name: 'งวดที่ 1 (มัดจำ)', amount: 50000 }, { name: 'งวดที่ 2', amount: 50000 }]; 
     let dnData = [{ amount: 30000, dnNumber: 'DN-01', cnNumber: '', status: 'pending', timeStart: '', timeConfirm: '' }, { amount: 50000, dnNumber: 'DN-02', cnNumber: '', status: 'pending', timeStart: '', timeConfirm: '' }, { amount: 20000, dnNumber: 'DN-03', cnNumber: '', status: 'pending', timeStart: '', timeConfirm: '' }]; 
     
     let isDnValid = true; 
@@ -889,7 +889,7 @@
         editingSOIdInput.value = '';
         
         productItems = [{ name: 'สินค้าใหม่ 1', price: 50000 }, { name: 'สินค้าใหม่ 2', price: 50000 }];
-        instData = [{ name: 'งวดที่ 1 (มัดจำ 50%)', amount: 50000 }, { name: 'งวดที่ 2 (ส่วนที่เหลือ)', amount: 50000 }];
+        instData = [{ name: 'งวดที่ 1 (มัดจำ)', amount: 50000 }, { name: 'งวดที่ 2', amount: 50000 }];
         dnData = [{ amount: 30000, dnNumber: 'DN-01', cnNumber: '', status: 'pending', timeStart: '', timeConfirm: '' }, { amount: 50000, dnNumber: 'DN-02', cnNumber: '', status: 'pending', timeStart: '', timeConfirm: '' }, { amount: 20000, dnNumber: 'DN-03', cnNumber: '', status: 'pending', timeStart: '', timeConfirm: '' }];
         
         renderProductInputs();
