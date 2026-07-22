@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sourcing Product - Dynamic Money Route Tracker (V4.4)</title>
+    <title>Sourcing Product - Dynamic Money Route Tracker (V4.5)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -145,7 +145,7 @@
         </div>
         <div class="badge-live">
             <div class="dot"></div>
-            <span>Mockup website V4.4</span>
+            <span>Mockup website V4.5</span>
         </div>
     </header>
 
@@ -197,7 +197,7 @@
                 <button class="btn btn-outline" onclick="addProductRow()" style="margin-top: 10px; width: 100%;"><i class="fa-solid fa-plus"></i> เพิ่มสินค้า (Item)</button>
 
                 <div class="section-divider"></div>
-                <div class="section-label"><i class="fa-solid fa-calculator"></i> ข้อมูลการเงินและการแบ่งรอบรถ (DN)</div>
+                <div class="section-label"><i class="fa-solid fa-calculator"></i> ข้อมูลการเงิน การแบ่งงวดชำระ และรอบจัดส่ง (DN)</div>
 
                 <div class="form-group">
                     <label for="inputTotalSO">ยอดคำสั่งซื้อรวมทั้งหมด (คำนวณจากรายการสินค้า)</label>
@@ -207,16 +207,25 @@
                     </div>
                 </div>
 
+                <!-- งวดชำระ (Installments) Section -->
                 <div class="form-group">
-                    <label for="inputDepositPct">สัดส่วนเงินมัดจำตั้งต้น: <span id="lblDepositPct" style="font-weight:700; color:var(--accent);">30</span>%</label>
+                    <label for="inputInstCount">จำนวนงวดเรียกเก็บเงิน (Installments): <span id="lblInstCount" style="font-weight:700; color:var(--accent);">2</span> งวด</label>
                     <div class="slider-group">
-                        <input type="range" id="inputDepositPct" min="10" max="100" value="30" step="5">
+                        <input type="range" id="inputInstCount" min="1" max="10" value="2" step="1">
                         <div class="slider-labels">
-                            <span>10%</span><span>50%</span><span>100%</span>
+                            <span>1</span><span>5</span><span>10</span>
                         </div>
                     </div>
+                    
+                    <div class="custom-pct-container" id="instSetupContainer">
+                        <!-- JS Dynamically rendered setup fields for Installments -->
+                    </div>
+                    
+                    <div id="instWarning" class="alert-msg alert-warning"><i class="fa-solid fa-triangle-exclamation"></i> ผลรวมของยอดชำระทุกงวด ต้องเท่ากับยอดสั่งซื้อรวม (ตอนนี้: <span id="currentInstSum"></span>)</div>
+                    <div id="instSuccess" class="alert-msg alert-success"><i class="fa-solid fa-check"></i> ผลรวมงวดชำระถูกต้อง</div>
                 </div>
 
+                <!-- รอบคันรถ (DN) Section -->
                 <div class="form-group">
                     <label for="inputDNCount">จำนวนรอบการจัดส่ง (DN): <span id="lblDNCount" style="font-weight:700; color:var(--primary);">2</span> คันรถ</label>
                     <div class="slider-group">
@@ -245,16 +254,16 @@
                     
                     <div class="summary-box">
                         <div class="summary-item">
-                            <span>💰 เงินมัดจำก้อนแรกครังแรก:</span>
+                            <span>💰 เงินมัดจำก้อนแรก (งวดที่ 1):</span>
                             <span id="sumInitialDeposit" style="font-weight: 600; color: var(--accent);">0 THB</span>
                         </div>
                         <div class="summary-item">
-                            <span>📦 ยอดที่เหลือรอเรียกเก็บสุทธิ:</span>
+                            <span>📦 ยอดที่เหลือ (รอเรียกเก็บงวดอื่นๆ):</span>
                             <span id="sumRemainingSO">0 THB</span>
                         </div>
                         <div class="summary-item">
-                            <span>📊 อัตราการคืนเงินมัดจำ:</span>
-                            <span>คืนตามสัดส่วน % ของมูลค่าคันรถ (DN)</span>
+                            <span>📊 อัตราการหักคืนมัดจำต่อคัน (DN):</span>
+                            <span id="sumDeductionRate">คำนวณสัดส่วนตามเงินมัดจำงวดแรก</span>
                         </div>
                         <div class="summary-item">
                             <span>🧾 ยอดรวมมูลค่าโครงการ:</span>
@@ -271,7 +280,7 @@
 
                 <div class="card">
                     <div class="panel-title">
-                        <i class="fa-solid fa-table-list"> ตารางจัดการรอบจัดส่งและการหักล้างเงินมัดจำ (DN)</i>
+                        <i class="fa-solid fa-table-list"> ตารางคำนวนมูลค่าเงินคืนจากเงินมัดจำ</i>
                     </div>
                     
                     <div class="table-responsive">
@@ -316,8 +325,8 @@
                             <th>ชื่อลูกค้า</th>
                             <th>ผู้ทำรายการ</th>
                             <th>จำนวนคัน (DN)</th>
+                            <th>จำนวนงวด (Inst.)</th>
                             <th>ยอดคำสั่งซื้อรวม</th>
-                            <th>% มัดจำ</th>
                             <th>เวลาที่บันทึก/แก้ไข</th>
                             <th>สถานะ/การจัดการ</th>
                         </tr>
@@ -331,8 +340,7 @@
 </div>
 
 <script>
-    // อัปเดต Key สำหรับข้อมูล V4.4 (โครงสร้าง Data เปลี่ยนแปลง)
-    const STORAGE_KEY = 'mockup_saved_sos_v4_4';
+    const STORAGE_KEY = 'mockup_saved_sos_v4_5';
     let savedSOs = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
     const inputSONumber = document.getElementById('inputSONumber');
@@ -342,12 +350,18 @@
     const editingSOIdInput = document.getElementById('editingSOId');
 
     const inputTotalSO = document.getElementById('inputTotalSO');
-    const inputDepositPct = document.getElementById('inputDepositPct');
+    
+    // Installment Elements
+    const inputInstCount = document.getElementById('inputInstCount');
+    const lblInstCount = document.getElementById('lblInstCount');
+    const instSetupContainer = document.getElementById('instSetupContainer');
+    const instWarning = document.getElementById('instWarning');
+    const instSuccess = document.getElementById('instSuccess');
+    const currentInstSum = document.getElementById('currentInstSum');
+
+    // DN Elements
     const inputDNCount = document.getElementById('inputDNCount');
-    
-    const lblDepositPct = document.getElementById('lblDepositPct');
     const lblDNCount = document.getElementById('lblDNCount');
-    
     const dnSetupContainer = document.getElementById('dnSetupContainer');
     const pctWarning = document.getElementById('pctWarning');
     const pctSuccess = document.getElementById('pctSuccess');
@@ -356,6 +370,7 @@
     const sumInitialDeposit = document.getElementById('sumInitialDeposit');
     const sumRemainingSO = document.getElementById('sumRemainingSO');
     const sumTotalSO = document.getElementById('sumTotalSO');
+    const sumDeductionRate = document.getElementById('sumDeductionRate');
     
     const tableBody = document.getElementById('tableBody');
     const logTableBody = document.getElementById('logTableBody');
@@ -365,11 +380,13 @@
     const btnSaveSO = document.getElementById('btnSaveSO');
     const chkSelectAll = document.getElementById('chkSelectAll');
 
-    // โครงสร้างข้อมูลใหม่
-    let productItems = [{ name: 'สินค้าตัวอย่าง 1', price: 500000 }, { name: 'สินค้าตัวอย่าง 2', price: 500000 }];
-    let dnData = []; // Array of { dnNumber: '', amount: 0, deduction: 0, net: 0, cnNumber: '', status: 'pending'|'processing'|'completed', timeStart: '', timeConfirm: '' }
+    // โครงสร้างข้อมูล
+    let productItems = [{ name: 'สินค้าตัวอย่าง 1', price: 50000 }, { name: 'สินค้าตัวอย่าง 2', price: 50000 }];
+    let instData = [{ name: 'งวดที่ 1 (มัดจำ 50%)', amount: 50000 }, { name: 'งวดที่ 2 (ส่วนที่เหลือ)', amount: 50000 }]; 
+    let dnData = [{ amount: 30000, dnNumber: 'DN-01', cnNumber: '', status: 'pending', timeStart: '', timeConfirm: '' }, { amount: 50000, dnNumber: 'DN-02', cnNumber: '', status: 'pending', timeStart: '', timeConfirm: '' }, { amount: 20000, dnNumber: 'DN-03', cnNumber: '', status: 'pending', timeStart: '', timeConfirm: '' }]; 
     
-    let isConfigValid = true; 
+    let isDnValid = true; 
+    let isInstValid = true;
     let areFieldsValid = false; 
     const currentSessionUser = "Mock_Admin_01"; 
 
@@ -419,7 +436,8 @@
         });
         
         inputTotalSO.value = totalVal;
-        syncDNArraySize();
+        syncInstArraySize(false); // Do not auto-resize if just updating total, but update amounts
+        syncDNArraySize(false);
     }
 
     window.updateProductData = function(idx, field, val) {
@@ -429,16 +447,23 @@
         let totalVal = productItems.reduce((sum, item) => sum + (item.price || 0), 0);
         inputTotalSO.value = totalVal;
         
-        // Auto adjust remaining amount to the last DN
-        if(dnData.length > 0) {
-            let sumFirst = 0;
-            for(let i=0; i<dnData.length - 1; i++) {
-                sumFirst += dnData[i].amount;
-            }
-            dnData[dnData.length - 1].amount = Math.max(0, totalVal - sumFirst);
-        }
+        // Auto adjust remaining amount to the last item for both arrays
+        autoAdjustLastItem(instData, totalVal);
+        autoAdjustLastItem(dnData, totalVal);
+        
+        renderInstSetupInputs();
         renderDNSetupInputs();
     };
+
+    function autoAdjustLastItem(dataArray, totalVal) {
+        if(dataArray.length > 0) {
+            let sumFirst = 0;
+            for(let i=0; i<dataArray.length - 1; i++) {
+                sumFirst += dataArray[i].amount;
+            }
+            dataArray[dataArray.length - 1].amount = Math.max(0, totalVal - sumFirst);
+        }
+    }
 
     window.addProductRow = function() {
         productItems.push({ name: '', price: 0 });
@@ -452,31 +477,95 @@
         }
     };
 
+    // --- Installment Setup Section ---
+    function syncInstArraySize(forceResize = true) {
+        const count = parseInt(inputInstCount.value);
+        const totalSO = parseFloat(inputTotalSO.value) || 0;
+        
+        if (forceResize) {
+            if(instData.length < count) {
+                for(let i = instData.length; i < count; i++) {
+                    instData.push({ name: `งวดที่ ${i+1}`, amount: 0 });
+                }
+            } else if (instData.length > count) {
+                instData = instData.slice(0, count);
+            }
+
+            let totalAssigned = 0;
+            for (let i = 0; i < count; i++) {
+                if (instData[i].amount === 0 && totalSO > 0 && i === count - 1) {
+                    instData[i].amount = Math.max(0, totalSO - totalAssigned);
+                } else if (instData[i].amount === 0 && totalSO > 0) {
+                    instData[i].amount = Math.floor(totalSO / count);
+                }
+                totalAssigned += instData[i].amount;
+            }
+        }
+        renderInstSetupInputs();
+    }
+
+    function renderInstSetupInputs() {
+        let html = '';
+        const totalSO = parseFloat(inputTotalSO.value) || 0;
+
+        instData.forEach((item, i) => {
+            let pctDisp = totalSO > 0 ? ((item.amount / totalSO) * 100).toFixed(2) : "0.00";
+            let labelDisp = i === 0 ? "งวดที่ 1<br>(มัดจำ)" : `งวดที่ ${i+1}`;
+            
+            html += `
+                <div class="dn-setup-row">
+                    <div style="width: 65px; font-weight:600; font-size: 12px; color: var(--accent); line-height:1.2;">${labelDisp}</div>
+                    <input type="text" class="form-control inst-name-input" data-idx="${i}" placeholder="ชื่องวด (เช่น งวดมัดจำ, งวดก่อนส่งมอบ)" value="${item.name}" style="flex: 1;">
+                    <div style="position:relative; width: 150px;">
+                        <input type="number" class="form-control inst-val-input" data-idx="${i}" value="${item.amount}" min="0">
+                        <span style="position:absolute; right:-45px; top:10px; font-size:12px; color:var(--text-muted);">(${pctDisp}%)</span>
+                    </div>
+                </div>
+            `;
+        });
+        
+        instSetupContainer.innerHTML = html;
+        
+        document.querySelectorAll('.inst-name-input').forEach(input => {
+            input.addEventListener('input', (e) => {
+                instData[parseInt(e.target.dataset.idx)].name = e.target.value;
+            });
+        });
+
+        document.querySelectorAll('.inst-val-input').forEach(input => {
+            input.addEventListener('input', (e) => {
+                instData[parseInt(e.target.dataset.idx)].amount = parseFloat(e.target.value) || 0;
+                validateAndCalculate();
+            });
+        });
+        
+        validateAndCalculate();
+    }
+
     // --- DN Setup Section ---
-    function syncDNArraySize() {
+    function syncDNArraySize(forceResize = true) {
         const count = parseInt(inputDNCount.value);
         const totalSO = parseFloat(inputTotalSO.value) || 0;
         
-        // Resize array preserving existing data
-        if(dnData.length < count) {
-            for(let i = dnData.length; i < count; i++) {
-                dnData.push({ amount: 0, dnNumber: '', cnNumber: '', status: 'pending', timeStart: '', timeConfirm: '' });
+        if (forceResize) {
+            if(dnData.length < count) {
+                for(let i = dnData.length; i < count; i++) {
+                    dnData.push({ amount: 0, dnNumber: '', cnNumber: '', status: 'pending', timeStart: '', timeConfirm: '' });
+                }
+            } else if (dnData.length > count) {
+                dnData = dnData.slice(0, count);
             }
-        } else if (dnData.length > count) {
-            dnData = dnData.slice(0, count);
-        }
 
-        // Auto distribute amounts if creating fresh or adjusting
-        let totalAssigned = 0;
-        for (let i = 0; i < count; i++) {
-            if (dnData[i].amount === 0 && totalSO > 0 && i === count - 1) {
-                dnData[i].amount = Math.max(0, totalSO - totalAssigned);
-            } else if (dnData[i].amount === 0 && totalSO > 0) {
-                dnData[i].amount = Math.floor(totalSO / count);
+            let totalAssigned = 0;
+            for (let i = 0; i < count; i++) {
+                if (dnData[i].amount === 0 && totalSO > 0 && i === count - 1) {
+                    dnData[i].amount = Math.max(0, totalSO - totalAssigned);
+                } else if (dnData[i].amount === 0 && totalSO > 0) {
+                    dnData[i].amount = Math.floor(totalSO / count);
+                }
+                totalAssigned += dnData[i].amount;
             }
-            totalAssigned += dnData[i].amount;
         }
-
         renderDNSetupInputs();
     }
 
@@ -501,19 +590,16 @@
         
         dnSetupContainer.innerHTML = html;
         
-        // Add Listeners
         document.querySelectorAll('.dn-name-input').forEach(input => {
             input.addEventListener('input', (e) => {
-                const idx = parseInt(e.target.dataset.idx);
-                dnData[idx].dnNumber = e.target.value;
+                dnData[parseInt(e.target.dataset.idx)].dnNumber = e.target.value;
                 validateAndCalculate();
             });
         });
 
         document.querySelectorAll('.dn-val-input').forEach(input => {
             input.addEventListener('input', (e) => {
-                const idx = parseInt(e.target.dataset.idx);
-                dnData[idx].amount = parseFloat(e.target.value) || 0;
+                dnData[parseInt(e.target.dataset.idx)].amount = parseFloat(e.target.value) || 0;
                 validateAndCalculate();
             });
         });
@@ -522,16 +608,31 @@
     }
 
     function validateAndCalculate() {
-        let sum = dnData.reduce((a, b) => a + b.amount, 0);
-        sum = Math.round(sum * 100) / 100;
         let totalSO = parseFloat(inputTotalSO.value) || 0;
         
-        isConfigValid = (sum === totalSO && totalSO > 0);
+        // Validate Installments
+        let sumInst = instData.reduce((a, b) => a + b.amount, 0);
+        sumInst = Math.round(sumInst * 100) / 100;
+        isInstValid = (sumInst === totalSO && totalSO > 0);
 
-        if (!isConfigValid) {
+        if (!isInstValid) {
+            instWarning.style.display = 'block';
+            instSuccess.style.display = 'none';
+            currentInstSum.textContent = formatCurrency(sumInst);
+        } else {
+            instWarning.style.display = 'none';
+            instSuccess.style.display = 'block';
+        }
+
+        // Validate DNs
+        let sumDN = dnData.reduce((a, b) => a + b.amount, 0);
+        sumDN = Math.round(sumDN * 100) / 100;
+        isDnValid = (sumDN === totalSO && totalSO > 0);
+
+        if (!isDnValid) {
             pctWarning.style.display = 'block';
             pctSuccess.style.display = 'none';
-            currentPctSum.textContent = formatCurrency(sum);
+            currentPctSum.textContent = formatCurrency(sumDN);
         } else {
             pctWarning.style.display = 'none';
             pctSuccess.style.display = 'block';
@@ -544,7 +645,7 @@
             totalSO > 0
         );
 
-        if (isConfigValid && areFieldsValid) {
+        if (isDnValid && isInstValid && areFieldsValid) {
             btnSaveSO.disabled = false;
         } else {
             btnSaveSO.disabled = true;
@@ -554,27 +655,29 @@
     }
 
     function updateCalculations() {
-        if (!isConfigValid) {
+        if (!isDnValid || !isInstValid) {
             renderTable();
             return;
         }
 
         let totalSOVal = parseFloat(inputTotalSO.value) || 0;
-        let depositPctVal = parseInt(inputDepositPct.value);
 
-        lblDepositPct.textContent = depositPctVal;
+        lblInstCount.textContent = instData.length;
         lblDNCount.textContent = dnData.length;
 
-        const totalDepositAmount = totalSOVal * (depositPctVal / 100);
-        const remainingSOAmount = totalSOVal - totalDepositAmount;
+        // คำนวณ % การหักล้าง จากงวดที่ 1 (เงินมัดจำ)
+        let firstDepositAmount = instData.length > 0 ? instData[0].amount : 0;
+        let depositRatio = totalSOVal > 0 ? (firstDepositAmount / totalSOVal) : 0;
+        const remainingSOAmount = totalSOVal - firstDepositAmount;
 
         sumTotalSO.textContent = formatCurrency(totalSOVal);
-        sumInitialDeposit.textContent = formatCurrency(totalDepositAmount);
+        sumInitialDeposit.textContent = formatCurrency(firstDepositAmount);
         sumRemainingSO.textContent = formatCurrency(remainingSOAmount);
+        sumDeductionRate.textContent = `${(depositRatio * 100).toFixed(2)}% ของแต่ละคันรถ`;
 
-        // คำนวณ Deduction สัดส่วนตามมูลค่า DN
+        // คำนวณ Deduction สัดส่วนตามมูลค่า DN โดยอิงจากมัดจำงวดแรก
         dnData.forEach((item, idx) => {
-            item.deduction = item.amount * (depositPctVal / 100);
+            item.deduction = item.amount * depositRatio;
             item.net = item.amount - item.deduction;
         });
 
@@ -586,8 +689,8 @@
     };
 
     function renderTable() {
-        if (!isConfigValid) {
-            tableBody.innerHTML = '<tr><td colspan="10" style="text-align:center; color:var(--danger); padding:20px;">⚠️ กรุณาปรับมูลค่าของ DN ให้ผลรวมเท่ากับยอดสั่งซื้อรวม เพื่อทำการสร้างตาราง</td></tr>';
+        if (!isDnValid || !isInstValid) {
+            tableBody.innerHTML = '<tr><td colspan="10" style="text-align:center; color:var(--danger); padding:20px;">⚠️ กรุณาตั้งค่ามูลค่า งวดชำระ และ DN ให้ผลรวมเท่ากับยอดสั่งซื้อรวม เพื่อแสดงตาราง</td></tr>';
             updateActionButtons();
             return;
         }
@@ -648,19 +751,21 @@
     };
 
     window.updateActionButtons = function() {
-        if(!isConfigValid) {
+        if(!isDnValid || !isInstValid) {
             btnActionSelected.disabled = true;
             btnActionSelected.className = 'btn btn-outline';
             btnActionSelected.innerHTML = '<i class="fa-solid fa-play"></i> กรุณาตั้งค่ามูลค่าให้ถูกต้อง';
             return;
         }
 
+        const checkboxes = document.querySelectorAll('.row-checkbox:not(:disabled)');
+        const checkedCount = document.querySelectorAll('.row-checkbox:checked:not(:disabled)').length;
         const selectedIdxs = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => parseInt(cb.value));
         
-        if(selectedIdxs.length === 0) {
+        if(checkedCount === 0) {
             btnActionSelected.disabled = true;
             btnActionSelected.className = 'btn btn-outline';
-            btnActionSelected.innerHTML = '<i class="fa-solid fa-play"></i> กรุณาติ๊กเลือก DN ในตาราง';
+            btnActionSelected.innerHTML = '<i class="fa-solid fa-play"></i> กรุณาเลือก DN เพื่อดำเนินการ';
             chkSelectAll.checked = false;
             return;
         }
@@ -683,6 +788,12 @@
             btnActionSelected.className = 'btn btn-outline';
             btnActionSelected.innerHTML = `<i class="fa-solid fa-ban"></i> ไม่สามารถทำรายการข้ามสถานะได้`;
         }
+
+        if (checkboxes.length > 0 && checkedCount === checkboxes.length) {
+            chkSelectAll.checked = true;
+        } else {
+            chkSelectAll.checked = false;
+        }
     };
 
     function processSelectedDNs(actionType, selectedIdxs) {
@@ -692,13 +803,11 @@
                 dnData[i].timeStart = getNowStr();
             });
         } else if (actionType === 'confirm') {
-            // Validate CNs
             const missingCN = selectedIdxs.some(i => !dnData[i].cnNumber || dnData[i].cnNumber.trim() === '');
             if(missingCN) {
                 alert('กรุณากรอก "เลขที่ใบลดหนี้ (CN)" สำหรับ DN ที่เลือกทั้งหมดในตารางก่อนยืนยันครับ');
                 return;
             }
-            
             if(confirm(`ยืนยันการคืนเงินมัดจำสำหรับ ${selectedIdxs.length} DN ที่เลือกเสร็จสมบูรณ์?`)) {
                 selectedIdxs.forEach(i => {
                     dnData[i].status = 'completed';
@@ -724,24 +833,32 @@
         }
     });
 
+    // --- Event Listeners for Sliders (Fixed) ---
+    inputInstCount.addEventListener('input', (e) => { lblInstCount.innerText = e.target.value; });
+    inputInstCount.addEventListener('change', (e) => { lblInstCount.innerText = e.target.value; syncInstArraySize(); });
+    
+    inputDNCount.addEventListener('input', (e) => { lblDNCount.innerText = e.target.value; });
+    inputDNCount.addEventListener('change', (e) => { lblDNCount.innerText = e.target.value; syncDNArraySize(); });
+
     // --- Save & Load ---
     window.createNewSO = function() {
         inputSONumber.value = '';
         inputCustomerName.value = '';
         inputCustomerCode.value = '';
-        inputDepositPct.value = '30';
-        inputDNCount.value = '2';
+        inputInstCount.value = '2';
+        inputDNCount.value = '3';
         editingSOIdInput.value = '';
         
-        productItems = [{ name: 'สินค้าใหม่', price: 1000000 }];
-        dnData = []; 
+        productItems = [{ name: 'สินค้าใหม่ 1', price: 50000 }, { name: 'สินค้าใหม่ 2', price: 50000 }];
+        instData = [{ name: 'งวดที่ 1 (มัดจำ 50%)', amount: 50000 }, { name: 'งวดที่ 2 (ส่วนที่เหลือ)', amount: 50000 }];
+        dnData = [{ amount: 30000, dnNumber: 'DN-01', cnNumber: '', status: 'pending', timeStart: '', timeConfirm: '' }, { amount: 50000, dnNumber: 'DN-02', cnNumber: '', status: 'pending', timeStart: '', timeConfirm: '' }, { amount: 20000, dnNumber: 'DN-03', cnNumber: '', status: 'pending', timeStart: '', timeConfirm: '' }];
         
         renderProductInputs();
         switchTab('main');
     }
 
     btnSaveSO.addEventListener('click', () => {
-        if (!isConfigValid || !areFieldsValid) return;
+        if (!isDnValid || !isInstValid || !areFieldsValid) return;
 
         const soData = {
             id: editingSOIdInput.value || Date.now().toString(),
@@ -750,8 +867,7 @@
             custCode: inputCustomerCode.value.trim(),
             user: currentSessionUser,
             totalSO: parseFloat(inputTotalSO.value),
-            depositPct: parseInt(inputDepositPct.value),
-            products: JSON.parse(JSON.stringify(productItems)),
+            instData: JSON.parse(JSON.stringify(instData)),
             dnData: JSON.parse(JSON.stringify(dnData)),
             status: 'active',
             dateSaved: new Date().toLocaleString('th-TH')
@@ -776,7 +892,7 @@
             logTableBody.innerHTML = `<tr><td colspan="10">
                 <div class="empty-state">
                     <i class="fa-solid fa-folder-open"></i>
-                    <p>ยังไม่มีประวัติ SO ในระบบ (V4.4)</p>
+                    <p>ยังไม่มีประวัติ SO ในระบบ (V4.5)</p>
                 </div>
             </td></tr>`;
             return;
@@ -813,8 +929,8 @@
                 <td>${so.custName}</td>
                 <td style="font-size: 12px; color:var(--primary-light);"><i class="fa-solid fa-circle-user"></i> ${so.user || '-'}</td>
                 <td>${so.dnData ? so.dnData.length : 0} คัน</td>
+                <td>${so.instData ? so.instData.length : 0} งวด</td>
                 <td style="font-weight:500;">${formatCurrency(so.totalSO)}</td>
-                <td>${so.depositPct}%</td>
                 <td style="font-size:12px; color:var(--text-muted);">${so.dateSaved || '-'}</td>
                 <td>${statusActionHtml}</td>
             `;
@@ -830,10 +946,12 @@
         inputSONumber.value = so.soNumber;
         inputCustomerName.value = so.custName;
         inputCustomerCode.value = so.custCode;
-        inputDepositPct.value = so.depositPct;
         
         productItems = JSON.parse(JSON.stringify(so.products || []));
+        instData = JSON.parse(JSON.stringify(so.instData || []));
         dnData = JSON.parse(JSON.stringify(so.dnData || []));
+        
+        inputInstCount.value = instData.length;
         inputDNCount.value = dnData.length;
 
         renderProductInputs();
@@ -860,11 +978,11 @@
     window.exportExcel = function() {
         if(savedSOs.length === 0) return alert("ไม่มีข้อมูลใน Log สำหรับการ Export");
         let csvContent = "\uFEFF"; 
-        csvContent += "หมายเลข SO,รหัสลูกค้า,ชื่อลูกค้า,ผู้ทำรายการ,จำนวน DN,ยอดคำสั่งซื้อรวม,% มัดจำ,สถานะ,เวลาทำรายการล่าสุด\n";
+        csvContent += "หมายเลข SO,รหัสลูกค้า,ชื่อลูกค้า,ผู้ทำรายการ,จำนวน DN,จำนวนงวด (Inst.),ยอดคำสั่งซื้อรวม,สถานะ,เวลาทำรายการล่าสุด\n";
         savedSOs.forEach(so => {
             let row = [
                 `"${so.soNumber}"`, `"${so.custCode}"`, `"${so.custName}"`, `"${so.user || '-'}"`,
-                `"${so.dnData ? so.dnData.length : 0}"`, `"${so.totalSO}"`, `"${so.depositPct}%"`,
+                `"${so.dnData ? so.dnData.length : 0}"`, `"${so.instData ? so.instData.length : 0}"`, `"${so.totalSO}"`,
                 `"${so.status === 'cancelled' ? 'ยกเลิก' : 'ปกติ'}"`, `"${so.dateSaved || '-'}"`
             ];
             csvContent += row.join(",") + "\n";
@@ -878,15 +996,17 @@
         document.body.removeChild(link);
     }
 
-    inputDepositPct.addEventListener('input', updateCalculations);
-    inputDNCount.addEventListener('input', syncDNArraySize);
-
     requiredFields.forEach(input => {
         input.addEventListener('input', validateAndCalculate);
     });
 
     window.addEventListener('load', () => {
+        // ค่าเริ่มต้นจำลองเคส: ของ 2 ชิ้น รวม 100,000 / ชำระ 2 งวด (50,000) / DN 3 คัน (30k, 50k, 20k)
+        inputInstCount.value = '2';
+        inputDNCount.value = '3';
         renderProductInputs();
+        renderInstSetupInputs();
+        renderDNSetupInputs();
     });
 
 </script>
