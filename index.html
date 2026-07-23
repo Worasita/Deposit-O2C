@@ -294,9 +294,10 @@
                                     <th>% ของงาน</th>
                                     <th>เงินมัดจำที่ต้องคืน</th>
                                     <th>ยอดเรียกเก็บเพิ่ม</th>
+                                    <th style="width: 120px;">เลขที่Billing</th>
                                     <th style="width: 140px;">เลขที่ใบลดหนี้ (CN)</th>
                                     <th style="width: 150px;">เวลาทำรายการ</th>
-                                    <th style="width: 100px;">สถานะ</th>
+                                    <th style="width: 100px;">สถานะ DN</th>
                                 </tr>
                             </thead>
                             <tbody id="tableBody">
@@ -380,10 +381,14 @@
     const btnSaveSO = document.getElementById('btnSaveSO');
     const chkSelectAll = document.getElementById('chkSelectAll');
 
-    // โครงสร้างข้อมูล
+    // โครงสร้างข้อมูล (อัปเดตให้รองรับ billingNumber)
     let productItems = [{ name: 'สินค้า 1', price: 50000 }, { name: 'สินค้า 2', price: 50000 }];
     let instData = [{ name: 'งวดที่ 1 (มัดจำ)', amount: 50000 }, { name: 'งวดที่ 2', amount: 50000 }]; 
-    let dnData = [{ amount: 30000, dnNumber: 'DN-01', cnNumber: '', status: 'pending', timeStart: '', timeConfirm: '' }, { amount: 50000, dnNumber: 'DN-02', cnNumber: '', status: 'pending', timeStart: '', timeConfirm: '' }, { amount: 20000, dnNumber: 'DN-03', cnNumber: '', status: 'pending', timeStart: '', timeConfirm: '' }]; 
+    let dnData = [
+        { amount: 30000, dnNumber: 'DN-01', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '' }, 
+        { amount: 50000, dnNumber: 'DN-02', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '' }, 
+        { amount: 20000, dnNumber: 'DN-03', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '' }
+    ]; 
     
     let isDnValid = true; 
     let isInstValid = true;
@@ -592,7 +597,7 @@
         if (forceResize) {
             if(dnData.length < count) {
                 for(let i = dnData.length; i < count; i++) {
-                    dnData.push({ amount: 0, dnNumber: '', cnNumber: '', status: 'pending', timeStart: '', timeConfirm: '' });
+                    dnData.push({ amount: 0, dnNumber: '', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '' });
                 }
             } else if (dnData.length > count) {
                 dnData = dnData.slice(0, count);
@@ -729,7 +734,7 @@
 
     function renderTable() {
         if (!isDnValid || !isInstValid) {
-            tableBody.innerHTML = '<tr><td colspan="10" style="text-align:center; color:var(--danger); padding:20px;">⚠️ กรุณาตั้งค่ามูลค่า งวดชำระ และ DN ให้ผลรวมเท่ากับยอดสั่งซื้อรวม เพื่อแสดงตาราง</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="11" style="text-align:center; color:var(--danger); padding:20px;">⚠️ กรุณาตั้งค่ามูลค่า งวดชำระ และ DN ให้ผลรวมเท่ากับยอดสั่งซื้อรวม เพื่อแสดงตาราง</td></tr>';
             updateActionButtons();
             return;
         }
@@ -742,10 +747,10 @@
             let statusClass = "status-pending";
             
             if (row.status === 'completed') {
-                statusText = '<i class="fa-solid fa-circle-check"></i> เสร็จสิ้น';
+                statusText = '<i class="fa-solid fa-circle-check"></i> คืนเงิน'; // อัปเดตคำ
                 statusClass = "status-completed";
             } else if (row.status === 'processing') {
-                statusText = '<i class="fa-solid fa-spinner fa-spin"></i> ดำเนินการ';
+                statusText = '<i class="fa-solid fa-check"></i> GI แล้ว'; // อัปเดตคำ
                 statusClass = "status-processing";
                 tr.className = "tr-active-now";
             } else {
@@ -761,6 +766,7 @@
             if (!timeHtml) timeHtml = "-";
 
             let dnDisplay = row.dnNumber ? `<span style="font-weight:600; color:var(--primary);">${row.dnNumber}</span>` : `<span style="color:#cbd5e1; font-style:italic;">(ระบุด้านซ้าย)</span>`;
+            let billingDisplay = row.billingNumber ? `<span style="font-weight:600; color:#475569; font-size:12px;">${row.billingNumber}</span>` : `<span style="color:#cbd5e1; font-style:italic;">-</span>`;
 
             tr.innerHTML = `
                 <td><input type="checkbox" class="row-checkbox" value="${index}" ${row.status === 'completed' ? 'disabled' : ''} onchange="updateActionButtons()"></td>
@@ -770,6 +776,7 @@
                 <td>${itemPct.toFixed(2)}%</td>
                 <td style="color:var(--accent); font-weight:500;">-${formatCurrency(row.deduction)}</td>
                 <td style="color:var(--success); font-weight:600;">${formatCurrency(row.net)}</td>
+                <td>${billingDisplay}</td> <!-- เพิ่มคอลัมน์ Billing -->
                 <td>
                     <input type="text" class="form-control table-input" placeholder="ระบุเลขใบลดหนี้" value="${row.cnNumber || ''}" onchange="updateCNNumber(${index}, this.value)" ${row.status === 'completed' ? 'readonly' : ''}>
                 </td>
@@ -837,9 +844,13 @@
 
     function processSelectedDNs(actionType, selectedIdxs) {
         if(actionType === 'start') {
+            const timestamp = Date.now().toString().slice(-4);
+            const dateCode = new Date().toISOString().slice(2, 10).replace(/-/g, ''); // YYMMDD
             selectedIdxs.forEach(i => {
                 dnData[i].status = 'processing';
                 dnData[i].timeStart = getNowStr();
+                // Auto generate Billing Number
+                dnData[i].billingNumber = `BIL-${dateCode}-${timestamp}-${(i+1).toString().padStart(2, '0')}`;
             });
         } else if (actionType === 'confirm') {
             const missingCN = selectedIdxs.some(i => !dnData[i].cnNumber || dnData[i].cnNumber.trim() === '');
@@ -866,6 +877,7 @@
                 item.status = 'pending';
                 item.timeStart = '';
                 item.timeConfirm = '';
+                item.billingNumber = ''; // ล้างค่า Billing
             });
             chkSelectAll.checked = false;
             renderTable();
@@ -890,7 +902,11 @@
         
         productItems = [{ name: 'สินค้าใหม่ 1', price: 50000 }, { name: 'สินค้าใหม่ 2', price: 50000 }];
         instData = [{ name: 'งวดที่ 1 (มัดจำ)', amount: 50000 }, { name: 'งวดที่ 2', amount: 50000 }];
-        dnData = [{ amount: 30000, dnNumber: 'DN-01', cnNumber: '', status: 'pending', timeStart: '', timeConfirm: '' }, { amount: 50000, dnNumber: 'DN-02', cnNumber: '', status: 'pending', timeStart: '', timeConfirm: '' }, { amount: 20000, dnNumber: 'DN-03', cnNumber: '', status: 'pending', timeStart: '', timeConfirm: '' }];
+        dnData = [
+            { amount: 30000, dnNumber: 'DN-01', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '' }, 
+            { amount: 50000, dnNumber: 'DN-02', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '' }, 
+            { amount: 20000, dnNumber: 'DN-03', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '' }
+        ];
         
         renderProductInputs();
         switchTab('main');
