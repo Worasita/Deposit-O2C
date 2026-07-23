@@ -732,6 +732,33 @@
         dnData[idx].cnNumber = val;
     };
 
+    // --- เพิ่มฟังก์ชัน updateCustomDeduction() ใหม่ที่นี่ ---
+    window.updateCustomDeduction = function(idx, val) {
+        // 1. ดึงยอดเงินมัดจำรวมก้อนแรก (งวดที่ 1)
+        let totalDeposit = instData.length > 0 ? instData[0].amount : 0;
+        let newValue = parseFloat(val) || 0;
+
+        // 2. อัปเดตค่า deduction ของแถวที่ User พิมพ์แก้ไข
+        dnData[idx].deduction = newValue;
+        dnData[idx].net = dnData[idx].amount - dnData[idx].deduction;
+
+        // 3. หายอดรวม deduction ของทุกแถว "ยกเว้นแถวสุดท้าย"
+        let lastIdx = dnData.length - 1;
+        if (lastIdx > 0) {
+            let sumOtherDeductions = 0;
+            for (let i = 0; i < lastIdx; i++) {
+                sumOtherDeductions += (dnData[i].deduction || 0);
+            }
+
+            // 4. บังคับให้ยอดของ DN สุดท้าย มีค่าเท่ากับ เงินมัดจำรวม - ยอดที่แก้ไปทั้งหมด
+            dnData[lastIdx].deduction = totalDeposit - sumOtherDeductions;
+            dnData[lastIdx].net = dnData[lastIdx].amount - dnData[lastIdx].deduction;
+        }
+
+        // 5. โหลดตารางใหม่เพื่อให้ตัวเลขแสดงผล
+        renderTable();
+    };
+
     function renderTable() {
         if (!isDnValid || !isInstValid) {
             tableBody.innerHTML = '<tr><td colspan="11" style="text-align:center; color:var(--danger); padding:20px;">⚠️ กรุณาตั้งค่ามูลค่า งวดชำระ และ DN ให้ผลรวมเท่ากับยอดสั่งซื้อรวม เพื่อแสดงตาราง</td></tr>';
@@ -768,15 +795,34 @@
             let dnDisplay = row.dnNumber ? `<span style="font-weight:600; color:var(--primary);">${row.dnNumber}</span>` : `<span style="color:#cbd5e1; font-style:italic;">(ระบุด้านซ้าย)</span>`;
             let billingDisplay = row.billingNumber ? `<span style="font-weight:600; color:#475569; font-size:12px;">${row.billingNumber}</span>` : `<span style="color:#cbd5e1; font-style:italic;">-</span>`;
 
+            // --- ส่วนที่ปรับแต่งให้คอลัมน์ เงินมัดจำที่ต้องคืน แก้ไขตัวเลขได้ ---
+            let deductionField = '';
+            if (index === dnData.length - 1) {
+                // แถวสุดท้าย ให้เป็น Text อ่านได้อย่างเดียว (Auto ปรับตามแถวอื่น)
+                deductionField = `<span style="color:var(--accent); font-weight:600;">-${formatCurrency(row.deduction)}</span>`;
+            } else {
+                // แถวอื่นๆ ให้เป็น Input สำหรับกรอกตัวเลข
+                deductionField = `
+                    <div style="display:flex; align-items:center; justify-content:center; gap:4px;">
+                        <span style="color:var(--accent); font-weight:500;">-</span>
+                        <input type="number" class="form-control table-input" 
+                            style="color:var(--accent); font-weight:500; width: 90px;" 
+                            value="${row.deduction ? row.deduction.toFixed(2) : 0}" 
+                            onchange="updateCustomDeduction(${index}, this.value)" 
+                            ${row.status === 'completed' ? 'readonly' : ''}>
+                    </div>
+                `;
+            }
+
             tr.innerHTML = `
                 <td><input type="checkbox" class="row-checkbox" value="${index}" ${row.status === 'completed' ? 'disabled' : ''} onchange="updateActionButtons()"></td>
                 <td style="font-weight:600;">${index + 1}</td>
                 <td>${dnDisplay}</td>
                 <td style="font-weight:500;">${formatCurrency(row.amount)}</td>
                 <td>${itemPct.toFixed(2)}%</td>
-                <td style="color:var(--accent); font-weight:500;">-${formatCurrency(row.deduction)}</td>
+                <td style="text-align: center;">${deductionField}</td>
                 <td style="color:var(--success); font-weight:600;">${formatCurrency(row.net)}</td>
-                <td>${billingDisplay}</td> <!-- เพิ่มคอลัมน์ Billing -->
+                <td>${billingDisplay}</td>
                 <td>
                     <input type="text" class="form-control table-input" placeholder="ระบุเลขใบลดหนี้" value="${row.cnNumber || ''}" onchange="updateCNNumber(${index}, this.value)" ${row.status === 'completed' ? 'readonly' : ''}>
                 </td>
