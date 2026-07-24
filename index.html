@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sourcing Product - Dynamic Money Route Tracker (V4.6)</title>
+    <title>Sourcing Product - Dynamic Money Route Tracker (V4.7)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -25,7 +25,7 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Prompt', 'Sarabun', sans-serif; }
         body { background-color: var(--background); color: var(--text-main); padding: 24px; min-height: 100vh; }
-        .container { max-width: 1550px; margin: 0 auto; }
+        .container { max-width: 1600px; margin: 0 auto; } /* ขยายความกว้างนิดหน่อยเพื่อรองรับคอลัมน์ตารางที่เพิ่มขึ้น */
 
         header {
             background: linear-gradient(135deg, var(--primary) 0%, #001a3a 100%);
@@ -80,10 +80,6 @@
         .section-divider { border-top: 1px dashed var(--border); margin: 20px 0; }
         .section-label { font-size: 14px; font-weight: 600; color: var(--primary-light); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
 
-        .slider-group { margin-top: 10px; }
-        .slider-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-top: 4px; }
-        input[type="range"] { width: 100%; accent-color: var(--primary); cursor: pointer; }
-
         .custom-pct-container { background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-top: 15px; }
         
         .alert-msg { font-size: 12px; margin-top: 8px; display: none; font-weight: 500; }
@@ -96,7 +92,7 @@
 
         .main-content { display: flex; flex-direction: column; gap: 24px; }
 
-        .sim-btn-container { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid var(--border); align-items: center; }
+        .sim-btn-container { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid var(--border); align-items: center; justify-content: flex-end;}
         .btn { padding: 10px 16px; border-radius: 8px; border: none; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; justify-content: center; }
         .btn-primary { background-color: var(--primary); color: white; }
         .btn-primary:hover:not(:disabled) { background-color: var(--primary-light); }
@@ -131,8 +127,6 @@
         
         .dn-setup-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
         .dn-setup-row input { padding-left: 10px !important; }
-        .chk-column { width: 40px; cursor: pointer; }
-        .row-checkbox { width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary); }
     </style>
 </head>
 <body>
@@ -145,7 +139,7 @@
         </div>
         <div class="badge-live">
             <div class="dot"></div>
-            <span>Mockup website V4.6</span>
+            <span>Mockup website V4.7</span>
         </div>
     </header>
 
@@ -196,7 +190,6 @@
                 </div>
                 <button class="btn btn-outline" onclick="addProductRow()" style="margin-top: 10px; width: 100%;"><i class="fa-solid fa-plus"></i> เพิ่มสินค้า (Item)</button>
 
-                <!-- เพิ่มช่องกรอกเลขที่ใบเสร็จรับเงินมัดจำ -->
                 <div class="form-group" style="margin-top: 15px;">
                     <label for="inputDepositReceipt">เลขที่ใบเสร็จรับเงินมัดจำ</label>
                     <div class="input-wrapper">
@@ -216,7 +209,6 @@
                     </div>
                 </div>
 
-                <!-- ปรับช่องเรียกเก็บเงินมัดจำก้อนแรก -->
                 <div class="form-group">
                     <label for="inputDepositPct">เงินมัดจำก้อนแรก (%) <span class="required-asterisk">*</span></label>
                     <div class="input-wrapper">
@@ -225,14 +217,12 @@
                     </div>
                 </div>
 
-                <!-- รอบคันรถ (DN) Section -->
+                <!-- เปลี่ยนช่องให้ User ระบุจำนวน DN เองแบบอิสระ -->
                 <div class="form-group">
-                    <label for="inputDNCount">จำนวนเลข DN: <span id="lblDNCount" style="font-weight:700; color:var(--primary);">2</span> DN</label>
-                    <div class="slider-group">
-                        <input type="range" id="inputDNCount" min="1" max="20" value="2" step="1">
-                        <div class="slider-labels">
-                            <span>1</span><span>10</span><span>20</span>
-                        </div>
+                    <label for="inputDNCount">จำนวนเลข DN <span class="required-asterisk">*</span></label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-list-ol"></i>
+                        <input type="number" id="inputDNCount" class="form-control required-field" min="1" value="2" placeholder="ระบุจำนวนรอบ DN ที่คาดการณ์">
                     </div>
                     
                     <div class="custom-pct-container" id="dnSetupContainer">
@@ -272,8 +262,7 @@
                     </div>
 
                     <div class="sim-btn-container">
-                        <button class="btn btn-outline" id="btnActionSelected" disabled><i class="fa-solid fa-play"></i> กรุณาเลือก DN เพื่อดำเนินการ</button>
-                        <button class="btn btn-outline" id="btnResetAll" style="margin-left: auto;"><i class="fa-solid fa-rotate-right"></i> รีเซ็ตสถานะทั้งหมด</button>
+                        <button class="btn btn-outline" id="btnResetAll" style="margin-right: auto;"><i class="fa-solid fa-rotate-right"></i> รีเซ็ตสถานะทั้งหมด</button>
                         <button class="btn btn-success" id="btnSaveSO" disabled><i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูล SO</button>
                     </div>
                 </div>
@@ -287,17 +276,18 @@
                         <table id="scheduleTable">
                             <thead>
                                 <tr>
-                                    <th class="chk-column"><input type="checkbox" id="chkSelectAll" onchange="toggleAllCheckboxes(this)"></th>
                                     <th style="width: 50px;">ลำดับ</th>
-                                    <th style="width: 130px;">เลข DN</th>
-                                    <th>มูลค่าที่รับสินค้า (GI)</th>
-                                    <th>% ของเงินมัดจำที่ต้องคืน</th>
+                                    <th style="width: 110px;">เลข DN</th>
+                                    <th>มูลค่ารับสินค้า (GI)</th>
+                                    <th>% ของมัดจำ</th>
                                     <th>เงินมัดจำที่ต้องคืน</th>
-                                    <th>ยอดเรียกเก็บเพิ่ม</th>
-                                    <th style="width: 120px;">เลขที่Billing</th>
-                                    <th style="width: 140px;">เลขที่ใบลดหนี้ (CN)</th>
-                                    <th style="width: 150px;">เวลาทำรายการ</th>
-                                    <th style="width: 100px;">สถานะ DN</th>
+                                    <th>เรียกเก็บเพิ่ม</th>
+                                    <th style="width: 110px;">เลขที่Billing</th>
+                                    <th style="width: 120px;">เลขใบลดหนี้ (CN)</th>
+                                    <th>ผู้ดำเนินการ</th>
+                                    <th style="width: 140px;">เวลาทำรายการ</th>
+                                    <th style="width: 90px;">สถานะ DN</th>
+                                    <th style="width: 110px;">จัดการ</th>
                                 </tr>
                             </thead>
                             <tbody id="tableBody">
@@ -317,7 +307,6 @@
                 <button class="btn btn-success" style="font-size: 14px; padding: 6px 14px;" onclick="exportExcel()"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
             </div>
             
-            <!-- ส่วนของ Filter -->
             <div style="display: flex; gap: 10px; margin-bottom: 20px; align-items: center; background: #f1f5f9; padding: 12px; border-radius: 8px; border: 1px solid var(--border);">
                 <label style="font-weight: 600; font-size: 14px; color: var(--primary);"><i class="fa-solid fa-calendar-days"></i> ค้นหาตามวันที่ทำรายการ:</label>
                 <div class="input-wrapper" style="width: 160px;">
@@ -360,7 +349,7 @@
 </div>
 
 <script>
-    const STORAGE_KEY = 'mockup_saved_sos_v4_6';
+    const STORAGE_KEY = 'mockup_saved_sos_v4_7';
     let savedSOs = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
     const inputSONumber = document.getElementById('inputSONumber');
@@ -375,7 +364,6 @@
 
     // DN Elements
     const inputDNCount = document.getElementById('inputDNCount');
-    const lblDNCount = document.getElementById('lblDNCount');
     const dnSetupContainer = document.getElementById('dnSetupContainer');
     const pctWarning = document.getElementById('pctWarning');
     const pctSuccess = document.getElementById('pctSuccess');
@@ -389,16 +377,14 @@
     const tableBody = document.getElementById('tableBody');
     const logTableBody = document.getElementById('logTableBody');
     
-    const btnActionSelected = document.getElementById('btnActionSelected');
     const btnResetAll = document.getElementById('btnResetAll');
     const btnSaveSO = document.getElementById('btnSaveSO');
-    const chkSelectAll = document.getElementById('chkSelectAll');
 
     let productItems = [{ name: 'สินค้า 1', price: 50000 }, { name: 'สินค้า 2', price: 50000 }];
     let dnData = [
-        { amount: 30000, dnNumber: 'DN-01', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null }, 
-        { amount: 50000, dnNumber: 'DN-02', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null }, 
-        { amount: 20000, dnNumber: 'DN-03', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null }
+        { amount: 30000, dnNumber: 'DN-01', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null, actionUser: '' }, 
+        { amount: 50000, dnNumber: 'DN-02', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null, actionUser: '' }, 
+        { amount: 20000, dnNumber: 'DN-03', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null, actionUser: '' }
     ]; 
     
     let isDnValid = true; 
@@ -489,13 +475,13 @@
 
     // --- DN Setup Section ---
     function syncDNArraySize(forceResize = true) {
-        const count = parseInt(inputDNCount.value);
+        const count = parseInt(inputDNCount.value) || 1; 
         const totalSO = parseFloat(inputTotalSO.value) || 0;
         
         if (forceResize) {
             if(dnData.length < count) {
                 for(let i = dnData.length; i < count; i++) {
-                    dnData.push({ amount: 0, dnNumber: '', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null });
+                    dnData.push({ amount: 0, dnNumber: '', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null, actionUser: '' });
                 }
             } else if (dnData.length > count) {
                 dnData = dnData.slice(0, count);
@@ -516,8 +502,6 @@
 
     function renderDNSetupInputs() {
         let html = '';
-        const totalSO = parseFloat(inputTotalSO.value) || 0;
-
         dnData.forEach((item, i) => {
             html += `
                 <div class="dn-setup-row">
@@ -551,10 +535,9 @@
 
     function validateAndCalculate() {
         let totalSO = parseFloat(inputTotalSO.value) || 0;
-
-        // Validate DNs
         let sumDN = dnData.reduce((a, b) => a + b.amount, 0);
         sumDN = Math.round(sumDN * 100) / 100;
+        
         isDnValid = (sumDN === totalSO && totalSO > 0);
 
         if (!isDnValid) {
@@ -571,6 +554,7 @@
             inputCustomerName.value.trim() !== '' &&
             inputCustomerCode.value.trim() !== '' &&
             inputDepositPct.value.trim() !== '' &&
+            inputDNCount.value.trim() !== '' &&
             totalSO > 0
         );
 
@@ -592,9 +576,6 @@
         let totalSOVal = parseFloat(inputTotalSO.value) || 0;
         let depositPct = parseFloat(inputDepositPct.value) || 0;
 
-        lblDNCount.textContent = dnData.length;
-
-        // คำนวณ % การหักล้าง จากเงินมัดจำ
         let firstDepositAmount = totalSOVal * (depositPct / 100);
         let depositRatio = totalSOVal > 0 ? (firstDepositAmount / totalSOVal) : 0;
         const remainingSOAmount = totalSOVal - firstDepositAmount;
@@ -604,7 +585,6 @@
         sumRemainingSO.textContent = formatCurrency(remainingSOAmount);
         sumDeductionRate.textContent = `${depositPct.toFixed(2)}% ของแต่ละ DN`;
 
-        // คำนวณ Deduction 
         dnData.forEach((item, idx) => {
             item.deduction = item.amount * depositRatio;
             item.net = item.amount - item.deduction;
@@ -625,7 +605,6 @@
         let newValue = parseFloat(val) || 0;
         let expectedNet = dnData[idx].amount - newValue;
 
-        // Logic ป้องกันติดลบ
         if (newValue < 0) {
             alert("มูลค่าไม่ถูกต้อง: เงินมัดจำที่ต้องคืนห้ามติดลบ");
             renderTable(); 
@@ -638,7 +617,6 @@
             return;
         }
 
-        // สำรองค่า
         let oldDeduction = dnData[idx].deduction;
         let oldNet = dnData[idx].net;
         
@@ -662,18 +640,15 @@
                 renderTable();
                 return;
             }
-
             dnData[lastIdx].deduction = lastDeduction;
             dnData[lastIdx].net = lastNet;
         }
-
         renderTable();
     };
 
     function renderTable() {
         if (!isDnValid) {
-            tableBody.innerHTML = '<tr><td colspan="11" style="text-align:center; color:var(--danger); padding:20px;">⚠️ กรุณาตั้งค่ามูลค่า และ DN ให้ผลรวมเท่ากับยอดสั่งซื้อรวม เพื่อแสดงตาราง</td></tr>';
-            updateActionButtons();
+            tableBody.innerHTML = '<tr><td colspan="12" style="text-align:center; color:var(--danger); padding:20px;">⚠️ กรุณาตั้งค่ามูลค่า และ DN ให้ผลรวมเท่ากับยอดสั่งซื้อรวม เพื่อแสดงตาราง</td></tr>';
             return;
         }
 
@@ -704,11 +679,12 @@
             
             let timeHtml = "";
             if (row.timeStart) timeHtml += `<div style="font-size:11px; color:var(--primary); margin-bottom: 2px;"><i class="fa-solid fa-play"></i> GI: ${row.timeStart}</div>`;
-            if (row.timeConfirm) timeHtml += `<div style="font-size:11px; color:var(--success);"><i class="fa-solid fa-check-double"></i> คืนเงิน: ${row.timeConfirm}</div>`;
+            if (row.timeConfirm) timeHtml += `<div style="font-size:11px; color:var(--success);"><i class="fa-solid fa-check-double"></i> คืน: ${row.timeConfirm}</div>`;
             if (!timeHtml) timeHtml = "-";
 
             let dnDisplay = row.dnNumber ? `<span style="font-weight:600; color:var(--primary);">${row.dnNumber}</span>` : `<span style="color:#cbd5e1; font-style:italic;">(ระบุด้านซ้าย)</span>`;
             let billingDisplay = row.billingNumber ? `<span style="font-weight:600; color:#475569; font-size:12px;">${row.billingNumber}</span>` : `<span style="color:#cbd5e1; font-style:italic;">-</span>`;
+            let userDisplay = row.actionUser ? `<span style="font-size:12px; color:var(--primary-light);"><i class="fa-solid fa-user"></i> ${row.actionUser}</span>` : `<span style="color:#cbd5e1;">-</span>`;
 
             let deductionField = '';
             if (index === dnData.length - 1) {
@@ -726,8 +702,19 @@
                 `;
             }
 
+            // ปุ่มจัดการ Action ในแต่ละ Row
+            let actionBtnHtml = '';
+            if (!isDnValid) {
+                actionBtnHtml = `<button class="btn btn-outline" style="padding: 4px 8px; font-size:11px; width: 100%;" disabled><i class="fa-solid fa-ban"></i> รอข้อมูล</button>`;
+            } else if (row.status === 'pending') {
+                actionBtnHtml = `<button class="btn btn-primary" style="padding: 4px 8px; font-size:11px; width: 100%;" onclick="processSingleDN('start', ${index})">เริ่มดำเนินการ</button>`;
+            } else if (row.status === 'processing') {
+                actionBtnHtml = `<button class="btn btn-success" style="padding: 4px 8px; font-size:11px; width: 100%;" onclick="processSingleDN('confirm', ${index})">ยืนยันคืนมัดจำ</button>`;
+            } else {
+                actionBtnHtml = `<span style="color:var(--success); font-size:12px; font-weight: 600;"><i class="fa-solid fa-check"></i> เสร็จสิ้น</span>`;
+            }
+
             tr.innerHTML = `
-                <td><input type="checkbox" class="row-checkbox" value="${index}" ${row.status === 'completed' ? 'disabled' : ''} onchange="updateActionButtons()"></td>
                 <td style="font-weight:600;">${index + 1}</td>
                 <td>${dnDisplay}</td>
                 <td style="font-weight:500;">${formatCurrency(row.amount)}</td>
@@ -738,93 +725,34 @@
                 <td>
                     <input type="text" class="form-control table-input" placeholder="ระบุเลขใบลดหนี้" value="${row.cnNumber || ''}" onchange="updateCNNumber(${index}, this.value)" ${row.status === 'completed' ? 'readonly' : ''}>
                 </td>
+                <td>${userDisplay}</td>
                 <td style="text-align:left; line-height: 1.3;">${timeHtml}</td>
                 <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                <td>${actionBtnHtml}</td>
             `;
             tableBody.appendChild(tr);
         });
-
-        updateActionButtons();
     }
 
-    window.toggleAllCheckboxes = function(source) {
-        const checkboxes = document.querySelectorAll('.row-checkbox:not([disabled])');
-        checkboxes.forEach(cb => cb.checked = source.checked);
-        updateActionButtons();
-    };
-
-    window.updateActionButtons = function() {
-        if(!isDnValid) {
-            btnActionSelected.disabled = true;
-            btnActionSelected.className = 'btn btn-outline';
-            btnActionSelected.innerHTML = '<i class="fa-solid fa-play"></i> กรุณาตั้งค่ามูลค่าให้ถูกต้อง';
-            return;
-        }
-
-        const checkboxes = document.querySelectorAll('.row-checkbox:not(:disabled)');
-        const checkedCount = document.querySelectorAll('.row-checkbox:checked:not(:disabled)').length;
-        const selectedIdxs = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => parseInt(cb.value));
-        
-        if(checkedCount === 0) {
-            btnActionSelected.disabled = true;
-            btnActionSelected.className = 'btn btn-outline';
-            btnActionSelected.innerHTML = '<i class="fa-solid fa-play"></i> กรุณาเลือก DN เพื่อดำเนินการ';
-            chkSelectAll.checked = false;
-            return;
-        }
-
-        const isAllPending = selectedIdxs.every(i => dnData[i].status === 'pending');
-        const isAllProcessing = selectedIdxs.every(i => dnData[i].status === 'processing');
-
-        btnActionSelected.disabled = false;
-        
-        if (isAllPending) {
-            btnActionSelected.className = 'btn btn-primary';
-            btnActionSelected.innerHTML = `<i class="fa-solid fa-play"></i> เริ่มดำเนินการตัดจ่าย (${selectedIdxs.length} รายการ)`;
-            btnActionSelected.onclick = () => processSelectedDNs('start', selectedIdxs);
-        } else if (isAllProcessing) {
-            btnActionSelected.className = 'btn btn-success';
-            btnActionSelected.innerHTML = `<i class="fa-solid fa-check"></i> ยืนยันคืนเงินมัดจำ / ออก CN (${selectedIdxs.length} รายการ)`;
-            btnActionSelected.onclick = () => processSelectedDNs('confirm', selectedIdxs);
-        } else {
-            btnActionSelected.disabled = true;
-            btnActionSelected.className = 'btn btn-outline';
-            btnActionSelected.innerHTML = `<i class="fa-solid fa-ban"></i> ไม่สามารถทำรายการข้ามสถานะได้`;
-        }
-
-        if (checkboxes.length > 0 && checkedCount === checkboxes.length) {
-            chkSelectAll.checked = true;
-        } else {
-            chkSelectAll.checked = false;
-        }
-    };
-
-    function processSelectedDNs(actionType, selectedIdxs) {
+    // ฟังก์ชันจัดการทีละ Row 
+    window.processSingleDN = function(actionType, i) {
         if(actionType === 'start') {
             const timestamp = Date.now().toString().slice(-4);
             const dateCode = new Date().toISOString().slice(2, 10).replace(/-/g, ''); // YYMMDD
-            selectedIdxs.forEach(i => {
-                dnData[i].status = 'processing';
-                dnData[i].timeStart = getNowStr();
-                dnData[i].billingNumber = `BIL-${dateCode}-${timestamp}-${(i+1).toString().padStart(2, '0')}`;
-            });
+            dnData[i].status = 'processing';
+            dnData[i].timeStart = getNowStr();
+            dnData[i].billingNumber = `BIL-${dateCode}-${timestamp}-${(i+1).toString().padStart(2, '0')}`;
+            dnData[i].actionUser = currentSessionUser; 
         } else if (actionType === 'confirm') {
-            const missingCN = selectedIdxs.some(i => !dnData[i].cnNumber || dnData[i].cnNumber.trim() === '');
-            if(missingCN) {
-                alert('กรุณากรอก "เลขที่ใบลดหนี้ (CN)" สำหรับ DN ที่เลือกทั้งหมดในตารางก่อนยืนยันครับ');
+            if(!dnData[i].cnNumber || dnData[i].cnNumber.trim() === '') {
+                alert('กรุณากรอก "เลขที่ใบลดหนี้ (CN)" ก่อนยืนยันครับ');
                 return;
             }
-            if(confirm(`ยืนยันการคืนเงินมัดจำสำหรับ ${selectedIdxs.length} DN ที่เลือกเสร็จสมบูรณ์?`)) {
-                const nowStr = getNowStr();
-                const nowTimestamp = Date.now();
-                selectedIdxs.forEach(i => {
-                    dnData[i].status = 'completed';
-                    dnData[i].timeConfirm = nowStr;
-                    dnData[i].timestampConfirm = nowTimestamp; // จัดเก็บ Timestamp เพื่อนำไปหาค่าเวลาที่กดยืนยันครั้งแรก
-                });
-                chkSelectAll.checked = false;
-            } else {
-                return;
+            if(confirm(`ยืนยันการคืนเงินมัดจำสำหรับ DN นี้เสร็จสมบูรณ์?`)) {
+                dnData[i].status = 'completed';
+                dnData[i].timeConfirm = getNowStr();
+                dnData[i].timestampConfirm = Date.now(); 
+                dnData[i].actionUser = currentSessionUser; 
             }
         }
         renderTable();
@@ -838,14 +766,15 @@
                 item.timeConfirm = '';
                 item.timestampConfirm = null;
                 item.billingNumber = ''; 
+                item.actionUser = ''; // Clear user info upon reset
             });
-            chkSelectAll.checked = false;
             renderTable();
         }
     });
 
-    inputDNCount.addEventListener('input', (e) => { lblDNCount.innerText = e.target.value; });
-    inputDNCount.addEventListener('change', (e) => { lblDNCount.innerText = e.target.value; syncDNArraySize(); });
+    // อัปเดต Input เป็น type="number" 
+    inputDNCount.addEventListener('input', (e) => { syncDNArraySize(); });
+    inputDNCount.addEventListener('change', (e) => { syncDNArraySize(); });
     inputDepositPct.addEventListener('input', validateAndCalculate);
 
     window.createNewSO = function() {
@@ -859,9 +788,9 @@
         
         productItems = [{ name: 'สินค้าใหม่ 1', price: 50000 }, { name: 'สินค้าใหม่ 2', price: 50000 }];
         dnData = [
-            { amount: 30000, dnNumber: 'DN-01', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null }, 
-            { amount: 50000, dnNumber: 'DN-02', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null }, 
-            { amount: 20000, dnNumber: 'DN-03', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null }
+            { amount: 30000, dnNumber: 'DN-01', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null, actionUser: '' }, 
+            { amount: 50000, dnNumber: 'DN-02', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null, actionUser: '' }, 
+            { amount: 20000, dnNumber: 'DN-03', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null, actionUser: '' }
         ];
         
         renderProductInputs();
@@ -899,7 +828,6 @@
         alert(`บันทึกข้อมูล SO: ${soData.soNumber} เรียบร้อยแล้ว!`);
     });
 
-    // ดึงข้อมูล SO ตามเงื่อนไข Filter
     function getFilteredSOs() {
         const filterStart = document.getElementById('filterStartDate').value;
         const filterEnd = document.getElementById('filterEndDate').value;
@@ -907,7 +835,7 @@
 
         if (filterStart || filterEnd) {
             filteredSOs = filteredSOs.filter(so => {
-                if (!so.dateSavedISO) return true; // เก็บข้อมูลเก่าไว้หากไม่มี ISO date
+                if (!so.dateSavedISO) return true; 
                 
                 let soDate = new Date(so.dateSavedISO);
                 soDate.setHours(0,0,0,0);
@@ -929,7 +857,6 @@
         return filteredSOs;
     }
 
-    // ฟังก์ชันล้าง Filter
     window.clearFilter = function() {
         document.getElementById('filterStartDate').value = '';
         document.getElementById('filterEndDate').value = '';
@@ -967,7 +894,6 @@
                 `;
             }
 
-            // คำนวณมูลค่าต่างๆ ของ SO
             const totalDeposit = so.totalSO * ((so.depositPct || 0) / 100);
             let refundedAmount = 0;
             let firstConfirmTimeStr = '-';
@@ -977,7 +903,6 @@
                 so.dnData.forEach(dn => {
                     if (dn.status === 'completed') {
                         refundedAmount += (dn.deduction || 0);
-                        // หา Create Date จากเวลากดยืนยันครั้งแรกสุด
                         if (dn.timestampConfirm && dn.timestampConfirm < firstConfirmTimestamp) {
                             firstConfirmTimestamp = dn.timestampConfirm;
                             firstConfirmTimeStr = dn.timeConfirm;
