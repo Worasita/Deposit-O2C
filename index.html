@@ -291,7 +291,6 @@
                                     <th style="width: 50px;">ลำดับ</th>
                                     <th style="width: 130px;">เลข DN</th>
                                     <th>มูลค่าที่รับสินค้า (GI)</th>
-                                    <!-- เปลี่ยนหัวตารางตรงนี้ -->
                                     <th>% ของเงินมัดจำที่ต้องคืน</th>
                                     <th>เงินมัดจำที่ต้องคืน</th>
                                     <th>ยอดเรียกเก็บเพิ่ม</th>
@@ -318,6 +317,22 @@
                 <button class="btn btn-success" style="font-size: 14px; padding: 6px 14px;" onclick="exportExcel()"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
             </div>
             
+            <!-- ส่วนของ Filter -->
+            <div style="display: flex; gap: 10px; margin-bottom: 20px; align-items: center; background: #f1f5f9; padding: 12px; border-radius: 8px; border: 1px solid var(--border);">
+                <label style="font-weight: 600; font-size: 14px; color: var(--primary);"><i class="fa-solid fa-calendar-days"></i> ค้นหาตามวันที่ทำรายการ:</label>
+                <div class="input-wrapper" style="width: 160px;">
+                    <i class="fa-solid fa-calendar" style="font-size: 12px; margin-left: 2px;"></i>
+                    <input type="date" id="filterStartDate" class="form-control" style="padding: 6px 10px 6px 30px; background: white;">
+                </div>
+                <span style="font-size: 14px; font-weight: 500;">ถึง</span>
+                <div class="input-wrapper" style="width: 160px;">
+                    <i class="fa-solid fa-calendar" style="font-size: 12px; margin-left: 2px;"></i>
+                    <input type="date" id="filterEndDate" class="form-control" style="padding: 6px 10px 6px 30px; background: white;">
+                </div>
+                <button class="btn btn-primary" style="padding: 6px 14px; font-size: 13px;" onclick="renderLogTable()"><i class="fa-solid fa-magnifying-glass"></i> ค้นหา</button>
+                <button class="btn btn-outline" style="padding: 6px 14px; font-size: 13px;" onclick="clearFilter()"><i class="fa-solid fa-rotate-left"></i> ล้างค่า</button>
+            </div>
+
             <div class="table-responsive">
                 <table id="logTable">
                     <thead>
@@ -326,9 +341,12 @@
                             <th>รหัสลูกค้า</th>
                             <th>ชื่อลูกค้า</th>
                             <th>ผู้ทำรายการ</th>
-                            <th>จำนวนคัน (DN)</th>
+                            <th>จำนวนDN</th>
                             <th>% มัดจำ</th>
-                            <th>ยอดคำสั่งซื้อรวม</th>
+                            <th>ยอดมัดจำทั้งหมด</th>
+                            <th>คืนเงินไปแล้วเท่าไหร่</th>
+                            <th>เหลือยอดคืนอีกเท่าไหร่</th>
+                            <th>Create date</th>
                             <th>เวลาที่บันทึก/แก้ไข</th>
                             <th>สถานะ/การจัดการ</th>
                         </tr>
@@ -378,9 +396,9 @@
 
     let productItems = [{ name: 'สินค้า 1', price: 50000 }, { name: 'สินค้า 2', price: 50000 }];
     let dnData = [
-        { amount: 30000, dnNumber: 'DN-01', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '' }, 
-        { amount: 50000, dnNumber: 'DN-02', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '' }, 
-        { amount: 20000, dnNumber: 'DN-03', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '' }
+        { amount: 30000, dnNumber: 'DN-01', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null }, 
+        { amount: 50000, dnNumber: 'DN-02', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null }, 
+        { amount: 20000, dnNumber: 'DN-03', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null }
     ]; 
     
     let isDnValid = true; 
@@ -477,7 +495,7 @@
         if (forceResize) {
             if(dnData.length < count) {
                 for(let i = dnData.length; i < count; i++) {
-                    dnData.push({ amount: 0, dnNumber: '', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '' });
+                    dnData.push({ amount: 0, dnNumber: '', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null });
                 }
             } else if (dnData.length > count) {
                 dnData = dnData.slice(0, count);
@@ -607,7 +625,7 @@
         let newValue = parseFloat(val) || 0;
         let expectedNet = dnData[idx].amount - newValue;
 
-        // Logic ป้องกันติดลบ (Alert แจ้งเตือน)
+        // Logic ป้องกันติดลบ
         if (newValue < 0) {
             alert("มูลค่าไม่ถูกต้อง: เงินมัดจำที่ต้องคืนห้ามติดลบ");
             renderTable(); 
@@ -620,7 +638,7 @@
             return;
         }
 
-        // สำรองค่าเผื่อการปรับแก้แถวสุดท้ายมีปัญหา
+        // สำรองค่า
         let oldDeduction = dnData[idx].deduction;
         let oldNet = dnData[idx].net;
         
@@ -637,10 +655,8 @@
             let lastDeduction = totalDeposit - sumOtherDeductions;
             let lastNet = dnData[lastIdx].amount - lastDeduction;
 
-            // ตรวจสอบค่าแถวสุดท้ายป้องกันติดลบ
             if (lastDeduction < 0 || lastNet < 0) {
                 alert("มูลค่าไม่ถูกต้อง: การปรับยอดทำให้เงินใน DN แถวสุดท้ายติดลบ กรุณาตรวจสอบยอดรวม");
-                // Rollback ค่า
                 dnData[idx].deduction = oldDeduction;
                 dnData[idx].net = oldNet;
                 renderTable();
@@ -684,7 +700,6 @@
             let depositPct = parseFloat(inputDepositPct.value) || 0;
             let totalDeposit = totalSOVal * (depositPct / 100);
 
-            // คำนวณ % ของเงินมัดจำที่ต้องคืน
             let deductionPct = totalDeposit > 0 ? (row.deduction / totalDeposit) * 100 : 0;
             
             let timeHtml = "";
@@ -800,9 +815,12 @@
                 return;
             }
             if(confirm(`ยืนยันการคืนเงินมัดจำสำหรับ ${selectedIdxs.length} DN ที่เลือกเสร็จสมบูรณ์?`)) {
+                const nowStr = getNowStr();
+                const nowTimestamp = Date.now();
                 selectedIdxs.forEach(i => {
                     dnData[i].status = 'completed';
-                    dnData[i].timeConfirm = getNowStr();
+                    dnData[i].timeConfirm = nowStr;
+                    dnData[i].timestampConfirm = nowTimestamp; // จัดเก็บ Timestamp เพื่อนำไปหาค่าเวลาที่กดยืนยันครั้งแรก
                 });
                 chkSelectAll.checked = false;
             } else {
@@ -818,6 +836,7 @@
                 item.status = 'pending';
                 item.timeStart = '';
                 item.timeConfirm = '';
+                item.timestampConfirm = null;
                 item.billingNumber = ''; 
             });
             chkSelectAll.checked = false;
@@ -827,8 +846,6 @@
 
     inputDNCount.addEventListener('input', (e) => { lblDNCount.innerText = e.target.value; });
     inputDNCount.addEventListener('change', (e) => { lblDNCount.innerText = e.target.value; syncDNArraySize(); });
-    
-    // อัพเดตการคำนวณเมื่อมีการพิมพ์ในช่องเปอร์เซ็นต์มัดจำ
     inputDepositPct.addEventListener('input', validateAndCalculate);
 
     window.createNewSO = function() {
@@ -842,9 +859,9 @@
         
         productItems = [{ name: 'สินค้าใหม่ 1', price: 50000 }, { name: 'สินค้าใหม่ 2', price: 50000 }];
         dnData = [
-            { amount: 30000, dnNumber: 'DN-01', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '' }, 
-            { amount: 50000, dnNumber: 'DN-02', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '' }, 
-            { amount: 20000, dnNumber: 'DN-03', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '' }
+            { amount: 30000, dnNumber: 'DN-01', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null }, 
+            { amount: 50000, dnNumber: 'DN-02', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null }, 
+            { amount: 20000, dnNumber: 'DN-03', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null }
         ];
         
         renderProductInputs();
@@ -866,7 +883,8 @@
             products: JSON.parse(JSON.stringify(productItems)),
             dnData: JSON.parse(JSON.stringify(dnData)),
             status: 'active',
-            dateSaved: new Date().toLocaleString('th-TH')
+            dateSaved: new Date().toLocaleString('th-TH'),
+            dateSavedISO: new Date().toISOString()
         };
 
         if (editingSOIdInput.value) {
@@ -881,22 +899,58 @@
         alert(`บันทึกข้อมูล SO: ${soData.soNumber} เรียบร้อยแล้ว!`);
     });
 
+    // ดึงข้อมูล SO ตามเงื่อนไข Filter
+    function getFilteredSOs() {
+        const filterStart = document.getElementById('filterStartDate').value;
+        const filterEnd = document.getElementById('filterEndDate').value;
+        let filteredSOs = [...savedSOs].reverse();
+
+        if (filterStart || filterEnd) {
+            filteredSOs = filteredSOs.filter(so => {
+                if (!so.dateSavedISO) return true; // เก็บข้อมูลเก่าไว้หากไม่มี ISO date
+                
+                let soDate = new Date(so.dateSavedISO);
+                soDate.setHours(0,0,0,0);
+                
+                let pass = true;
+                if (filterStart) {
+                    const start = new Date(filterStart);
+                    start.setHours(0,0,0,0);
+                    if (soDate < start) pass = false;
+                }
+                if (filterEnd) {
+                    const end = new Date(filterEnd);
+                    end.setHours(0,0,0,0);
+                    if (soDate > end) pass = false;
+                }
+                return pass;
+            });
+        }
+        return filteredSOs;
+    }
+
+    // ฟังก์ชันล้าง Filter
+    window.clearFilter = function() {
+        document.getElementById('filterStartDate').value = '';
+        document.getElementById('filterEndDate').value = '';
+        renderLogTable();
+    }
+
     function renderLogTable() {
         logTableBody.innerHTML = '';
+        const displaySOs = getFilteredSOs();
 
-        if (savedSOs.length === 0) {
-            logTableBody.innerHTML = `<tr><td colspan="10">
+        if (displaySOs.length === 0) {
+            logTableBody.innerHTML = `<tr><td colspan="12">
                 <div class="empty-state">
                     <i class="fa-solid fa-folder-open"></i>
-                    <p>ยังไม่มีประวัติ SO ในระบบ (V4.6)</p>
+                    <p>ไม่พบประวัติ SO ที่ตรงกับเงื่อนไข</p>
                 </div>
             </td></tr>`;
             return;
         }
 
-        const sortedSOs = [...savedSOs].reverse();
-
-        sortedSOs.forEach(so => {
+        displaySOs.forEach(so => {
             let statusActionHtml = '';
             if (so.status === 'cancelled') {
                 statusActionHtml = `
@@ -907,11 +961,34 @@
             } else {
                 statusActionHtml = `
                     <div class="action-btns">
-                        <button class="action-btn edit-btn" onclick="editSO('${so.id}')"><i class="fa-solid fa-pen"></i> เปิดดู/แก้ไข</button>
-                        <button class="action-btn cancel-btn" onclick="cancelSO('${so.id}')"><i class="fa-solid fa-ban"></i> ยกเลิก</button>
+                        <button class="action-btn edit-btn" onclick="editSO('${so.id}')"><i class="fa-solid fa-pen"></i></button>
+                        <button class="action-btn cancel-btn" onclick="cancelSO('${so.id}')"><i class="fa-solid fa-ban"></i></button>
                     </div>
                 `;
             }
+
+            // คำนวณมูลค่าต่างๆ ของ SO
+            const totalDeposit = so.totalSO * ((so.depositPct || 0) / 100);
+            let refundedAmount = 0;
+            let firstConfirmTimeStr = '-';
+            let firstConfirmTimestamp = Infinity;
+
+            if (so.dnData) {
+                so.dnData.forEach(dn => {
+                    if (dn.status === 'completed') {
+                        refundedAmount += (dn.deduction || 0);
+                        // หา Create Date จากเวลากดยืนยันครั้งแรกสุด
+                        if (dn.timestampConfirm && dn.timestampConfirm < firstConfirmTimestamp) {
+                            firstConfirmTimestamp = dn.timestampConfirm;
+                            firstConfirmTimeStr = dn.timeConfirm;
+                        } else if (!dn.timestampConfirm && firstConfirmTimeStr === '-') {
+                            firstConfirmTimeStr = dn.timeConfirm || '-';
+                        }
+                    }
+                });
+            }
+            
+            const remainingRefund = totalDeposit - refundedAmount;
 
             const tr = document.createElement('tr');
             if(so.status === 'cancelled') {
@@ -926,7 +1003,10 @@
                 <td style="font-size: 12px; color:var(--primary-light);"><i class="fa-solid fa-circle-user"></i> ${so.user || '-'}</td>
                 <td>${so.dnData ? so.dnData.length : 0} คัน</td>
                 <td>${so.depositPct || 0}%</td>
-                <td style="font-weight:500;">${formatCurrency(so.totalSO)}</td>
+                <td style="color:var(--accent); font-weight:500;">${formatCurrency(totalDeposit)}</td>
+                <td style="color:var(--success); font-weight:500;">${formatCurrency(refundedAmount)}</td>
+                <td style="color:var(--danger); font-weight:500;">${formatCurrency(remainingRefund)}</td>
+                <td style="font-size:12px; font-weight:500; color:var(--success);">${firstConfirmTimeStr}</td>
                 <td style="font-size:12px; color:var(--text-muted);">${so.dateSaved || '-'}</td>
                 <td>${statusActionHtml}</td>
             `;
@@ -972,14 +1052,38 @@
     };
 
     window.exportExcel = function() {
-        if(savedSOs.length === 0) return alert("ไม่มีข้อมูลใน Log สำหรับการ Export");
+        const exportSOs = getFilteredSOs();
+        if(exportSOs.length === 0) return alert("ไม่มีข้อมูลสำหรับการ Export ตามช่วงเวลาที่กำหนด");
+        
         let csvContent = "\uFEFF"; 
-        csvContent += "หมายเลข SO,รหัสลูกค้า,ชื่อลูกค้า,ผู้ทำรายการ,จำนวน DN,% มัดจำ,ยอดคำสั่งซื้อรวม,สถานะ,เวลาทำรายการล่าสุด\n";
-        savedSOs.forEach(so => {
+        csvContent += "หมายเลข SO,รหัสลูกค้า,ชื่อลูกค้า,ผู้ทำรายการ,จำนวนDN,% มัดจำ,ยอดมัดจำทั้งหมด,คืนเงินไปแล้วเท่าไหร่,เหลือยอดคืนอีกเท่าไหร่,Create date,เวลาที่บันทึก/แก้ไข,สถานะ\n";
+        
+        exportSOs.forEach(so => {
+            const totalDeposit = so.totalSO * ((so.depositPct || 0) / 100);
+            let refundedAmount = 0;
+            let firstConfirmTimeStr = '-';
+            let firstConfirmTimestamp = Infinity;
+
+            if (so.dnData) {
+                so.dnData.forEach(dn => {
+                    if (dn.status === 'completed') {
+                        refundedAmount += (dn.deduction || 0);
+                        if (dn.timestampConfirm && dn.timestampConfirm < firstConfirmTimestamp) {
+                            firstConfirmTimestamp = dn.timestampConfirm;
+                            firstConfirmTimeStr = dn.timeConfirm;
+                        } else if (!dn.timestampConfirm && firstConfirmTimeStr === '-') {
+                            firstConfirmTimeStr = dn.timeConfirm || '-';
+                        }
+                    }
+                });
+            }
+            const remainingRefund = totalDeposit - refundedAmount;
+
             let row = [
                 `"${so.soNumber}"`, `"${so.custCode}"`, `"${so.custName}"`, `"${so.user || '-'}"`,
-                `"${so.dnData ? so.dnData.length : 0}"`, `"${so.depositPct || 0}%"`, `"${so.totalSO}"`,
-                `"${so.status === 'cancelled' ? 'ยกเลิก' : 'ปกติ'}"`, `"${so.dateSaved || '-'}"`
+                `"${so.dnData ? so.dnData.length : 0}"`, `"${so.depositPct || 0}%"`, 
+                `"${totalDeposit.toFixed(2)}"`, `"${refundedAmount.toFixed(2)}"`, `"${remainingRefund.toFixed(2)}"`,
+                `"${firstConfirmTimeStr}"`, `"${so.dateSaved || '-'}"`, `"${so.status === 'cancelled' ? 'ยกเลิก' : 'ปกติ'}"`
             ];
             csvContent += row.join(",") + "\n";
         });
