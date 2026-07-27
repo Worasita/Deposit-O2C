@@ -25,7 +25,7 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Prompt', 'Sarabun', sans-serif; }
         body { background-color: var(--background); color: var(--text-main); padding: 24px; min-height: 100vh; }
-        .container { max-width: 1600px; margin: 0 auto; } /* ขยายความกว้างนิดหน่อยเพื่อรองรับคอลัมน์ตารางที่เพิ่มขึ้น */
+        .container { max-width: 1600px; margin: 0 auto; } 
 
         header {
             background: linear-gradient(135deg, var(--primary) 0%, #001a3a 100%);
@@ -139,7 +139,7 @@
         </div>
         <div class="badge-live">
             <div class="dot"></div>
-            <span>Mockup website V4.7</span>
+            <span>Mockup website V4.7 (Updated)</span>
         </div>
     </header>
 
@@ -229,7 +229,7 @@
                         <!-- JS Dynamically rendered setup fields for DN -->
                     </div>
                     
-                    <div id="pctWarning" class="alert-msg alert-warning"><i class="fa-solid fa-triangle-exclamation"></i> ผลรวมมูลค่า DN ต้องเท่ากับยอดสั่งซื้อรวม (ตอนนี้: <span id="currentPctSum"></span>)</div>
+                    <div id="pctWarning" class="alert-msg alert-warning"><i class="fa-solid fa-triangle-exclamation"></i> ผลรวมมูลค่า DN ควรเท่ากับยอดสั่งซื้อรวม (ตอนนี้: <span id="currentPctSum"></span>) - ข้อมูลจำลองสามารถกรอกต่อได้</div>
                     <div id="pctSuccess" class="alert-msg alert-success"><i class="fa-solid fa-check"></i> ผลรวมมูลค่า DN ถูกต้องตรงกับยอดสั่งซื้อ</div>
                 </div>
             </div>
@@ -276,6 +276,9 @@
                         <table id="scheduleTable">
                             <thead>
                                 <tr>
+                                    <th style="width: 40px;">
+                                        <input type="checkbox" id="selectAllCheckbox" onclick="toggleAllCheckboxes(this)" style="cursor: pointer;">
+                                    </th>
                                     <th style="width: 50px;">ลำดับ</th>
                                     <th style="width: 110px;">เลข DN</th>
                                     <th>มูลค่ารับสินค้า (GI)</th>
@@ -287,12 +290,21 @@
                                     <th>ผู้ดำเนินการ</th>
                                     <th style="width: 140px;">เวลาทำรายการ</th>
                                     <th style="width: 90px;">สถานะ DN</th>
-                                    <th style="width: 110px;">จัดการ</th>
                                 </tr>
                             </thead>
                             <tbody id="tableBody">
                             </tbody>
                         </table>
+                    </div>
+                    
+                    <!-- ส่วนปุ่มจัดการแบบกลุ่ม (Bulk Actions) -->
+                    <div style="display: flex; gap: 12px; margin-top: 20px; padding-top: 15px; border-top: 1px dashed var(--border); justify-content: flex-end;">
+                        <button class="btn btn-primary" onclick="processSelectedDN('start')">
+                            <i class="fa-solid fa-play"></i> เริ่มดำเนินการที่เลือก
+                        </button>
+                        <button class="btn btn-success" onclick="processSelectedDN('confirm')">
+                            <i class="fa-solid fa-check-double"></i> ยืนยันคืนมัดจำที่เลือก
+                        </button>
                     </div>
                 </div>
             </div>
@@ -387,7 +399,6 @@
         { amount: 20000, dnNumber: 'DN-03', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null, actionUser: '' }
     ]; 
     
-    let isDnValid = true; 
     let areFieldsValid = false; 
     const currentSessionUser = "Mock_Admin_01"; 
 
@@ -538,9 +549,8 @@
         let sumDN = dnData.reduce((a, b) => a + b.amount, 0);
         sumDN = Math.round(sumDN * 100) / 100;
         
-        isDnValid = (sumDN === totalSO && totalSO > 0);
-
-        if (!isDnValid) {
+        // แจ้งเตือนเมื่อผลรวมไม่ตรงกัน แต่ไม่บล็อกการแสดงตารางแล้ว
+        if (sumDN !== totalSO) {
             pctWarning.style.display = 'block';
             pctSuccess.style.display = 'none';
             currentPctSum.textContent = formatCurrency(sumDN);
@@ -558,7 +568,7 @@
             totalSO > 0
         );
 
-        if (isDnValid && areFieldsValid) {
+        if (areFieldsValid) {
             btnSaveSO.disabled = false;
         } else {
             btnSaveSO.disabled = true;
@@ -568,11 +578,6 @@
     }
 
     function updateCalculations() {
-        if (!isDnValid) {
-            renderTable();
-            return;
-        }
-
         let totalSOVal = parseFloat(inputTotalSO.value) || 0;
         let depositPct = parseFloat(inputDepositPct.value) || 0;
 
@@ -646,22 +651,76 @@
         renderTable();
     };
 
-    function renderTable() {
-        if (!isDnValid) {
-            tableBody.innerHTML = '<tr><td colspan="12" style="text-align:center; color:var(--danger); padding:20px;">⚠️ กรุณาตั้งค่ามูลค่า และ DN ให้ผลรวมเท่ากับยอดสั่งซื้อรวม เพื่อแสดงตาราง</td></tr>';
+    // --- จัดการการเลือก Checkbox ---
+    window.toggleAllCheckboxes = function(source) {
+        const checkboxes = document.querySelectorAll('.dn-checkbox:not([disabled])');
+        checkboxes.forEach(cb => {
+            cb.checked = source.checked;
+        });
+    };
+
+    // --- จัดการ Action พร้อมกันหลายรายการ ---
+    window.processSelectedDN = function(actionType) {
+        const checkedBoxes = document.querySelectorAll('.dn-checkbox:checked');
+        if(checkedBoxes.length === 0) {
+            alert('กรุณาเลือก DN ที่ต้องการดำเนินการอย่างน้อย 1 รายการ');
             return;
         }
 
+        let proceed = true;
+        if(actionType === 'confirm') {
+            for(let cb of checkedBoxes) {
+                let i = parseInt(cb.dataset.idx);
+                // เช็คว่าถ้าเป็นสถานะ processing ต้องกรอก CN ก่อน
+                if(dnData[i].status === 'processing') {
+                    if(!dnData[i].cnNumber || dnData[i].cnNumber.trim() === '') {
+                        alert(`กรุณากรอก "เลขที่ใบลดหนี้ (CN)" สำหรับ DN ลำดับที่ ${i+1} ก่อนยืนยันครับ`);
+                        proceed = false;
+                        break;
+                    }
+                }
+            }
+            if(proceed) proceed = confirm(`ยืนยันการคืนเงินมัดจำสำหรับ ${checkedBoxes.length} รายการที่เลือกเสร็จสมบูรณ์?`);
+        }
+
+        if(!proceed) return;
+
+        const timestamp = Date.now().toString().slice(-4);
+        const dateCode = new Date().toISOString().slice(2, 10).replace(/-/g, ''); // YYMMDD
+
+        checkedBoxes.forEach(cb => {
+            let i = parseInt(cb.dataset.idx);
+            if(actionType === 'start' && dnData[i].status === 'pending') {
+                dnData[i].status = 'processing';
+                dnData[i].timeStart = getNowStr();
+                dnData[i].billingNumber = `BIL-${dateCode}-${timestamp}-${(i+1).toString().padStart(2, '0')}`;
+                dnData[i].actionUser = currentSessionUser; 
+            } else if(actionType === 'confirm' && dnData[i].status === 'processing') {
+                dnData[i].status = 'completed';
+                dnData[i].timeConfirm = getNowStr();
+                dnData[i].timestampConfirm = Date.now(); 
+                dnData[i].actionUser = currentSessionUser; 
+            }
+        });
+
+        // ล้างการเลือก Checkbox ทั้งหมด
+        document.getElementById('selectAllCheckbox').checked = false;
+        renderTable();
+    };
+
+    function renderTable() {
         tableBody.innerHTML = '';
         
         dnData.forEach((row, index) => {
             const tr = document.createElement('tr');
             let statusText = "";
             let statusClass = "status-pending";
+            let chkDisabled = "";
             
             if (row.status === 'completed') {
                 statusText = '<i class="fa-solid fa-circle-check"></i> คืนเงิน'; 
                 statusClass = "status-completed";
+                chkDisabled = "disabled"; // ซ่อนหรือ disable checkbox
             } else if (row.status === 'processing') {
                 statusText = '<i class="fa-solid fa-check"></i> GI แล้ว'; 
                 statusClass = "status-processing";
@@ -702,19 +761,10 @@
                 `;
             }
 
-            // ปุ่มจัดการ Action ในแต่ละ Row
-            let actionBtnHtml = '';
-            if (!isDnValid) {
-                actionBtnHtml = `<button class="btn btn-outline" style="padding: 4px 8px; font-size:11px; width: 100%;" disabled><i class="fa-solid fa-ban"></i> รอข้อมูล</button>`;
-            } else if (row.status === 'pending') {
-                actionBtnHtml = `<button class="btn btn-primary" style="padding: 4px 8px; font-size:11px; width: 100%;" onclick="processSingleDN('start', ${index})">เริ่มดำเนินการ</button>`;
-            } else if (row.status === 'processing') {
-                actionBtnHtml = `<button class="btn btn-success" style="padding: 4px 8px; font-size:11px; width: 100%;" onclick="processSingleDN('confirm', ${index})">ยืนยันคืนมัดจำ</button>`;
-            } else {
-                actionBtnHtml = `<span style="color:var(--success); font-size:12px; font-weight: 600;"><i class="fa-solid fa-check"></i> เสร็จสิ้น</span>`;
-            }
-
             tr.innerHTML = `
+                <td>
+                    <input type="checkbox" class="dn-checkbox" data-idx="${index}" ${chkDisabled} style="cursor: pointer;">
+                </td>
                 <td style="font-weight:600;">${index + 1}</td>
                 <td>${dnDisplay}</td>
                 <td style="font-weight:500;">${formatCurrency(row.amount)}</td>
@@ -728,34 +778,9 @@
                 <td>${userDisplay}</td>
                 <td style="text-align:left; line-height: 1.3;">${timeHtml}</td>
                 <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-                <td>${actionBtnHtml}</td>
             `;
             tableBody.appendChild(tr);
         });
-    }
-
-    // ฟังก์ชันจัดการทีละ Row 
-    window.processSingleDN = function(actionType, i) {
-        if(actionType === 'start') {
-            const timestamp = Date.now().toString().slice(-4);
-            const dateCode = new Date().toISOString().slice(2, 10).replace(/-/g, ''); // YYMMDD
-            dnData[i].status = 'processing';
-            dnData[i].timeStart = getNowStr();
-            dnData[i].billingNumber = `BIL-${dateCode}-${timestamp}-${(i+1).toString().padStart(2, '0')}`;
-            dnData[i].actionUser = currentSessionUser; 
-        } else if (actionType === 'confirm') {
-            if(!dnData[i].cnNumber || dnData[i].cnNumber.trim() === '') {
-                alert('กรุณากรอก "เลขที่ใบลดหนี้ (CN)" ก่อนยืนยันครับ');
-                return;
-            }
-            if(confirm(`ยืนยันการคืนเงินมัดจำสำหรับ DN นี้เสร็จสมบูรณ์?`)) {
-                dnData[i].status = 'completed';
-                dnData[i].timeConfirm = getNowStr();
-                dnData[i].timestampConfirm = Date.now(); 
-                dnData[i].actionUser = currentSessionUser; 
-            }
-        }
-        renderTable();
     }
 
     btnResetAll.addEventListener('click', () => {
@@ -772,7 +797,6 @@
         }
     });
 
-    // อัปเดต Input เป็น type="number" 
     inputDNCount.addEventListener('input', (e) => { syncDNArraySize(); });
     inputDNCount.addEventListener('change', (e) => { syncDNArraySize(); });
     inputDepositPct.addEventListener('input', validateAndCalculate);
@@ -798,7 +822,7 @@
     }
 
     btnSaveSO.addEventListener('click', () => {
-        if (!isDnValid || !areFieldsValid) return;
+        if (!areFieldsValid) return;
 
         const soData = {
             id: editingSOIdInput.value || Date.now().toString(),
