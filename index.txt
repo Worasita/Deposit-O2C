@@ -1,0 +1,1127 @@
+ได้ดำเนินการปรับ Logic ให้สอดคล้องกับ Requirement เรียบร้อยแล้วครับ โดยมีการปรับแก้ 2 ส่วนหลักๆ ดังนี้:
+
+1. **ปรับวิธีคำนวณและแสดงผล %:** ในตาราง ช่อง `% ของมัดจำที่ต้องคืน` จะถูกเปลี่ยนเป็นการนำ **เงินมัดจำที่ต้องคืน ÷ มูลค่ารับสินค้า (GI) × 100** แทน
+
+
+2. **แก้ไข % ได้แบบ Two-way Bind:** เปลี่ยนช่อง % ให้เป็นกล่อง Input (ยกเว้นแถวสุดท้าย) ซึ่งเมื่อ User แก้ไขตัวเลข % ระบบจะไปคำนวณกลับเป็นจำนวนเงิน (Deduction) แล้วทำงานร่วมกับระบบตรวจสอบการติดลบเดิม และถ้า User แก้ไขจำนวนเงิน ตัวเลข % ก็จะอัปเดตตามแบบ Real-time
+
+
+
+สามารถคัดลอก Source Code ชุดเต็ม (อัปเดตเป็น V4.8) ด้านล่างนี้ไปใช้งานได้เลยครับ:
+
+```html
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sourcing Product - Dynamic Money Route Tracker (V4.8)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --primary: #002D62;
+            --primary-light: #1e40af;
+            --accent: #C5A021;
+            --accent-light: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --background: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Prompt', 'Sarabun', sans-serif; }
+        body { background-color: var(--background); color: var(--text-main); padding: 24px; min-height: 100vh; }
+        .container { max-width: 1600px; margin: 0 auto; }
+
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, #001a3a 100%);
+            color: white; padding: 30px; border-radius: 16px; margin-bottom: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08); display: flex; justify-content: space-between;
+            align-items: center; position: relative; overflow: hidden;
+        }
+        header::after {
+            content: ''; position: absolute; right: -50px; top: -50px; width: 200px; height: 200px;
+            background: radial-gradient(circle, rgba(197,160,33,0.1) 0%, transparent 70%); border-radius: 50%;
+        }
+        header h1 { font-size: 28px; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+        header h1 i { color: var(--accent); }
+        header p { color: #cbd5e1; font-size: 15px; font-weight: 300; }
+
+        .badge-live {
+            background-color: rgba(16, 185, 129, 0.2); color: #34d399; padding: 6px 12px;
+            border-radius: 20px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 6px;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        .badge-live .dot {
+            width: 8px; height: 8px; background-color: var(--success); border-radius: 50%; animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0% { transform: scale(0.9); opacity: 0.6; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(0.9); opacity: 0.6; } }
+
+        /* Tabs System */
+        .tabs-container { margin-bottom: 24px; display: flex; gap: 10px; border-bottom: 2px solid var(--border); padding-bottom: 10px; }
+        .tab-btn { background: none; border: none; padding: 10px 20px; font-size: 16px; font-weight: 600; color: var(--text-muted); cursor: pointer; border-radius: 8px; transition: all 0.3s; display: flex; align-items: center; gap: 8px; }
+        .tab-btn:hover { background-color: #f1f5f9; color: var(--primary); }
+        .tab-btn.active { background-color: var(--primary); color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .dashboard-grid { display: grid; grid-template-columns: 460px 1fr; gap: 24px; }
+        @media (max-width: 1024px) { .dashboard-grid { grid-template-columns: 1fr; } }
+
+        .card { background-color: var(--card-bg); border-radius: 16px; border: 1px solid var(--border); padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); }
+        .panel-title { font-size: 18px; font-weight: 600; color: var(--primary); margin-bottom: 20px; display: flex; align-items: center; gap: 8px; border-bottom: 2px solid var(--background); padding-bottom: 10px; justify-content: space-between;}
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 14px; font-weight: 500; color: var(--text-main); margin-bottom: 6px; }
+        .input-wrapper { position: relative; display: flex; align-items: center; }
+        .input-wrapper i { position: absolute; left: 14px; color: var(--text-muted); }
+        .form-control { width: 100%; padding: 10px 14px 10px 40px; border: 1px solid var(--border); border-radius: 10px; font-size: 14px; color: var(--text-main); transition: all 0.3s; background-color: #fafafa; }
+        .form-control:focus { outline: none; border-color: var(--primary); background-color: #fff; box-shadow: 0 0 0 3px rgba(0, 45, 98, 0.1); }
+        .required-asterisk { color: var(--danger); }
+        
+        .table-input { padding: 6px 10px !important; background-color: #fff !important; width: 100%; text-align: center; }
+        .table-input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(0, 45, 98, 0.1); }
+        
+        .section-divider { border-top: 1px dashed var(--border); margin: 20px 0; }
+        .section-label { font-size: 14px; font-weight: 600; color: var(--primary-light); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+
+        .custom-pct-container { background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-top: 15px; }
+        
+        .alert-msg { font-size: 12px; margin-top: 8px; display: none; font-weight: 500; }
+        .alert-warning { color: var(--danger); }
+        .alert-success { color: var(--success); }
+
+        .summary-box { background-color: var(--background); border-radius: 12px; padding: 20px; margin-top: 15px; border-left: 5px solid var(--accent); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .summary-item { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 15px; }
+        .summary-item:last-child { margin-bottom: 0; padding-top: 12px; border-top: 1px dashed var(--border); font-weight: 600; font-size: 16px;}
+
+        .main-content { display: flex; flex-direction: column; gap: 24px; }
+
+        .sim-btn-container { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid var(--border); align-items: center; justify-content: flex-end;}
+        .btn { padding: 10px 16px; border-radius: 8px; border: none; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; justify-content: center; }
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:hover:not(:disabled) { background-color: var(--primary-light); }
+        .btn-outline { background-color: white; border: 1px solid var(--border); color: var(--text-main); }
+        .btn-outline:hover:not(:disabled) { background-color: #f1f5f9; }
+        .btn-success { background-color: var(--success); color: white; }
+        .btn-success:hover:not(:disabled) { background-color: #059669; }
+        .btn-danger { background-color: #fee2e2; color: var(--danger); }
+        .btn-danger:hover:not(:disabled) { background-color: #fca5a5; }
+        .btn:disabled { background-color: #cbd5e1; cursor: not-allowed; opacity: 0.7; }
+
+        .table-responsive { width: 100%; overflow-x: auto; margin-top: 15px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
+        th { background-color: #f1f5f9; color: var(--primary); padding: 12px 10px; font-weight: 600; border-bottom: 2px solid var(--border); text-align: center; white-space: nowrap;}
+        td { padding: 10px; border-bottom: 1px solid var(--border); color: var(--text-main); text-align: center; vertical-align: middle;}
+        tr:hover { background-color: #f8fafc; }
+        .tr-active-now { background-color: #eff6ff !important; border-left: 4px solid var(--primary); }
+        .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
+        .status-pending { background-color: #f1f5f9; color: var(--text-muted); }
+        .status-processing { background-color: #fef3c7; color: #b45309; }
+        .status-completed { background-color: #d1fae5; color: #065f46; }
+
+        .action-btns { display: flex; gap: 8px; justify-content: center; }
+        .action-btn { padding: 6px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; border: none; font-weight: 500; transition: 0.2s;}
+        .edit-btn { background-color: #dbeafe; color: var(--primary); }
+        .edit-btn:hover { background-color: #bfdbfe; }
+        .cancel-btn { background-color: #fee2e2; color: var(--danger); }
+        .cancel-btn:hover { background-color: #fca5a5; }
+
+        .empty-state { text-align: center; padding: 40px; color: var(--text-muted); }
+        .empty-state i { font-size: 40px; margin-bottom: 15px; color: #cbd5e1; }
+        
+        .dn-setup-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+        .dn-setup-row input { padding-left: 10px !important; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div>
+            <h1><i class="fa-solid fa-truck-fast"></i> Deposit SO Tracking</h1>
+            <p>ระบบติดตาม SO ที่มีการเงินมัดจำ</p>
+        </div>
+        <div class="badge-live">
+            <div class="dot"></div>
+            <span>Mockup website V4.8</span>
+        </div>
+    </header>
+
+    <div class="tabs-container">
+        <button class="tab-btn active" id="tabMainBtn" onclick="switchTab('main')"><i class="fa-solid fa-pen-to-square"></i> สร้าง/จัดการใบสั่งซื้อ</button>
+        <button class="tab-btn" id="tabLogBtn" onclick="switchTab('log')"><i class="fa-solid fa-folder-open"></i> ประวัติ SO (Log)</button>
+    </div>
+
+    <!-- MAIN TAB (จัดการ SO) -->
+    <div id="mainTab" class="tab-content active">
+        <div class="dashboard-grid">
+            
+            <!-- Left Column: Inputs -->
+            <div class="card">
+                <div class="panel-title">
+                    <span><i class="fa-solid fa-sliders"></i> รายละเอียด</span>
+                    <button class="btn btn-outline" style="padding: 6px 12px; font-size: 12px;" onclick="createNewSO()"><i class="fa-solid fa-plus"></i> สร้างใหม่</button>
+                </div>
+                
+                <div class="section-label"><i class="fa-solid fa-address-card"></i> ข้อมูลลูกค้าและเอกสาร (จำเป็น)</div>
+                <input type="hidden" id="editingSOId" value="">
+                
+                <div class="form-group">
+                    <label for="inputSONumber">1. หมายเลข SO <span class="required-asterisk">*</span></label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-file-invoice"></i>
+                        <input type="text" id="inputSONumber" class="form-control required-field" placeholder="เช่น SO-20260717-01">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="inputCustomerName">2. ชื่อลูกค้า <span class="required-asterisk">*</span></label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-user"></i>
+                        <input type="text" id="inputCustomerName" class="form-control required-field" placeholder="ระบุชื่อลูกค้า">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="inputCustomerCode">3. รหัสลูกค้า <span class="required-asterisk">*</span></label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-id-badge"></i>
+                        <input type="text" id="inputCustomerCode" class="form-control required-field" placeholder="ระบุรหัสลูกค้า">
+                    </div>
+                </div>
+
+                <div class="section-divider"></div>
+                <div class="section-label"><i class="fa-solid fa-boxes-stacked"></i> รายการสินค้าใน SO</div>
+                <div id="productListContainer">
+                </div>
+                <button class="btn btn-outline" onclick="addProductRow()" style="margin-top: 10px; width: 100%;"><i class="fa-solid fa-plus"></i> เพิ่มสินค้า (Item)</button>
+
+                <div class="form-group" style="margin-top: 15px;">
+                    <label for="inputDepositReceipt">เลขที่ใบเสร็จรับเงินมัดจำ</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-receipt"></i>
+                        <input type="text" id="inputDepositReceipt" class="form-control" placeholder="ระบุเลขที่ใบเสร็จรับเงินมัดจำ">
+                    </div>
+                </div>
+
+                <div class="section-divider"></div>
+                <div class="section-label"><i class="fa-solid fa-calculator"></i> ข้อมูลการเงิน การแบ่งงวดชำระ และรอบจัดส่ง (DN)</div>
+
+                <div class="form-group">
+                    <label for="inputTotalSO">ยอดคำสั่งซื้อรวมทั้งหมด (คำนวณจากรายการสินค้า)</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-money-bill-wave"></i>
+                        <input type="number" id="inputTotalSO" class="form-control" value="0" readonly style="background-color: #e2e8f0; font-weight: bold;">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="inputDepositPct">เงินมัดจำก้อนแรก (%) <span class="required-asterisk">*</span></label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-percent"></i>
+                        <input type="number" id="inputDepositPct" class="form-control required-field" placeholder="ระบุเปอร์เซ็นต์เงินมัดจำ (เช่น 30)" value="50" min="0" max="100">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="inputDNCount">จำนวนเลข DN <span class="required-asterisk">*</span></label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-list-ol"></i>
+                        <input type="number" id="inputDNCount" class="form-control required-field" min="1" value="2" placeholder="ระบุจำนวนรอบ DN ที่คาดการณ์">
+                    </div>
+                    
+                    <div class="custom-pct-container" id="dnSetupContainer">
+                        <!-- JS Dynamically rendered setup fields for DN -->
+                    </div>
+                    
+                    <div id="pctWarning" class="alert-msg alert-warning"><i class="fa-solid fa-triangle-exclamation"></i> ผลรวมมูลค่า DN ควรเท่ากับยอดสั่งซื้อรวม (ตอนนี้: <span id="currentPctSum"></span>) - ข้อมูลจำลองสามารถกรอกต่อได้</div>
+                    <div id="pctSuccess" class="alert-msg alert-success"><i class="fa-solid fa-check"></i> ผลรวมมูลค่า DN ถูกต้องตรงกับยอดสั่งซื้อ</div>
+                </div>
+            </div>
+
+            <!-- Right Column: Summary & Table -->
+            <div class="main-content">
+                
+                <div class="card" id="summaryCard">
+                    <div class="panel-title" style="margin-bottom: 5px;">
+                        <i class="fa-solid fa-chart-pie"> สรุปข้อมูลโครงการ </i>
+                    </div>
+                    
+                    <div class="summary-box">
+                        <div class="summary-item">
+                            <span>💰 เงินมัดจำก้อนแรก:</span>
+                            <span id="sumInitialDeposit" style="font-weight: 600; color: var(--accent);">0 THB</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>📦 ยอดที่เหลือ (รอเรียกเก็บตามคันรถ):</span>
+                            <span id="sumRemainingSO">0 THB</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>📊 อัตราการคืนมัดจำ:</span>
+                            <span id="sumDeductionRate">คำนวณสัดส่วนตามเงินมัดจำก้อนแรก</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>🧾 ยอดรวมมูลค่าโครงการ:</span>
+                            <span id="sumTotalSO" style="color: var(--primary);">0 THB</span>
+                        </div>
+                    </div>
+
+                    <div class="sim-btn-container">
+                        <button class="btn btn-outline" id="btnResetAll" style="margin-right: auto;"><i class="fa-solid fa-rotate-right"></i> รีเซ็ตสถานะทั้งหมด</button>
+                        <button class="btn btn-success" id="btnSaveSO" disabled><i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูล SO</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="panel-title">
+                        <i class="fa-solid fa-table-list"> ตารางคำนวนมูลค่าเงินคืนจากเงินมัดจำ</i>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table id="scheduleTable">
+                            <thead>
+                                <tr>
+                                    <th style="width: 40px;">
+                                        <input type="checkbox" id="selectAllCheckbox" onclick="toggleAllCheckboxes(this)" style="cursor: pointer;">
+                                    </th>
+                                    <th style="width: 50px;">ลำดับ</th>
+                                    <th style="width: 110px;">เลข DN</th>
+                                    <th>มูลค่ารับสินค้า (GI)</th>
+                                    <th>% ของมัดจำที่ต้องคืน</th>
+                                    <th>เงินมัดจำที่ต้องคืน</th>
+                                    <th>เรียกเก็บเพิ่ม</th>
+                                    <th style="width: 110px;">เลขที่Billing</th>
+                                    <th style="width: 120px;">เลขใบลดหนี้ (CN)</th>
+                                    <th>ผู้ดำเนินการ</th>
+                                    <th style="width: 140px;">เวลาทำรายการ</th>
+                                    <th style="width: 90px;">สถานะ DN</th>
+                                    <th style="width: 110px;">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- ส่วนปุ่มจัดการแบบกลุ่ม (Bulk Actions) -->
+                    <div style="display: flex; gap: 12px; margin-top: 20px; padding-top: 15px; border-top: 1px dashed var(--border); justify-content: flex-end;">
+                        <button class="btn btn-primary" onclick="processSelectedDN('start')">
+                            <i class="fa-solid fa-play"></i> เริ่มดำเนินการที่เลือก
+                        </button>
+                        <button class="btn btn-success" onclick="processSelectedDN('confirm')">
+                            <i class="fa-solid fa-check-double"></i> ยืนยันคืนมัดจำที่เลือก
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOG TAB (ประวัติ SO) -->
+    <div id="logTab" class="tab-content">
+        <div class="card">
+            <div class="panel-title">
+                <span><i class="fa-solid fa-database"></i> ประวัติงาน Sales Orders (Log)</span>
+                <button class="btn btn-success" style="font-size: 14px; padding: 6px 14px;" onclick="exportExcel()"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-bottom: 20px; align-items: center; background: #f1f5f9; padding: 12px; border-radius: 8px; border: 1px solid var(--border);">
+                <label style="font-weight: 600; font-size: 14px; color: var(--primary);"><i class="fa-solid fa-calendar-days"></i> ค้นหาตามวันที่ทำรายการ:</label>
+                <div class="input-wrapper" style="width: 160px;">
+                    <i class="fa-solid fa-calendar" style="font-size: 12px; margin-left: 2px;"></i>
+                    <input type="date" id="filterStartDate" class="form-control" style="padding: 6px 10px 6px 30px; background: white;">
+                </div>
+                <span style="font-size: 14px; font-weight: 500;">ถึง</span>
+                <div class="input-wrapper" style="width: 160px;">
+                    <i class="fa-solid fa-calendar" style="font-size: 12px; margin-left: 2px;"></i>
+                    <input type="date" id="filterEndDate" class="form-control" style="padding: 6px 10px 6px 30px; background: white;">
+                </div>
+                <button class="btn btn-primary" style="padding: 6px 14px; font-size: 13px;" onclick="renderLogTable()"><i class="fa-solid fa-magnifying-glass"></i> ค้นหา</button>
+                <button class="btn btn-outline" style="padding: 6px 14px; font-size: 13px;" onclick="clearFilter()"><i class="fa-solid fa-rotate-left"></i> ล้างค่า</button>
+            </div>
+
+            <div class="table-responsive">
+                <table id="logTable">
+                    <thead>
+                        <tr>
+                            <th>หมายเลข SO</th>
+                            <th>รหัสลูกค้า</th>
+                            <th>ชื่อลูกค้า</th>
+                            <th>ผู้ทำรายการ</th>
+                            <th>จำนวนDN</th>
+                            <th>% มัดจำ</th>
+                            <th>ยอดมัดจำทั้งหมด</th>
+                            <th>คืนเงินไปแล้วเท่าไหร่</th>
+                            <th>เหลือยอดคืนอีกเท่าไหร่</th>
+                            <th>Create date</th>
+                            <th>เวลาที่บันทึก/แก้ไข</th>
+                            <th>สถานะ/การจัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const STORAGE_KEY = 'mockup_saved_sos_v4_8';
+    let savedSOs = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+    const inputSONumber = document.getElementById('inputSONumber');
+    const inputCustomerName = document.getElementById('inputCustomerName');
+    const inputCustomerCode = document.getElementById('inputCustomerCode');
+    const requiredFields = document.querySelectorAll('.required-field');
+    const editingSOIdInput = document.getElementById('editingSOId');
+
+    const inputTotalSO = document.getElementById('inputTotalSO');
+    const inputDepositReceipt = document.getElementById('inputDepositReceipt');
+    const inputDepositPct = document.getElementById('inputDepositPct');
+
+    // DN Elements
+    const inputDNCount = document.getElementById('inputDNCount');
+    const dnSetupContainer = document.getElementById('dnSetupContainer');
+    const pctWarning = document.getElementById('pctWarning');
+    const pctSuccess = document.getElementById('pctSuccess');
+    const currentPctSum = document.getElementById('currentPctSum');
+    
+    const sumInitialDeposit = document.getElementById('sumInitialDeposit');
+    const sumRemainingSO = document.getElementById('sumRemainingSO');
+    const sumTotalSO = document.getElementById('sumTotalSO');
+    const sumDeductionRate = document.getElementById('sumDeductionRate');
+    
+    const tableBody = document.getElementById('tableBody');
+    const logTableBody = document.getElementById('logTableBody');
+    
+    const btnResetAll = document.getElementById('btnResetAll');
+    const btnSaveSO = document.getElementById('btnSaveSO');
+
+    let productItems = [{ name: 'สินค้า 1', price: 50000 }, { name: 'สินค้า 2', price: 50000 }];
+    let dnData = [
+        { amount: 30000, dnNumber: 'DN-01', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null, actionUser: '' }, 
+        { amount: 50000, dnNumber: 'DN-02', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null, actionUser: '' }, 
+        { amount: 20000, dnNumber: 'DN-03', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null, actionUser: '' }
+    ]; 
+    
+    let isDnValid = true; 
+    let areFieldsValid = false; 
+    const currentSessionUser = "Mock_Admin_01"; 
+
+    function formatCurrency(num) {
+        return new Intl.NumberFormat('th-TH', { style: 'decimal', maximumFractionDigits: 2 }).format(num) + ' ฿';
+    }
+    
+    function getNowStr() {
+        return new Date().toLocaleString('th-TH', { day: '2-digit', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' });
+    }
+
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        
+        if (tabName === 'main') {
+            document.getElementById('mainTab').classList.add('active');
+            document.getElementById('tabMainBtn').classList.add('active');
+        } else if (tabName === 'log') {
+            document.getElementById('logTab').classList.add('active');
+            document.getElementById('tabLogBtn').classList.add('active');
+            renderLogTable(); 
+        }
+    }
+
+    // --- Product Section ---
+    function renderProductInputs() {
+        const container = document.getElementById('productListContainer');
+        container.innerHTML = '';
+        let totalVal = 0;
+        
+        productItems.forEach((item, idx) => {
+            totalVal += (item.price || 0);
+            container.innerHTML += `
+                <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                    <div style="flex-grow: 1; position: relative;">
+                        <i class="fa-solid fa-box" style="position: absolute; left: 12px; top: 10px; color: var(--text-muted); font-size: 13px;"></i>
+                        <input type="text" class="form-control" style="padding-left: 32px;" placeholder="ชื่อสินค้า/รุ่น" value="${item.name}" oninput="updateProductData(${idx}, 'name', this.value)">
+                    </div>
+                    <div style="width: 150px; position: relative;">
+                        <i class="fa-solid fa-tag" style="position: absolute; left: 12px; top: 10px; color: var(--text-muted); font-size: 13px;"></i>
+                        <input type="number" class="form-control" style="padding-left: 32px;" placeholder="มูลค่า" value="${item.price || ''}" oninput="updateProductData(${idx}, 'price', this.value)">
+                    </div>
+                    <button class="btn btn-danger" style="padding: 10px;" onclick="removeProductRow(${idx})" ${productItems.length === 1 ? 'disabled' : ''} title="ลบรายการ"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            `;
+        });
+        
+        inputTotalSO.value = totalVal;
+        syncDNArraySize(false);
+    }
+
+    window.updateProductData = function(idx, field, val) {
+        if (field === 'name') productItems[idx].name = val;
+        if (field === 'price') productItems[idx].price = parseFloat(val) || 0;
+        
+        let totalVal = productItems.reduce((sum, item) => sum + (item.price || 0), 0);
+        inputTotalSO.value = totalVal;
+        
+        autoAdjustLastItem(dnData, totalVal);
+        renderDNSetupInputs();
+    };
+
+    function autoAdjustLastItem(dataArray, totalVal) {
+        if(dataArray.length > 0) {
+            let sumFirst = 0;
+            for(let i=0; i<dataArray.length - 1; i++) {
+                sumFirst += dataArray[i].amount;
+            }
+            dataArray[dataArray.length - 1].amount = Math.max(0, totalVal - sumFirst);
+        }
+    }
+
+    window.addProductRow = function() {
+        productItems.push({ name: '', price: 0 });
+        renderProductInputs();
+    };
+
+    window.removeProductRow = function(idx) {
+        if (productItems.length > 1) {
+            productItems.splice(idx, 1);
+            renderProductInputs();
+        }
+    };
+
+    // --- DN Setup Section ---
+    function syncDNArraySize(forceResize = true) {
+        const count = parseInt(inputDNCount.value) || 1; 
+        const totalSO = parseFloat(inputTotalSO.value) || 0;
+        
+        if (forceResize) {
+            if(dnData.length < count) {
+                for(let i = dnData.length; i < count; i++) {
+                    dnData.push({ amount: 0, dnNumber: '', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null, actionUser: '' });
+                }
+            } else if (dnData.length > count) {
+                dnData = dnData.slice(0, count);
+            }
+
+            let totalAssigned = 0;
+            for (let i = 0; i < count; i++) {
+                if (dnData[i].amount === 0 && totalSO > 0 && i === count - 1) {
+                    dnData[i].amount = Math.max(0, totalSO - totalAssigned);
+                } else if (dnData[i].amount === 0 && totalSO > 0) {
+                    dnData[i].amount = Math.floor(totalSO / count);
+                }
+                totalAssigned += dnData[i].amount;
+            }
+        }
+        renderDNSetupInputs();
+    }
+
+    function renderDNSetupInputs() {
+        let html = '';
+        dnData.forEach((item, i) => {
+            html += `
+                <div class="dn-setup-row">
+                    <div style="width: 45px; font-weight:600; font-size: 13px; color: var(--primary);">DN #${i+1}</div>
+                    <input type="text" class="form-control dn-name-input" data-idx="${i}" placeholder="เลข DN (เช่น DN-01)" value="${item.dnNumber}" style="flex: 1;">
+                    <div style="position:relative; width: 150px;">
+                        <input type="number" class="form-control dn-val-input" data-idx="${i}" value="${item.amount}" min="0">
+                    </div>
+                </div>
+            `;
+        });
+        
+        dnSetupContainer.innerHTML = html;
+        
+        document.querySelectorAll('.dn-name-input').forEach(input => {
+            input.addEventListener('input', (e) => {
+                dnData[parseInt(e.target.dataset.idx)].dnNumber = e.target.value;
+                validateAndCalculate();
+            });
+        });
+
+        document.querySelectorAll('.dn-val-input').forEach(input => {
+            input.addEventListener('input', (e) => {
+                dnData[parseInt(e.target.dataset.idx)].amount = parseFloat(e.target.value) || 0;
+                validateAndCalculate();
+            });
+        });
+        
+        validateAndCalculate();
+    }
+
+    function validateAndCalculate() {
+        let totalSO = parseFloat(inputTotalSO.value) || 0;
+        let sumDN = dnData.reduce((a, b) => a + b.amount, 0);
+        sumDN = Math.round(sumDN * 100) / 100;
+        
+        // แจ้งเตือนเมื่อผลรวมไม่ตรงกัน แต่ไม่บล็อกการแสดงตารางแล้ว
+        if (sumDN !== totalSO) {
+            pctWarning.style.display = 'block';
+            pctSuccess.style.display = 'none';
+            currentPctSum.textContent = formatCurrency(sumDN);
+        } else {
+            pctWarning.style.display = 'none';
+            pctSuccess.style.display = 'block';
+        }
+
+        areFieldsValid = (
+            inputSONumber.value.trim() !== '' &&
+            inputCustomerName.value.trim() !== '' &&
+            inputCustomerCode.value.trim() !== '' &&
+            inputDepositPct.value.trim() !== '' &&
+            inputDNCount.value.trim() !== '' &&
+            totalSO > 0
+        );
+
+        if (areFieldsValid) {
+            btnSaveSO.disabled = false;
+        } else {
+            btnSaveSO.disabled = true;
+        }
+
+        updateCalculations();
+    }
+
+    function updateCalculations() {
+        let totalSOVal = parseFloat(inputTotalSO.value) || 0;
+        let depositPct = parseFloat(inputDepositPct.value) || 0;
+
+        let firstDepositAmount = totalSOVal * (depositPct / 100);
+        let depositRatio = totalSOVal > 0 ? (firstDepositAmount / totalSOVal) : 0;
+        const remainingSOAmount = totalSOVal - firstDepositAmount;
+
+        sumTotalSO.textContent = formatCurrency(totalSOVal);
+        sumInitialDeposit.textContent = formatCurrency(firstDepositAmount);
+        sumRemainingSO.textContent = formatCurrency(remainingSOAmount);
+        sumDeductionRate.textContent = `${depositPct.toFixed(2)}% ของแต่ละ DN`;
+
+        dnData.forEach((item, idx) => {
+            item.deduction = item.amount * depositRatio;
+            item.net = item.amount - item.deduction;
+        });
+
+        renderTable();
+    }
+
+    window.updateCNNumber = function(idx, val) {
+        dnData[idx].cnNumber = val;
+    };
+
+    // --- เพิ่มฟังก์ชันอัพเดท Deduction จาก % ---
+    window.updateDeductionByPct = function(idx, pctVal) {
+        let amount = dnData[idx].amount || 0;
+        let newDeduction = amount * (parseFloat(pctVal) / 100);
+        updateCustomDeduction(idx, newDeduction);
+    };
+
+    window.updateCustomDeduction = function(idx, val) {
+        let totalSO = parseFloat(inputTotalSO.value) || 0;
+        let depositPct = parseFloat(inputDepositPct.value) || 0;
+        let totalDeposit = (totalSO * depositPct) / 100;
+
+        let newValue = parseFloat(val) || 0;
+        let expectedNet = dnData[idx].amount - newValue;
+
+        if (newValue < 0) {
+            alert("มูลค่าไม่ถูกต้อง: เงินมัดจำที่ต้องคืนห้ามติดลบ");
+            renderTable(); 
+            return;
+        }
+
+        if (expectedNet < 0) {
+            alert("มูลค่าไม่ถูกต้อง: ยอดเรียกเก็บเพิ่มห้ามติดลบ");
+            renderTable(); 
+            return;
+        }
+
+        let oldDeduction = dnData[idx].deduction;
+        let oldNet = dnData[idx].net;
+        
+        dnData[idx].deduction = newValue;
+        dnData[idx].net = expectedNet;
+
+        let lastIdx = dnData.length - 1;
+        if (lastIdx > 0 && idx !== lastIdx) {
+            let sumOtherDeductions = 0;
+            for (let i = 0; i < lastIdx; i++) {
+                sumOtherDeductions += (dnData[i].deduction || 0);
+            }
+
+            let lastDeduction = totalDeposit - sumOtherDeductions;
+            let lastNet = dnData[lastIdx].amount - lastDeduction;
+
+            if (lastDeduction < 0 || lastNet < 0) {
+                alert("มูลค่าไม่ถูกต้อง: การปรับยอดทำให้เงินใน DN แถวสุดท้ายติดลบ กรุณาตรวจสอบยอดรวม");
+                dnData[idx].deduction = oldDeduction;
+                dnData[idx].net = oldNet;
+                renderTable();
+                return;
+            }
+            dnData[lastIdx].deduction = lastDeduction;
+            dnData[lastIdx].net = lastNet;
+        }
+        renderTable();
+    };
+
+    // --- จัดการการเลือก Checkbox ---
+    window.toggleAllCheckboxes = function(source) {
+        const checkboxes = document.querySelectorAll('.dn-checkbox:not([disabled])');
+        checkboxes.forEach(cb => {
+            cb.checked = source.checked;
+        });
+    };
+
+    // --- จัดการ Action พร้อมกันหลายรายการ ---
+    window.processSelectedDN = function(actionType) {
+        const checkedBoxes = document.querySelectorAll('.dn-checkbox:checked');
+        if(checkedBoxes.length === 0) {
+            alert('กรุณาเลือก DN ที่ต้องการดำเนินการอย่างน้อย 1 รายการ');
+            return;
+        }
+
+        let proceed = true;
+        if(actionType === 'confirm') {
+            for(let cb of checkedBoxes) {
+                let i = parseInt(cb.dataset.idx);
+                if(dnData[i].status === 'processing') {
+                    if(!dnData[i].cnNumber || dnData[i].cnNumber.trim() === '') {
+                        alert(`กรุณากรอก "เลขที่ใบลดหนี้ (CN)" สำหรับ DN ลำดับที่ ${i+1} ก่อนยืนยันครับ`);
+                        proceed = false;
+                        break;
+                    }
+                }
+            }
+            if(proceed) proceed = confirm(`ยืนยันการคืนเงินมัดจำสำหรับ ${checkedBoxes.length} รายการที่เลือกเสร็จสมบูรณ์?`);
+        }
+
+        if(!proceed) return;
+
+        const timestamp = Date.now().toString().slice(-4);
+        const dateCode = new Date().toISOString().slice(2, 10).replace(/-/g, ''); // YYMMDD
+
+        checkedBoxes.forEach(cb => {
+            let i = parseInt(cb.dataset.idx);
+            if(actionType === 'start' && dnData[i].status === 'pending') {
+                dnData[i].status = 'processing';
+                dnData[i].timeStart = getNowStr();
+                dnData[i].billingNumber = `BIL-${dateCode}-${timestamp}-${(i+1).toString().padStart(2, '0')}`;
+                dnData[i].actionUser = currentSessionUser; 
+            } else if(actionType === 'confirm' && dnData[i].status === 'processing') {
+                dnData[i].status = 'completed';
+                dnData[i].timeConfirm = getNowStr();
+                dnData[i].timestampConfirm = Date.now(); 
+                dnData[i].actionUser = currentSessionUser; 
+            }
+        });
+
+        document.getElementById('selectAllCheckbox').checked = false;
+        renderTable();
+    };
+
+    function renderTable() {
+        tableBody.innerHTML = '';
+        
+        dnData.forEach((row, index) => {
+            const tr = document.createElement('tr');
+            let statusText = "";
+            let statusClass = "status-pending";
+            let chkDisabled = "";
+            
+            if (row.status === 'completed') {
+                statusText = '<i class="fa-solid fa-circle-check"></i> คืนเงิน'; 
+                statusClass = "status-completed";
+                chkDisabled = "disabled"; 
+            } else if (row.status === 'processing') {
+                statusText = '<i class="fa-solid fa-check"></i> GI แล้ว'; 
+                statusClass = "status-processing";
+                tr.className = "tr-active-now";
+            } else {
+                statusText = '<i class="fa-solid fa-clock"></i> รอจัดส่ง';
+                statusClass = "status-pending";
+            }
+
+            // คำนวณ % ของเงินมัดจำที่ต้องคืนเทียบกับยอด GI (Amount) ของรอบนั้นๆ
+            let deductionPct = row.amount > 0 ? (row.deduction / row.amount) * 100 : 0;
+            
+            let timeHtml = "";
+            if (row.timeStart) timeHtml += `<div style="font-size:11px; color:var(--primary); margin-bottom: 2px;"><i class="fa-solid fa-play"></i> GI: ${row.timeStart}</div>`;
+            if (row.timeConfirm) timeHtml += `<div style="font-size:11px; color:var(--success);"><i class="fa-solid fa-check-double"></i> คืน: ${row.timeConfirm}</div>`;
+            if (!timeHtml) timeHtml = "-";
+
+            let dnDisplay = row.dnNumber ? `<span style="font-weight:600; color:var(--primary);">${row.dnNumber}</span>` : `<span style="color:#cbd5e1; font-style:italic;">(ระบุด้านซ้าย)</span>`;
+            let billingDisplay = row.billingNumber ? `<span style="font-weight:600; color:#475569; font-size:12px;">${row.billingNumber}</span>` : `<span style="color:#cbd5e1; font-style:italic;">-</span>`;
+            let userDisplay = row.actionUser ? `<span style="font-size:12px; color:var(--primary-light);"><i class="fa-solid fa-user"></i> ${row.actionUser}</span>` : `<span style="color:#cbd5e1;">-</span>`;
+
+            let pctField = '';
+            let deductionField = '';
+            
+            if (index === dnData.length - 1) {
+                // แถวสุดท้าย ไม่ให้แก้เลขใดๆ ระบบจะ Auto
+                pctField = `<span style="font-weight:500;">${deductionPct.toFixed(2)}%</span>`;
+                deductionField = `<span style="color:var(--accent); font-weight:600;">-${formatCurrency(row.deduction)}</span>`;
+            } else {
+                // แถวอื่นๆ ให้แก้ % หรือ ค่าเงินคืน ได้
+                pctField = `
+                    <div style="display:flex; align-items:center; justify-content:center; gap:2px;">
+                        <input type="number" class="form-control table-input" 
+                            style="width: 70px; font-weight:500;" 
+                            value="${deductionPct.toFixed(2)}" 
+                            onchange="updateDeductionByPct(${index}, this.value)" 
+                            ${row.status === 'completed' ? 'readonly' : ''}>
+                        <span style="color:var(--text-muted); font-size: 12px;">%</span>
+                    </div>
+                `;
+                deductionField = `
+                    <div style="display:flex; align-items:center; justify-content:center; gap:4px;">
+                        <span style="color:var(--accent); font-weight:500;">-</span>
+                        <input type="number" class="form-control table-input" 
+                            style="color:var(--accent); font-weight:500; width: 90px;" 
+                            value="${row.deduction ? row.deduction.toFixed(2) : 0}" 
+                            onchange="updateCustomDeduction(${index}, this.value)" 
+                            ${row.status === 'completed' ? 'readonly' : ''}>
+                    </div>
+                `;
+            }
+
+            let actionBtnHtml = '';
+            if (row.status === 'pending') {
+                actionBtnHtml = `<button class="btn btn-primary" style="padding: 4px 8px; font-size:11px; width: 100%;" onclick="processSingleDN('start', ${index})">เริ่มดำเนินการ</button>`;
+            } else if (row.status === 'processing') {
+                actionBtnHtml = `<button class="btn btn-success" style="padding: 4px 8px; font-size:11px; width: 100%;" onclick="processSingleDN('confirm', ${index})">ยืนยันคืนมัดจำ</button>`;
+            } else {
+                actionBtnHtml = `<span style="color:var(--success); font-size:12px; font-weight: 600;"><i class="fa-solid fa-check"></i> เสร็จสิ้น</span>`;
+            }
+
+            tr.innerHTML = `
+                <td>
+                    <input type="checkbox" class="dn-checkbox" data-idx="${index}" ${chkDisabled} style="cursor: pointer;">
+                </td>
+                <td style="font-weight:600;">${index + 1}</td>
+                <td>${dnDisplay}</td>
+                <td style="font-weight:500;">${formatCurrency(row.amount)}</td>
+                <td style="text-align: center;">${pctField}</td>
+                <td style="text-align: center;">${deductionField}</td>
+                <td style="color:var(--success); font-weight:600;">${formatCurrency(row.net)}</td>
+                <td>${billingDisplay}</td>
+                <td>
+                    <input type="text" class="form-control table-input" placeholder="ระบุเลขใบลดหนี้" value="${row.cnNumber || ''}" onchange="updateCNNumber(${index}, this.value)" ${row.status === 'completed' ? 'readonly' : ''}>
+                </td>
+                <td>${userDisplay}</td>
+                <td style="text-align:left; line-height: 1.3;">${timeHtml}</td>
+                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                <td>${actionBtnHtml}</td>
+            `;
+            tableBody.appendChild(tr);
+        });
+    }
+
+    // ฟังก์ชันจัดการทีละ Row 
+    window.processSingleDN = function(actionType, i) {
+        if(actionType === 'start') {
+            const timestamp = Date.now().toString().slice(-4);
+            const dateCode = new Date().toISOString().slice(2, 10).replace(/-/g, ''); // YYMMDD
+            dnData[i].status = 'processing';
+            dnData[i].timeStart = getNowStr();
+            dnData[i].billingNumber = `BIL-${dateCode}-${timestamp}-${(i+1).toString().padStart(2, '0')}`;
+            dnData[i].actionUser = currentSessionUser; 
+        } else if (actionType === 'confirm') {
+            if(!dnData[i].cnNumber || dnData[i].cnNumber.trim() === '') {
+                alert('กรุณากรอก "เลขที่ใบลดหนี้ (CN)" ก่อนยืนยันครับ');
+                return;
+            }
+            if(confirm(`ยืนยันการคืนเงินมัดจำสำหรับ DN นี้เสร็จสมบูรณ์?`)) {
+                dnData[i].status = 'completed';
+                dnData[i].timeConfirm = getNowStr();
+                dnData[i].timestampConfirm = Date.now(); 
+                dnData[i].actionUser = currentSessionUser; 
+            }
+        }
+        renderTable();
+    }
+
+    btnResetAll.addEventListener('click', () => {
+        if(confirm('ต้องการล้างสถานะการทำรายการทั้งหมดและกลับไปสู่สถานะเริ่มต้นหรือไม่? (ข้อมูลเลขที่และมูลค่าจะยังอยู่)')) {
+            dnData.forEach(item => {
+                item.status = 'pending';
+                item.timeStart = '';
+                item.timeConfirm = '';
+                item.timestampConfirm = null;
+                item.billingNumber = ''; 
+                item.actionUser = ''; 
+            });
+            renderTable();
+        }
+    });
+
+    inputDNCount.addEventListener('input', (e) => { syncDNArraySize(); });
+    inputDNCount.addEventListener('change', (e) => { syncDNArraySize(); });
+    inputDepositPct.addEventListener('input', validateAndCalculate);
+
+    window.createNewSO = function() {
+        inputSONumber.value = '';
+        inputCustomerName.value = '';
+        inputCustomerCode.value = '';
+        inputDepositPct.value = '50';
+        inputDepositReceipt.value = '';
+        inputDNCount.value = '3';
+        editingSOIdInput.value = '';
+        
+        productItems = [{ name: 'สินค้าใหม่ 1', price: 50000 }, { name: 'สินค้าใหม่ 2', price: 50000 }];
+        dnData = [
+            { amount: 30000, dnNumber: 'DN-01', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null, actionUser: '' }, 
+            { amount: 50000, dnNumber: 'DN-02', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null, actionUser: '' }, 
+            { amount: 20000, dnNumber: 'DN-03', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null, actionUser: '' }
+        ];
+        
+        renderProductInputs();
+        switchTab('main');
+    }
+
+    btnSaveSO.addEventListener('click', () => {
+        if (!areFieldsValid) return;
+
+        const soData = {
+            id: editingSOIdInput.value || Date.now().toString(),
+            soNumber: inputSONumber.value.trim(),
+            custName: inputCustomerName.value.trim(),
+            custCode: inputCustomerCode.value.trim(),
+            user: currentSessionUser,
+            totalSO: parseFloat(inputTotalSO.value),
+            depositPct: parseFloat(inputDepositPct.value),
+            depositReceipt: inputDepositReceipt.value.trim(),
+            products: JSON.parse(JSON.stringify(productItems)),
+            dnData: JSON.parse(JSON.stringify(dnData)),
+            status: 'active',
+            dateSaved: new Date().toLocaleString('th-TH'),
+            dateSavedISO: new Date().toISOString()
+        };
+
+        if (editingSOIdInput.value) {
+            const index = savedSOs.findIndex(s => s.id === editingSOIdInput.value);
+            if(index !== -1) savedSOs[index] = soData;
+        } else {
+            savedSOs.push(soData);
+            editingSOIdInput.value = soData.id;
+        }
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(savedSOs));
+        alert(`บันทึกข้อมูล SO: ${soData.soNumber} เรียบร้อยแล้ว!`);
+    });
+
+    function getFilteredSOs() {
+        const filterStart = document.getElementById('filterStartDate').value;
+        const filterEnd = document.getElementById('filterEndDate').value;
+        let filteredSOs = [...savedSOs].reverse();
+
+        if (filterStart || filterEnd) {
+            filteredSOs = filteredSOs.filter(so => {
+                if (!so.dateSavedISO) return true; 
+                
+                let soDate = new Date(so.dateSavedISO);
+                soDate.setHours(0,0,0,0);
+                
+                let pass = true;
+                if (filterStart) {
+                    const start = new Date(filterStart);
+                    start.setHours(0,0,0,0);
+                    if (soDate < start) pass = false;
+                }
+                if (filterEnd) {
+                    const end = new Date(filterEnd);
+                    end.setHours(0,0,0,0);
+                    if (soDate > end) pass = false;
+                }
+                return pass;
+            });
+        }
+        return filteredSOs;
+    }
+
+    window.clearFilter = function() {
+        document.getElementById('filterStartDate').value = '';
+        document.getElementById('filterEndDate').value = '';
+        renderLogTable();
+    }
+
+    function renderLogTable() {
+        logTableBody.innerHTML = '';
+        const displaySOs = getFilteredSOs();
+
+        if (displaySOs.length === 0) {
+            logTableBody.innerHTML = `<tr><td colspan="12">
+                <div class="empty-state">
+                    <i class="fa-solid fa-folder-open"></i>
+                    <p>ไม่พบประวัติ SO ที่ตรงกับเงื่อนไข</p>
+                </div>
+            </td></tr>`;
+            return;
+        }
+
+        displaySOs.forEach(so => {
+            let statusActionHtml = '';
+            if (so.status === 'cancelled') {
+                statusActionHtml = `
+                    <div style="color: var(--danger); font-size: 13px; font-weight: 600; line-height: 1.4;">
+                        <i class="fa-solid fa-ban"></i> ยกเลิกแล้ว
+                    </div>
+                `;
+            } else {
+                statusActionHtml = `
+                    <div class="action-btns">
+                        <button class="action-btn edit-btn" onclick="editSO('${so.id}')"><i class="fa-solid fa-pen"></i></button>
+                        <button class="action-btn cancel-btn" onclick="cancelSO('${so.id}')"><i class="fa-solid fa-ban"></i></button>
+                    </div>
+                `;
+            }
+
+            const totalDeposit = so.totalSO * ((so.depositPct || 0) / 100);
+            let refundedAmount = 0;
+            let firstConfirmTimeStr = '-';
+            let firstConfirmTimestamp = Infinity;
+
+            if (so.dnData) {
+                so.dnData.forEach(dn => {
+                    if (dn.status === 'completed') {
+                        refundedAmount += (dn.deduction || 0);
+                        if (dn.timestampConfirm && dn.timestampConfirm < firstConfirmTimestamp) {
+                            firstConfirmTimestamp = dn.timestampConfirm;
+                            firstConfirmTimeStr = dn.timeConfirm;
+                        } else if (!dn.timestampConfirm && firstConfirmTimeStr === '-') {
+                            firstConfirmTimeStr = dn.timeConfirm || '-';
+                        }
+                    }
+                });
+            }
+            
+            const remainingRefund = totalDeposit - refundedAmount;
+
+            const tr = document.createElement('tr');
+            if(so.status === 'cancelled') {
+                tr.style.backgroundColor = '#f8fafc';
+                tr.style.opacity = '0.7';
+            }
+
+            tr.innerHTML = `
+                <td style="font-weight:600; color:var(--primary);">${so.soNumber}</td>
+                <td>${so.custCode}</td>
+                <td>${so.custName}</td>
+                <td style="font-size: 12px; color:var(--primary-light);"><i class="fa-solid fa-circle-user"></i> ${so.user || '-'}</td>
+                <td>${so.dnData ? so.dnData.length : 0} คัน</td>
+                <td>${so.depositPct || 0}%</td>
+                <td style="color:var(--accent); font-weight:500;">${formatCurrency(totalDeposit)}</td>
+                <td style="color:var(--success); font-weight:500;">${formatCurrency(refundedAmount)}</td>
+                <td style="color:var(--danger); font-weight:500;">${formatCurrency(remainingRefund)}</td>
+                <td style="font-size:12px; font-weight:500; color:var(--success);">${firstConfirmTimeStr}</td>
+                <td style="font-size:12px; color:var(--text-muted);">${so.dateSaved || '-'}</td>
+                <td>${statusActionHtml}</td>
+            `;
+            logTableBody.appendChild(tr);
+        });
+    }
+
+    window.editSO = function(id) {
+        const so = savedSOs.find(s => s.id === id);
+        if (!so) return;
+
+        editingSOIdInput.value = so.id;
+        inputSONumber.value = so.soNumber;
+        inputCustomerName.value = so.custName;
+        inputCustomerCode.value = so.custCode;
+        inputDepositPct.value = so.depositPct || 50;
+        inputDepositReceipt.value = so.depositReceipt || '';
+        
+        productItems = JSON.parse(JSON.stringify(so.products || []));
+        dnData = JSON.parse(JSON.stringify(so.dnData || []));
+        
+        inputDNCount.value = dnData.length;
+
+        renderProductInputs();
+        switchTab('main'); 
+    };
+
+    window.cancelSO = function(id) {
+        if(confirm('ยืนยันว่าต้องการยกเลิก SO นี้ใช่หรือไม่?')) {
+            const index = savedSOs.findIndex(s => s.id === id);
+            if (index !== -1) {
+                savedSOs[index].status = 'cancelled';
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(savedSOs));
+                
+                if (editingSOIdInput.value === id) {
+                    createNewSO();
+                    switchTab('log');
+                } else {
+                    renderLogTable(); 
+                }
+            }
+        }
+    };
+
+    window.exportExcel = function() {
+        const exportSOs = getFilteredSOs();
+        if(exportSOs.length === 0) return alert("ไม่มีข้อมูลสำหรับการ Export ตามช่วงเวลาที่กำหนด");
+        
+        let csvContent = "\uFEFF"; 
+        csvContent += "หมายเลข SO,รหัสลูกค้า,ชื่อลูกค้า,ผู้ทำรายการ,จำนวนDN,% มัดจำ,ยอดมัดจำทั้งหมด,คืนเงินไปแล้วเท่าไหร่,เหลือยอดคืนอีกเท่าไหร่,Create date,เวลาที่บันทึก/แก้ไข,สถานะ\n";
+        
+        exportSOs.forEach(so => {
+            const totalDeposit = so.totalSO * ((so.depositPct || 0) / 100);
+            let refundedAmount = 0;
+            let firstConfirmTimeStr = '-';
+            let firstConfirmTimestamp = Infinity;
+
+            if (so.dnData) {
+                so.dnData.forEach(dn => {
+                    if (dn.status === 'completed') {
+                        refundedAmount += (dn.deduction || 0);
+                        if (dn.timestampConfirm && dn.timestampConfirm < firstConfirmTimestamp) {
+                            firstConfirmTimestamp = dn.timestampConfirm;
+                            firstConfirmTimeStr = dn.timeConfirm;
+                        } else if (!dn.timestampConfirm && firstConfirmTimeStr === '-') {
+                            firstConfirmTimeStr = dn.timeConfirm || '-';
+                        }
+                    }
+                });
+            }
+            const remainingRefund = totalDeposit - refundedAmount;
+
+            let row = [
+                `"${so.soNumber}"`, `"${so.custCode}"`, `"${so.custName}"`, `"${so.user || '-'}"`,
+                `"${so.dnData ? so.dnData.length : 0}"`, `"${so.depositPct || 0}%"`, 
+                `"${totalDeposit.toFixed(2)}"`, `"${refundedAmount.toFixed(2)}"`, `"${remainingRefund.toFixed(2)}"`,
+                `"${firstConfirmTimeStr}"`, `"${so.dateSaved || '-'}"`, `"${so.status === 'cancelled' ? 'ยกเลิก' : 'ปกติ'}"`
+            ];
+            csvContent += row.join(",") + "\n";
+        });
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.setAttribute("href", URL.createObjectURL(blob));
+        link.setAttribute("download", "SO_DN_Log_Export.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    requiredFields.forEach(input => {
+        input.addEventListener('input', validateAndCalculate);
+    });
+
+    window.addEventListener('load', () => {
+        inputDNCount.value = '3';
+        renderProductInputs();
+        renderDNSetupInputs();
+    });
+
+</script>
+
+</body>
+</html>
+
+```
