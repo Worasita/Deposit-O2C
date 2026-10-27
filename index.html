@@ -1,9 +1,21 @@
+ได้ดำเนินการปรับ Logic ให้สอดคล้องกับ Requirement เรียบร้อยแล้วครับ โดยมีการปรับแก้ 2 ส่วนหลักๆ ดังนี้:
+
+1. **ปรับวิธีคำนวณและแสดงผล %:** ในตาราง ช่อง `% ของมัดจำที่ต้องคืน` จะถูกเปลี่ยนเป็นการนำ **เงินมัดจำที่ต้องคืน ÷ มูลค่ารับสินค้า (GI) × 100** แทน
+
+
+2. **แก้ไข % ได้แบบ Two-way Bind:** เปลี่ยนช่อง % ให้เป็นกล่อง Input (ยกเว้นแถวสุดท้าย) ซึ่งเมื่อ User แก้ไขตัวเลข % ระบบจะไปคำนวณกลับเป็นจำนวนเงิน (Deduction) แล้วทำงานร่วมกับระบบตรวจสอบการติดลบเดิม และถ้า User แก้ไขจำนวนเงิน ตัวเลข % ก็จะอัปเดตตามแบบ Real-time
+
+
+
+สามารถคัดลอก Source Code ชุดเต็ม (อัปเดตเป็น V4.8) ด้านล่างนี้ไปใช้งานได้เลยครับ:
+
+```html
 <!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sourcing Product - Dynamic Money Route Tracker (V4.7)</title>
+    <title>Sourcing Product - Dynamic Money Route Tracker (V4.8)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -25,7 +37,7 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Prompt', 'Sarabun', sans-serif; }
         body { background-color: var(--background); color: var(--text-main); padding: 24px; min-height: 100vh; }
-        .container { max-width: 1600px; margin: 0 auto; } 
+        .container { max-width: 1600px; margin: 0 auto; }
 
         header {
             background: linear-gradient(135deg, var(--primary) 0%, #001a3a 100%);
@@ -139,7 +151,7 @@
         </div>
         <div class="badge-live">
             <div class="dot"></div>
-            <span>Mockup website V4.7 (Updated)</span>
+            <span>Mockup website V4.8</span>
         </div>
     </header>
 
@@ -217,7 +229,6 @@
                     </div>
                 </div>
 
-                <!-- เปลี่ยนช่องให้ User ระบุจำนวน DN เองแบบอิสระ -->
                 <div class="form-group">
                     <label for="inputDNCount">จำนวนเลข DN <span class="required-asterisk">*</span></label>
                     <div class="input-wrapper">
@@ -290,6 +301,7 @@
                                     <th>ผู้ดำเนินการ</th>
                                     <th style="width: 140px;">เวลาทำรายการ</th>
                                     <th style="width: 90px;">สถานะ DN</th>
+                                    <th style="width: 110px;">จัดการ</th>
                                 </tr>
                             </thead>
                             <tbody id="tableBody">
@@ -361,7 +373,7 @@
 </div>
 
 <script>
-    const STORAGE_KEY = 'mockup_saved_sos_v4_7';
+    const STORAGE_KEY = 'mockup_saved_sos_v4_8';
     let savedSOs = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
     const inputSONumber = document.getElementById('inputSONumber');
@@ -399,6 +411,7 @@
         { amount: 20000, dnNumber: 'DN-03', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null, actionUser: '' }
     ]; 
     
+    let isDnValid = true; 
     let areFieldsValid = false; 
     const currentSessionUser = "Mock_Admin_01"; 
 
@@ -602,6 +615,13 @@
         dnData[idx].cnNumber = val;
     };
 
+    // --- เพิ่มฟังก์ชันอัพเดท Deduction จาก % ---
+    window.updateDeductionByPct = function(idx, pctVal) {
+        let amount = dnData[idx].amount || 0;
+        let newDeduction = amount * (parseFloat(pctVal) / 100);
+        updateCustomDeduction(idx, newDeduction);
+    };
+
     window.updateCustomDeduction = function(idx, val) {
         let totalSO = parseFloat(inputTotalSO.value) || 0;
         let depositPct = parseFloat(inputDepositPct.value) || 0;
@@ -671,7 +691,6 @@
         if(actionType === 'confirm') {
             for(let cb of checkedBoxes) {
                 let i = parseInt(cb.dataset.idx);
-                // เช็คว่าถ้าเป็นสถานะ processing ต้องกรอก CN ก่อน
                 if(dnData[i].status === 'processing') {
                     if(!dnData[i].cnNumber || dnData[i].cnNumber.trim() === '') {
                         alert(`กรุณากรอก "เลขที่ใบลดหนี้ (CN)" สำหรับ DN ลำดับที่ ${i+1} ก่อนยืนยันครับ`);
@@ -703,7 +722,6 @@
             }
         });
 
-        // ล้างการเลือก Checkbox ทั้งหมด
         document.getElementById('selectAllCheckbox').checked = false;
         renderTable();
     };
@@ -720,7 +738,7 @@
             if (row.status === 'completed') {
                 statusText = '<i class="fa-solid fa-circle-check"></i> คืนเงิน'; 
                 statusClass = "status-completed";
-                chkDisabled = "disabled"; // ซ่อนหรือ disable checkbox
+                chkDisabled = "disabled"; 
             } else if (row.status === 'processing') {
                 statusText = '<i class="fa-solid fa-check"></i> GI แล้ว'; 
                 statusClass = "status-processing";
@@ -730,11 +748,8 @@
                 statusClass = "status-pending";
             }
 
-            let totalSOVal = parseFloat(inputTotalSO.value) || 0;
-            let depositPct = parseFloat(inputDepositPct.value) || 0;
-            let totalDeposit = totalSOVal * (depositPct / 100);
-
-            let deductionPct = totalDeposit > 0 ? (row.deduction / totalDeposit) * 100 : 0;
+            // คำนวณ % ของเงินมัดจำที่ต้องคืนเทียบกับยอด GI (Amount) ของรอบนั้นๆ
+            let deductionPct = row.amount > 0 ? (row.deduction / row.amount) * 100 : 0;
             
             let timeHtml = "";
             if (row.timeStart) timeHtml += `<div style="font-size:11px; color:var(--primary); margin-bottom: 2px;"><i class="fa-solid fa-play"></i> GI: ${row.timeStart}</div>`;
@@ -745,10 +760,25 @@
             let billingDisplay = row.billingNumber ? `<span style="font-weight:600; color:#475569; font-size:12px;">${row.billingNumber}</span>` : `<span style="color:#cbd5e1; font-style:italic;">-</span>`;
             let userDisplay = row.actionUser ? `<span style="font-size:12px; color:var(--primary-light);"><i class="fa-solid fa-user"></i> ${row.actionUser}</span>` : `<span style="color:#cbd5e1;">-</span>`;
 
+            let pctField = '';
             let deductionField = '';
+            
             if (index === dnData.length - 1) {
+                // แถวสุดท้าย ไม่ให้แก้เลขใดๆ ระบบจะ Auto
+                pctField = `<span style="font-weight:500;">${deductionPct.toFixed(2)}%</span>`;
                 deductionField = `<span style="color:var(--accent); font-weight:600;">-${formatCurrency(row.deduction)}</span>`;
             } else {
+                // แถวอื่นๆ ให้แก้ % หรือ ค่าเงินคืน ได้
+                pctField = `
+                    <div style="display:flex; align-items:center; justify-content:center; gap:2px;">
+                        <input type="number" class="form-control table-input" 
+                            style="width: 70px; font-weight:500;" 
+                            value="${deductionPct.toFixed(2)}" 
+                            onchange="updateDeductionByPct(${index}, this.value)" 
+                            ${row.status === 'completed' ? 'readonly' : ''}>
+                        <span style="color:var(--text-muted); font-size: 12px;">%</span>
+                    </div>
+                `;
                 deductionField = `
                     <div style="display:flex; align-items:center; justify-content:center; gap:4px;">
                         <span style="color:var(--accent); font-weight:500;">-</span>
@@ -761,6 +791,15 @@
                 `;
             }
 
+            let actionBtnHtml = '';
+            if (row.status === 'pending') {
+                actionBtnHtml = `<button class="btn btn-primary" style="padding: 4px 8px; font-size:11px; width: 100%;" onclick="processSingleDN('start', ${index})">เริ่มดำเนินการ</button>`;
+            } else if (row.status === 'processing') {
+                actionBtnHtml = `<button class="btn btn-success" style="padding: 4px 8px; font-size:11px; width: 100%;" onclick="processSingleDN('confirm', ${index})">ยืนยันคืนมัดจำ</button>`;
+            } else {
+                actionBtnHtml = `<span style="color:var(--success); font-size:12px; font-weight: 600;"><i class="fa-solid fa-check"></i> เสร็จสิ้น</span>`;
+            }
+
             tr.innerHTML = `
                 <td>
                     <input type="checkbox" class="dn-checkbox" data-idx="${index}" ${chkDisabled} style="cursor: pointer;">
@@ -768,7 +807,7 @@
                 <td style="font-weight:600;">${index + 1}</td>
                 <td>${dnDisplay}</td>
                 <td style="font-weight:500;">${formatCurrency(row.amount)}</td>
-                <td>${deductionPct.toFixed(2)}%</td>
+                <td style="text-align: center;">${pctField}</td>
                 <td style="text-align: center;">${deductionField}</td>
                 <td style="color:var(--success); font-weight:600;">${formatCurrency(row.net)}</td>
                 <td>${billingDisplay}</td>
@@ -778,9 +817,34 @@
                 <td>${userDisplay}</td>
                 <td style="text-align:left; line-height: 1.3;">${timeHtml}</td>
                 <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                <td>${actionBtnHtml}</td>
             `;
             tableBody.appendChild(tr);
         });
+    }
+
+    // ฟังก์ชันจัดการทีละ Row 
+    window.processSingleDN = function(actionType, i) {
+        if(actionType === 'start') {
+            const timestamp = Date.now().toString().slice(-4);
+            const dateCode = new Date().toISOString().slice(2, 10).replace(/-/g, ''); // YYMMDD
+            dnData[i].status = 'processing';
+            dnData[i].timeStart = getNowStr();
+            dnData[i].billingNumber = `BIL-${dateCode}-${timestamp}-${(i+1).toString().padStart(2, '0')}`;
+            dnData[i].actionUser = currentSessionUser; 
+        } else if (actionType === 'confirm') {
+            if(!dnData[i].cnNumber || dnData[i].cnNumber.trim() === '') {
+                alert('กรุณากรอก "เลขที่ใบลดหนี้ (CN)" ก่อนยืนยันครับ');
+                return;
+            }
+            if(confirm(`ยืนยันการคืนเงินมัดจำสำหรับ DN นี้เสร็จสมบูรณ์?`)) {
+                dnData[i].status = 'completed';
+                dnData[i].timeConfirm = getNowStr();
+                dnData[i].timestampConfirm = Date.now(); 
+                dnData[i].actionUser = currentSessionUser; 
+            }
+        }
+        renderTable();
     }
 
     btnResetAll.addEventListener('click', () => {
@@ -791,7 +855,7 @@
                 item.timeConfirm = '';
                 item.timestampConfirm = null;
                 item.billingNumber = ''; 
-                item.actionUser = ''; // Clear user info upon reset
+                item.actionUser = ''; 
             });
             renderTable();
         }
@@ -1059,3 +1123,5 @@
 
 </body>
 </html>
+
+```
