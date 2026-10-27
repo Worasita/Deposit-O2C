@@ -173,7 +173,6 @@
     <div class="tabs-container">
         <button class="tab-btn active" id="tabMainBtn" onclick="switchTab('main')"><i class="fa-solid fa-pen-to-square"></i> สร้าง/จัดการใบสั่งซื้อ</button>
         <button class="tab-btn" id="tabLogBtn" onclick="switchTab('log')"><i class="fa-solid fa-folder-open"></i> ประวัติ SO (Log)</button>
-        <!-- Tab สำหรับผู้บังคับบัญชา -->
         <button class="tab-btn" id="tabApproveBtn" onclick="switchTab('approve')">
             <i class="fa-solid fa-user-check"></i> อนุมัติรายการ (Approval)
             <span class="tab-badge" id="pendingApprovalBadge">0</span>
@@ -446,7 +445,6 @@
     const inputDepositReceipt = document.getElementById('inputDepositReceipt');
     const inputDepositPct = document.getElementById('inputDepositPct');
 
-    // DN Elements
     const inputDNCount = document.getElementById('inputDNCount');
     const dnSetupContainer = document.getElementById('dnSetupContainer');
     const pctWarning = document.getElementById('pctWarning');
@@ -1018,6 +1016,42 @@
         switchTab('main');
     };
 
+    btnSaveSO.addEventListener('click', () => {
+        if (!areFieldsValid) {
+            alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+            return;
+        }
+
+        const soData = {
+            id: editingSOIdInput.value || Date.now().toString(),
+            soNumber: inputSONumber.value.trim(),
+            custName: inputCustomerName.value.trim(),
+            custCode: inputCustomerCode.value.trim(),
+            user: currentSessionUser,
+            totalSO: parseFloat(inputTotalSO.value),
+            depositPct: parseFloat(inputDepositPct.value),
+            depositReceipt: inputDepositReceipt.value.trim(),
+            products: JSON.parse(JSON.stringify(productItems)),
+            dnData: JSON.parse(JSON.stringify(dnData)),
+            status: currentSOStatus, 
+            dateSaved: new Date().toLocaleString('th-TH'),
+            dateSavedISO: new Date().toISOString()
+        };
+
+        if (editingSOIdInput.value) {
+            const index = savedSOs.findIndex(s => s.id === editingSOIdInput.value);
+            if(index !== -1) savedSOs[index] = soData;
+        } else {
+            savedSOs.push(soData);
+            editingSOIdInput.value = soData.id;
+        }
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(savedSOs));
+        alert(`บันทึกข้อมูล SO: ${soData.soNumber} เรียบร้อยแล้ว!`);
+        updateApprovalBadge();
+        switchTab('log');
+    });
+
     // --- ส่วนตารางประวัติ SO (Log) ---
     function getFilteredSOs() {
         const filterStart = document.getElementById('filterStartDate').value;
@@ -1328,4 +1362,141 @@
         const soIndex = savedSOs.findIndex(s => s.id === soId);
         if (soIndex === -1) return;
 
-        const targetDN = saved
+        const targetDN = savedSOs[soIndex].dnData[dnIdx];
+        const approverName = document.getElementById('approverRoleSelect').value === 'level1' ? 'Approver_L1' : 'Approver_L2';
+
+        if (isApproved) {
+            if (confirm(`ยืนยัน "อนุมัติ" การคืนเงินมัดจำจำนวน ${formatCurrency(targetDN.deduction)} สำหรับ ${targetDN.dnNumber}?`)) {
+                targetDN.status = 'completed'; 
+                targetDN.timeConfirm = getNowStr();
+                targetDN.timestampConfirm = Date.now();
+                targetDN.actionUser = `${targetDN.actionUser || ''} (อนุมัติโดย: ${approverName})`;
+            } else {
+                return;
+            }
+        } else {
+            if (confirm(`ยืนยัน "ไม่อนุมัติ" รายการนี้ใช่หรือไม่? (สถานะจะถูกตีกลับไปเป็น GI แล้ว เพื่อให้แก้ไขข้อมูลใหม่)`)) {
+                targetDN.status = 'processing'; 
+                targetDN.actionUser = `${targetDN.actionUser || ''} (ไม่อนุมัติโดย: ${approverName})`;
+            } else {
+                return;
+            }
+        }
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(savedSOs));
+        
+        if (editingSOIdInput.value === soId) {
+            dnData = JSON.parse(JSON.stringify(savedSOs[soIndex].dnData));
+            renderTable();
+        }
+
+        updateApprovalBadge();
+        renderApproveTable();
+    };
+
+    window.editSO = function(id) {
+        const so = savedSOs.find(s => s.id === id);
+        if (!so) return;
+
+        currentSOStatus = so.status || 'active';
+        editingSOIdInput.value = so.id;
+        inputSONumber.value = so.soNumber;
+        inputCustomerName.value = so.custName;
+        inputCustomerCode.value = so.custCode;
+        inputDepositPct.value = so.depositPct || 50;
+        inputDepositReceipt.value = so.depositReceipt || '';
+        
+        productItems = JSON.parse(JSON.stringify(so.products || []));
+        dnData = JSON.parse(JSON.stringify(so.dnData || []));
+        
+        inputDNCount.value = dnData.length;
+
+        renderProductInputs();
+        renderDNSetupInputs();
+        switchTab('main'); 
+        updateCalculations(false);
+    };
+
+    window.cancelSO = function(id) {
+        if(confirm('ยืนยันว่าต้องการยกเลิก SO นี้ใช่หรือไม่? (การยกเลิกจากหน้านี้จะไม่ใช่การทำคืนเงินมัดจำ)')) {
+            const index = savedSOs.findIndex(s => s.id === id);
+            if (index !== -1) {
+                savedSOs[index].status = 'cancelled';
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(savedSOs));
+                
+                if (editingSOIdInput.value === id) {
+                    createNewSO();
+                    switchTab('log');
+                } else {
+                    renderLogTable(); 
+                }
+                updateApprovalBadge();
+            }
+        }
+    };
+
+    window.exportExcel = function() {
+        const exportSOs = getFilteredSOs();
+        if(exportSOs.length === 0) {
+            alert("ไม่มีข้อมูลสำหรับการ Export ตามช่วงเวลาที่กำหนด");
+            return;
+        }
+        
+        let csvContent = "\uFEFF"; 
+        csvContent += "หมายเลข SO,รหัสลูกค้า,ชื่อลูกค้า,ผู้ทำรายการ,จำนวนDN,% มัดจำ,ยอดมัดจำทั้งหมด,คืนเงินไปแล้วเท่าไหร่,เหลือยอดคืนอีกเท่าไหร่,Create date,เวลาที่บันทึก/แก้ไข,สถานะ\n";
+        
+        exportSOs.forEach(so => {
+            const totalDeposit = so.totalSO * ((so.depositPct || 0) / 100);
+            let refundedAmount = 0;
+            let firstConfirmTimeStr = '-';
+            let firstConfirmTimestamp = Infinity;
+
+            if (so.dnData) {
+                so.dnData.forEach(dn => {
+                    if (dn.status === 'completed') {
+                        refundedAmount += (dn.deduction || 0);
+                        if (dn.timestampConfirm && dn.timestampConfirm < firstConfirmTimestamp) {
+                            firstConfirmTimestamp = dn.timestampConfirm;
+                            firstConfirmTimeStr = dn.timeConfirm;
+                        } else if (!dn.timestampConfirm && firstConfirmTimeStr === '-') {
+                            firstConfirmTimeStr = dn.timeConfirm || '-';
+                        }
+                    }
+                });
+            }
+            const remainingRefund = totalDeposit - refundedAmount;
+
+            let statusLabel = 'ปกติ';
+            if(so.status === 'cancelled') statusLabel = 'ยกเลิก';
+            if(so.status === 'cancelled_refunded') statusLabel = 'ยกเลิก/คืนมัดจำแล้ว';
+
+            let row = [
+                `"${so.soNumber}"`, `"${so.custCode}"`, `"${so.custName}"`, `"${so.user || '-'}"`,
+                `"${so.dnData ? so.dnData.length : 0}"`, `"${so.depositPct || 0}%"`, 
+                `"${totalDeposit.toFixed(2)}"`, `"${refundedAmount.toFixed(2)}"`, `"${remainingRefund.toFixed(2)}"`,
+                `"${firstConfirmTimeStr}"`, `"${so.dateSaved || '-'}"`, `"${statusLabel}"`
+            ];
+            csvContent += row.join(",") + "\n";
+        });
+        
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.setAttribute("href", URL.createObjectURL(blob));
+        link.setAttribute("download", "SO_DN_Log_Export.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    window.addEventListener('load', () => {
+        inputDNCount.value = '3';
+        renderProductInputs();
+        renderDNSetupInputs();
+        updateCalculations(true);
+        updateApprovalBadge();
+    });
+
+</script>
+
+</body>
+</html>
