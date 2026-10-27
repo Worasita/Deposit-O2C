@@ -1,11 +1,9 @@
-
-```html
 <!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sourcing Product - Dynamic Money Route Tracker (V4.7)</title>
+    <title>Sourcing Product - Dynamic Money Route Tracker (V4.9)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -27,7 +25,7 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Prompt', 'Sarabun', sans-serif; }
         body { background-color: var(--background); color: var(--text-main); padding: 24px; min-height: 100vh; }
-        .container { max-width: 1600px; margin: 0 auto; } 
+        .container { max-width: 1600px; margin: 0 auto; }
 
         header {
             background: linear-gradient(135deg, var(--primary) 0%, #001a3a 100%);
@@ -129,6 +127,15 @@
         
         .dn-setup-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
         .dn-setup-row input { padding-left: 10px !important; }
+
+        /* Styles for expandable rows */
+        .toggle-btn { cursor: pointer; color: var(--primary); display: inline-block; width: 24px; text-align: center; font-size: 14px; transition: transform 0.2s; }
+        .sub-table-row { display: none; }
+        .sub-table-row.open { display: table-row; }
+        .sub-table-container { padding: 15px 25px; background-color: #f8fafc; border-bottom: 1px solid var(--border); border-top: 1px dashed #cbd5e1; }
+        .sub-table { width: 100%; background: white; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); margin-top: 5px; }
+        .sub-table th { background: #e2e8f0; font-size: 12px; color: var(--text-main); padding: 8px; }
+        .sub-table td { font-size: 12px; padding: 8px; border-bottom: 1px solid var(--border); }
     </style>
 </head>
 <body>
@@ -137,11 +144,11 @@
     <header>
         <div>
             <h1><i class="fa-solid fa-truck-fast"></i> Deposit SO Tracking</h1>
-            <p>ระบบติดตาม SO ที่มีการเงินมัดจำ</p>
+            <p>ระบบติดตาม SO ที่มีการเงินมัดจำ (Mockup Data)</p>
         </div>
         <div class="badge-live">
             <div class="dot"></div>
-            <span>Mockup website V4.7 (Updated)</span>
+            <span>Mockup website V4.9</span>
         </div>
     </header>
 
@@ -201,7 +208,7 @@
                 </div>
 
                 <div class="section-divider"></div>
-                <div class="section-label"><i class="fa-solid fa-calculator"></i> ข้อมูลการเงิน การแบ่งงวดชำระ และรอบจัดส่ง (DN)</div>
+                <div class="section-label"><i class="fa-solid fa-calculator"></i> ข้อมูลการเงิน และรอบจัดส่ง (DN)</div>
 
                 <div class="form-group">
                     <label for="inputTotalSO">ยอดคำสั่งซื้อรวมทั้งหมด (คำนวณจากรายการสินค้า)</label>
@@ -219,7 +226,6 @@
                     </div>
                 </div>
 
-                <!-- เปลี่ยนช่องให้ User ระบุจำนวน DN เองแบบอิสระ -->
                 <div class="form-group">
                     <label for="inputDNCount">จำนวนเลข DN <span class="required-asterisk">*</span></label>
                     <div class="input-wrapper">
@@ -231,8 +237,7 @@
                         <!-- JS Dynamically rendered setup fields for DN -->
                     </div>
                     
-                    <div id="pctWarning" class="alert-msg alert-warning"><i class="fa-solid fa-triangle-exclamation"></i> ผลรวมมูลค่า DN ควรเท่ากับยอดสั่งซื้อรวม (ตอนนี้: <span id="currentPctSum"></span>) - ข้อมูลจำลองสามารถกรอกต่อได้</div>
-                    <div id="pctSuccess" class="alert-msg alert-success"><i class="fa-solid fa-check"></i> ผลรวมมูลค่า DN ถูกต้องตรงกับยอดสั่งซื้อ</div>
+                    <div id="pctWarning" class="alert-msg alert-warning"><i class="fa-solid fa-triangle-exclamation"></i> ผลรวมมูลค่า DN ย่อยไม่เท่ากับยอดสั่งซื้อรวม (ไม่มีผลกับการแสดงตาราง)</div>
                 </div>
             </div>
 
@@ -252,10 +257,6 @@
                         <div class="summary-item">
                             <span>📦 ยอดที่เหลือ (รอเรียกเก็บตามคันรถ):</span>
                             <span id="sumRemainingSO">0 THB</span>
-                        </div>
-                        <div class="summary-item">
-                            <span>📊 อัตราการคืนมัดจำ:</span>
-                            <span id="sumDeductionRate">คำนวณสัดส่วนตามเงินมัดจำก้อนแรก</span>
                         </div>
                         <div class="summary-item">
                             <span>🧾 ยอดรวมมูลค่าโครงการ:</span>
@@ -284,7 +285,7 @@
                                     <th style="width: 50px;">ลำดับ</th>
                                     <th style="width: 110px;">เลข DN</th>
                                     <th>มูลค่ารับสินค้า (GI)</th>
-                                    <th>% ของมัดจำ</th>
+                                    <th>% ของมัดจำที่ต้องคืน</th>
                                     <th>เงินมัดจำที่ต้องคืน</th>
                                     <th>เรียกเก็บเพิ่ม</th>
                                     <th style="width: 110px;">เลขที่Billing</th>
@@ -299,10 +300,10 @@
                         </table>
                     </div>
                     
-                    <!-- ส่วนปุ่มจัดการแบบกลุ่ม (Bulk Actions) -->
+                    <!-- ส่วนปุ่มจัดการแบบกลุ่ม (Bulk Actions) มุมล่างสุด -->
                     <div style="display: flex; gap: 12px; margin-top: 20px; padding-top: 15px; border-top: 1px dashed var(--border); justify-content: flex-end;">
                         <button class="btn btn-primary" onclick="processSelectedDN('start')">
-                            <i class="fa-solid fa-play"></i> เริ่มดำเนินการที่เลือก
+                            <i class="fa-solid fa-play"></i> เริ่มดำเนินการตัดจ่ายที่เลือก
                         </button>
                         <button class="btn btn-success" onclick="processSelectedDN('confirm')">
                             <i class="fa-solid fa-check-double"></i> ยืนยันคืนมัดจำที่เลือก
@@ -340,17 +341,18 @@
                 <table id="logTable">
                     <thead>
                         <tr>
+                            <th style="width: 30px;"></th>
                             <th>หมายเลข SO</th>
                             <th>รหัสลูกค้า</th>
                             <th>ชื่อลูกค้า</th>
                             <th>ผู้ทำรายการ</th>
-                            <th>จำนวนDN</th>
+                            <th>จำนวน DN</th>
                             <th>% มัดจำ</th>
                             <th>ยอดมัดจำทั้งหมด</th>
                             <th>คืนเงินไปแล้วเท่าไหร่</th>
                             <th>เหลือยอดคืนอีกเท่าไหร่</th>
-                            <th>Create date</th>
-                            <th>เวลาที่บันทึก/แก้ไข</th>
+                            <th>Create date (คืนเงิน)</th>
+                            <th>เวลาที่บันทึก SO</th>
                             <th>สถานะ/การจัดการ</th>
                         </tr>
                     </thead>
@@ -363,7 +365,7 @@
 </div>
 
 <script>
-    const STORAGE_KEY = 'mockup_saved_sos_v4_7';
+    const STORAGE_KEY = 'mockup_saved_sos_v4_9';
     let savedSOs = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
     const inputSONumber = document.getElementById('inputSONumber');
@@ -380,13 +382,10 @@
     const inputDNCount = document.getElementById('inputDNCount');
     const dnSetupContainer = document.getElementById('dnSetupContainer');
     const pctWarning = document.getElementById('pctWarning');
-    const pctSuccess = document.getElementById('pctSuccess');
-    const currentPctSum = document.getElementById('currentPctSum');
     
     const sumInitialDeposit = document.getElementById('sumInitialDeposit');
     const sumRemainingSO = document.getElementById('sumRemainingSO');
     const sumTotalSO = document.getElementById('sumTotalSO');
-    const sumDeductionRate = document.getElementById('sumDeductionRate');
     
     const tableBody = document.getElementById('tableBody');
     const logTableBody = document.getElementById('logTableBody');
@@ -401,7 +400,6 @@
         { amount: 20000, dnNumber: 'DN-03', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null, actionUser: '' }
     ]; 
     
-    let areFieldsValid = false; 
     const currentSessionUser = "Mock_Admin_01"; 
 
     function formatCurrency(num) {
@@ -438,11 +436,11 @@
                 <div style="display: flex; gap: 8px; margin-bottom: 8px;">
                     <div style="flex-grow: 1; position: relative;">
                         <i class="fa-solid fa-box" style="position: absolute; left: 12px; top: 10px; color: var(--text-muted); font-size: 13px;"></i>
-                        <input type="text" class="form-control" style="padding-left: 32px;" placeholder="ชื่อสินค้า/รุ่น" value="${item.name}" oninput="updateProductData(${idx}, 'name', this.value)">
+                        <input type="text" class="form-control" style="padding-left: 32px;" placeholder="ชื่อสินค้า/รุ่น" value="${item.name}" onchange="updateProductData(${idx}, 'name', this.value)">
                     </div>
                     <div style="width: 150px; position: relative;">
                         <i class="fa-solid fa-tag" style="position: absolute; left: 12px; top: 10px; color: var(--text-muted); font-size: 13px;"></i>
-                        <input type="number" class="form-control" style="padding-left: 32px;" placeholder="มูลค่า" value="${item.price || ''}" oninput="updateProductData(${idx}, 'price', this.value)">
+                        <input type="number" class="form-control" style="padding-left: 32px;" placeholder="มูลค่า" value="${item.price || ''}" onchange="updateProductData(${idx}, 'price', this.value)">
                     </div>
                     <button class="btn btn-danger" style="padding: 10px;" onclick="removeProductRow(${idx})" ${productItems.length === 1 ? 'disabled' : ''} title="ลบรายการ"><i class="fa-solid fa-xmark"></i></button>
                 </div>
@@ -450,7 +448,6 @@
         });
         
         inputTotalSO.value = totalVal;
-        syncDNArraySize(false);
     }
 
     window.updateProductData = function(idx, field, val) {
@@ -460,19 +457,8 @@
         let totalVal = productItems.reduce((sum, item) => sum + (item.price || 0), 0);
         inputTotalSO.value = totalVal;
         
-        autoAdjustLastItem(dnData, totalVal);
-        renderDNSetupInputs();
+        updateCalculations(true); 
     };
-
-    function autoAdjustLastItem(dataArray, totalVal) {
-        if(dataArray.length > 0) {
-            let sumFirst = 0;
-            for(let i=0; i<dataArray.length - 1; i++) {
-                sumFirst += dataArray[i].amount;
-            }
-            dataArray[dataArray.length - 1].amount = Math.max(0, totalVal - sumFirst);
-        }
-    }
 
     window.addProductRow = function() {
         productItems.push({ name: '', price: 0 });
@@ -483,34 +469,25 @@
         if (productItems.length > 1) {
             productItems.splice(idx, 1);
             renderProductInputs();
+            updateCalculations(true); 
         }
     };
 
     // --- DN Setup Section ---
-    function syncDNArraySize(forceResize = true) {
+    function syncDNArraySize() {
         const count = parseInt(inputDNCount.value) || 1; 
         const totalSO = parseFloat(inputTotalSO.value) || 0;
         
-        if (forceResize) {
-            if(dnData.length < count) {
-                for(let i = dnData.length; i < count; i++) {
-                    dnData.push({ amount: 0, dnNumber: '', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null, actionUser: '' });
-                }
-            } else if (dnData.length > count) {
-                dnData = dnData.slice(0, count);
+        if(dnData.length < count) {
+            for(let i = dnData.length; i < count; i++) {
+                dnData.push({ amount: 0, dnNumber: '', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null, actionUser: '', deduction: 0, net: 0 });
             }
-
-            let totalAssigned = 0;
-            for (let i = 0; i < count; i++) {
-                if (dnData[i].amount === 0 && totalSO > 0 && i === count - 1) {
-                    dnData[i].amount = Math.max(0, totalSO - totalAssigned);
-                } else if (dnData[i].amount === 0 && totalSO > 0) {
-                    dnData[i].amount = Math.floor(totalSO / count);
-                }
-                totalAssigned += dnData[i].amount;
-            }
+        } else if (dnData.length > count) {
+            dnData = dnData.slice(0, count);
         }
+
         renderDNSetupInputs();
+        updateCalculations(true); 
     }
 
     function renderDNSetupInputs() {
@@ -530,38 +507,32 @@
         dnSetupContainer.innerHTML = html;
         
         document.querySelectorAll('.dn-name-input').forEach(input => {
-            input.addEventListener('input', (e) => {
+            input.addEventListener('change', (e) => {
                 dnData[parseInt(e.target.dataset.idx)].dnNumber = e.target.value;
-                validateAndCalculate();
+                renderTable();
             });
         });
 
         document.querySelectorAll('.dn-val-input').forEach(input => {
-            input.addEventListener('input', (e) => {
+            input.addEventListener('change', (e) => {
                 dnData[parseInt(e.target.dataset.idx)].amount = parseFloat(e.target.value) || 0;
-                validateAndCalculate();
+                updateCalculations(false); 
             });
         });
-        
-        validateAndCalculate();
     }
 
-    function validateAndCalculate() {
+    function validateFields() {
         let totalSO = parseFloat(inputTotalSO.value) || 0;
-        let sumDN = dnData.reduce((a, b) => a + b.amount, 0);
-        sumDN = Math.round(sumDN * 100) / 100;
         
-        // แจ้งเตือนเมื่อผลรวมไม่ตรงกัน แต่ไม่บล็อกการแสดงตารางแล้ว
-        if (sumDN !== totalSO) {
+        // แจ้งเตือนเมื่อผลรวมไม่ตรงกัน แต่ไม่บล็อกการแสดงตาราง
+        let sumDN = dnData.reduce((a, b) => a + (b.amount || 0), 0);
+        if (Math.abs(sumDN - totalSO) > 0.1 && totalSO > 0) {
             pctWarning.style.display = 'block';
-            pctSuccess.style.display = 'none';
-            currentPctSum.textContent = formatCurrency(sumDN);
         } else {
             pctWarning.style.display = 'none';
-            pctSuccess.style.display = 'block';
         }
 
-        areFieldsValid = (
+        let areFieldsValid = (
             inputSONumber.value.trim() !== '' &&
             inputCustomerName.value.trim() !== '' &&
             inputCustomerCode.value.trim() !== '' &&
@@ -570,33 +541,38 @@
             totalSO > 0
         );
 
-        if (areFieldsValid) {
-            btnSaveSO.disabled = false;
-        } else {
-            btnSaveSO.disabled = true;
-        }
-
-        updateCalculations();
+        btnSaveSO.disabled = !areFieldsValid;
     }
 
-    function updateCalculations() {
+    // ฟังก์ชันคำนวณเงินมัดจำ (forceReset = true เมื่อมีการเปลี่ยน % มัดจำ หรือเปลี่ยนยอดรวม เพื่อคำนวณสัดส่วนใหม่)
+    function updateCalculations(forceReset = false) {
         let totalSOVal = parseFloat(inputTotalSO.value) || 0;
         let depositPct = parseFloat(inputDepositPct.value) || 0;
 
-        let firstDepositAmount = totalSOVal * (depositPct / 100);
-        let depositRatio = totalSOVal > 0 ? (firstDepositAmount / totalSOVal) : 0;
-        const remainingSOAmount = totalSOVal - firstDepositAmount;
+        let totalDepositAmount = totalSOVal * (depositPct / 100);
+        let depositRatio = totalSOVal > 0 ? (totalDepositAmount / totalSOVal) : 0;
+        const remainingSOAmount = totalSOVal - totalDepositAmount;
 
         sumTotalSO.textContent = formatCurrency(totalSOVal);
-        sumInitialDeposit.textContent = formatCurrency(firstDepositAmount);
+        sumInitialDeposit.textContent = formatCurrency(totalDepositAmount);
         sumRemainingSO.textContent = formatCurrency(remainingSOAmount);
-        sumDeductionRate.textContent = `${depositPct.toFixed(2)}% ของแต่ละ DN`;
 
-        dnData.forEach((item, idx) => {
-            item.deduction = item.amount * depositRatio;
-            item.net = item.amount - item.deduction;
-        });
+        let currentTotalDeduction = dnData.reduce((sum, item) => sum + (item.deduction || 0), 0);
 
+        // หากเป็นการเปลี่ยนตัวเลขตั้งต้น หรือยอด deduction ปัจจุบันรวมแล้วไม่ตรงยอดมัดจำ ให้บังคับกระจายใหม่
+        if (forceReset || Math.abs(currentTotalDeduction - totalDepositAmount) > 0.1) {
+            dnData.forEach((item) => {
+                item.deduction = (item.amount || 0) * depositRatio;
+                item.net = (item.amount || 0) - item.deduction;
+            });
+        } else {
+            // ถ้ายอดรวมตรงอยู่แล้ว แสดงว่าผู้ใช้อาจแก้ไว้ ให้แค่คำนวณ Net ใหม่ตามที่กรอก Amount มา
+            dnData.forEach((item) => {
+                item.net = (item.amount || 0) - (item.deduction || 0);
+            });
+        }
+
+        validateFields();
         renderTable();
     }
 
@@ -604,24 +580,30 @@
         dnData[idx].cnNumber = val;
     };
 
+    // --- ฟังก์ชันอัพเดท Deduction จากการพิมพ์ % ที่ช่องตาราง ---
+    window.updateDeductionByPct = function(idx, pctVal) {
+        let amount = dnData[idx].amount || 0;
+        let newDeduction = amount * (parseFloat(pctVal) / 100);
+        updateCustomDeduction(idx, newDeduction);
+    };
+
+    // --- ปรับแก้ Deduction โดยตรง ---
     window.updateCustomDeduction = function(idx, val) {
         let totalSO = parseFloat(inputTotalSO.value) || 0;
         let depositPct = parseFloat(inputDepositPct.value) || 0;
         let totalDeposit = (totalSO * depositPct) / 100;
 
         let newValue = parseFloat(val) || 0;
-        let expectedNet = dnData[idx].amount - newValue;
+        let expectedNet = (dnData[idx].amount || 0) - newValue;
 
+        // ป้องกันติดลบ
         if (newValue < 0) {
             alert("มูลค่าไม่ถูกต้อง: เงินมัดจำที่ต้องคืนห้ามติดลบ");
-            renderTable(); 
-            return;
+            renderTable(); return;
         }
-
         if (expectedNet < 0) {
             alert("มูลค่าไม่ถูกต้อง: ยอดเรียกเก็บเพิ่มห้ามติดลบ");
-            renderTable(); 
-            return;
+            renderTable(); return;
         }
 
         let oldDeduction = dnData[idx].deduction;
@@ -630,6 +612,7 @@
         dnData[idx].deduction = newValue;
         dnData[idx].net = expectedNet;
 
+        // โยกเงินไปมาระหว่างแถวที่เลือก กับ แถวสุดท้าย
         let lastIdx = dnData.length - 1;
         if (lastIdx > 0 && idx !== lastIdx) {
             let sumOtherDeductions = 0;
@@ -638,20 +621,106 @@
             }
 
             let lastDeduction = totalDeposit - sumOtherDeductions;
-            let lastNet = dnData[lastIdx].amount - lastDeduction;
+            let lastNet = (dnData[lastIdx].amount || 0) - lastDeduction;
 
             if (lastDeduction < 0 || lastNet < 0) {
                 alert("มูลค่าไม่ถูกต้อง: การปรับยอดทำให้เงินใน DN แถวสุดท้ายติดลบ กรุณาตรวจสอบยอดรวม");
                 dnData[idx].deduction = oldDeduction;
                 dnData[idx].net = oldNet;
-                renderTable();
-                return;
+                renderTable(); return;
             }
             dnData[lastIdx].deduction = lastDeduction;
             dnData[lastIdx].net = lastNet;
         }
         renderTable();
     };
+
+    function renderTable() {
+        tableBody.innerHTML = '';
+        
+        dnData.forEach((row, index) => {
+            const tr = document.createElement('tr');
+            let statusText = "";
+            let statusClass = "status-pending";
+            let chkDisabled = "";
+            
+            if (row.status === 'completed') {
+                statusText = '<i class="fa-solid fa-circle-check"></i> คืนเงิน'; 
+                statusClass = "status-completed";
+                chkDisabled = "disabled"; 
+            } else if (row.status === 'processing') {
+                statusText = '<i class="fa-solid fa-check"></i> GI แล้ว'; 
+                statusClass = "status-processing";
+                tr.className = "tr-active-now";
+            } else {
+                statusText = '<i class="fa-solid fa-clock"></i> รอจัดส่ง';
+                statusClass = "status-pending";
+            }
+
+            // คำนวณ % ของมัดจำที่ต้องคืน (Deduction ÷ GI x 100)
+            let deductionPct = row.amount > 0 ? ((row.deduction || 0) / row.amount) * 100 : 0;
+            
+            let timeHtml = "";
+            if (row.timeStart) timeHtml += `<div style="font-size:11px; color:var(--primary); margin-bottom: 2px;"><i class="fa-solid fa-play"></i> GI: ${row.timeStart}</div>`;
+            if (row.timeConfirm) timeHtml += `<div style="font-size:11px; color:var(--success);"><i class="fa-solid fa-check-double"></i> คืน: ${row.timeConfirm}</div>`;
+            if (!timeHtml) timeHtml = "-";
+
+            let dnDisplay = row.dnNumber ? `<span style="font-weight:600; color:var(--primary);">${row.dnNumber}</span>` : `<span style="color:#cbd5e1; font-style:italic;">(ระบุด้านซ้าย)</span>`;
+            let billingDisplay = row.billingNumber ? `<span style="font-weight:600; color:#475569; font-size:12px;">${row.billingNumber}</span>` : `<span style="color:#cbd5e1; font-style:italic;">-</span>`;
+            let userDisplay = row.actionUser ? `<span style="font-size:12px; color:var(--primary-light);"><i class="fa-solid fa-user"></i> ${row.actionUser}</span>` : `<span style="color:#cbd5e1;">-</span>`;
+
+            let pctField = '';
+            let deductionField = '';
+            
+            if (index === dnData.length - 1) {
+                // แถวสุดท้าย ไม่ให้แก้เลขใดๆ ระบบจะบังคับเป็นเศษที่เหลือ
+                pctField = `<span style="font-weight:500;">${deductionPct.toFixed(2)}%</span>`;
+                deductionField = `<span style="color:var(--accent); font-weight:600;">-${formatCurrency(row.deduction)}</span>`;
+            } else {
+                // แถวอื่นๆ ให้แก้ % หรือ ค่าเงินคืน ได้
+                pctField = `
+                    <div style="display:flex; align-items:center; justify-content:center; gap:2px;">
+                        <input type="number" class="form-control table-input" 
+                            style="width: 70px; font-weight:500;" 
+                            value="${deductionPct.toFixed(2)}" 
+                            onchange="updateDeductionByPct(${index}, this.value)" 
+                            ${row.status === 'completed' ? 'readonly' : ''}>
+                        <span style="color:var(--text-muted); font-size: 12px;">%</span>
+                    </div>
+                `;
+                deductionField = `
+                    <div style="display:flex; align-items:center; justify-content:center; gap:4px;">
+                        <span style="color:var(--accent); font-weight:500;">-</span>
+                        <input type="number" class="form-control table-input" 
+                            style="color:var(--accent); font-weight:500; width: 90px;" 
+                            value="${row.deduction ? row.deduction.toFixed(2) : 0}" 
+                            onchange="updateCustomDeduction(${index}, this.value)" 
+                            ${row.status === 'completed' ? 'readonly' : ''}>
+                    </div>
+                `;
+            }
+
+            tr.innerHTML = `
+                <td>
+                    <input type="checkbox" class="dn-checkbox" data-idx="${index}" ${chkDisabled} style="cursor: pointer;">
+                </td>
+                <td style="font-weight:600;">${index + 1}</td>
+                <td>${dnDisplay}</td>
+                <td style="font-weight:500;">${formatCurrency(row.amount)}</td>
+                <td style="text-align: center;">${pctField}</td>
+                <td style="text-align: center;">${deductionField}</td>
+                <td style="color:var(--success); font-weight:600;">${formatCurrency(row.net)}</td>
+                <td>${billingDisplay}</td>
+                <td>
+                    <input type="text" class="form-control table-input" placeholder="ระบุเลขใบลดหนี้" value="${row.cnNumber || ''}" onchange="updateCNNumber(${index}, this.value)" ${row.status === 'completed' ? 'readonly' : ''}>
+                </td>
+                <td>${userDisplay}</td>
+                <td style="text-align:left; line-height: 1.3;">${timeHtml}</td>
+                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+            `;
+            tableBody.appendChild(tr);
+        });
+    }
 
     // --- จัดการการเลือก Checkbox ---
     window.toggleAllCheckboxes = function(source) {
@@ -688,7 +757,7 @@
         if(!proceed) return;
 
         const timestamp = Date.now().toString().slice(-4);
-        const dateCode = new Date().toISOString().slice(2, 10).replace(/-/g, ''); // YYMMDD
+        const dateCode = new Date().toISOString().slice(2, 10).replace(/-/g, '');
 
         checkedBoxes.forEach(cb => {
             let i = parseInt(cb.dataset.idx);
@@ -705,85 +774,9 @@
             }
         });
 
-        // ล้างการเลือก Checkbox ทั้งหมด
         document.getElementById('selectAllCheckbox').checked = false;
         renderTable();
     };
-
-    function renderTable() {
-        tableBody.innerHTML = '';
-        
-        dnData.forEach((row, index) => {
-            const tr = document.createElement('tr');
-            let statusText = "";
-            let statusClass = "status-pending";
-            let chkDisabled = "";
-            
-            if (row.status === 'completed') {
-                statusText = '<i class="fa-solid fa-circle-check"></i> คืนเงิน'; 
-                statusClass = "status-completed";
-                chkDisabled = "disabled"; // ซ่อนหรือ disable checkbox
-            } else if (row.status === 'processing') {
-                statusText = '<i class="fa-solid fa-check"></i> GI แล้ว'; 
-                statusClass = "status-processing";
-                tr.className = "tr-active-now";
-            } else {
-                statusText = '<i class="fa-solid fa-clock"></i> รอจัดส่ง';
-                statusClass = "status-pending";
-            }
-
-            let totalSOVal = parseFloat(inputTotalSO.value) || 0;
-            let depositPct = parseFloat(inputDepositPct.value) || 0;
-            let totalDeposit = totalSOVal * (depositPct / 100);
-
-            let deductionPct = totalDeposit > 0 ? (row.deduction / totalDeposit) * 100 : 0;
-            
-            let timeHtml = "";
-            if (row.timeStart) timeHtml += `<div style="font-size:11px; color:var(--primary); margin-bottom: 2px;"><i class="fa-solid fa-play"></i> GI: ${row.timeStart}</div>`;
-            if (row.timeConfirm) timeHtml += `<div style="font-size:11px; color:var(--success);"><i class="fa-solid fa-check-double"></i> คืน: ${row.timeConfirm}</div>`;
-            if (!timeHtml) timeHtml = "-";
-
-            let dnDisplay = row.dnNumber ? `<span style="font-weight:600; color:var(--primary);">${row.dnNumber}</span>` : `<span style="color:#cbd5e1; font-style:italic;">(ระบุด้านซ้าย)</span>`;
-            let billingDisplay = row.billingNumber ? `<span style="font-weight:600; color:#475569; font-size:12px;">${row.billingNumber}</span>` : `<span style="color:#cbd5e1; font-style:italic;">-</span>`;
-            let userDisplay = row.actionUser ? `<span style="font-size:12px; color:var(--primary-light);"><i class="fa-solid fa-user"></i> ${row.actionUser}</span>` : `<span style="color:#cbd5e1;">-</span>`;
-
-            let deductionField = '';
-            if (index === dnData.length - 1) {
-                deductionField = `<span style="color:var(--accent); font-weight:600;">-${formatCurrency(row.deduction)}</span>`;
-            } else {
-                deductionField = `
-                    <div style="display:flex; align-items:center; justify-content:center; gap:4px;">
-                        <span style="color:var(--accent); font-weight:500;">-</span>
-                        <input type="number" class="form-control table-input" 
-                            style="color:var(--accent); font-weight:500; width: 90px;" 
-                            value="${row.deduction ? row.deduction.toFixed(2) : 0}" 
-                            onchange="updateCustomDeduction(${index}, this.value)" 
-                            ${row.status === 'completed' ? 'readonly' : ''}>
-                    </div>
-                `;
-            }
-
-            tr.innerHTML = `
-                <td>
-                    <input type="checkbox" class="dn-checkbox" data-idx="${index}" ${chkDisabled} style="cursor: pointer;">
-                </td>
-                <td style="font-weight:600;">${index + 1}</td>
-                <td>${dnDisplay}</td>
-                <td style="font-weight:500;">${formatCurrency(row.amount)}</td>
-                <td>${deductionPct.toFixed(2)}%</td>
-                <td style="text-align: center;">${deductionField}</td>
-                <td style="color:var(--success); font-weight:600;">${formatCurrency(row.net)}</td>
-                <td>${billingDisplay}</td>
-                <td>
-                    <input type="text" class="form-control table-input" placeholder="ระบุเลขใบลดหนี้" value="${row.cnNumber || ''}" onchange="updateCNNumber(${index}, this.value)" ${row.status === 'completed' ? 'readonly' : ''}>
-                </td>
-                <td>${userDisplay}</td>
-                <td style="text-align:left; line-height: 1.3;">${timeHtml}</td>
-                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-            `;
-            tableBody.appendChild(tr);
-        });
-    }
 
     btnResetAll.addEventListener('click', () => {
         if(confirm('ต้องการล้างสถานะการทำรายการทั้งหมดและกลับไปสู่สถานะเริ่มต้นหรือไม่? (ข้อมูลเลขที่และมูลค่าจะยังอยู่)')) {
@@ -793,15 +786,18 @@
                 item.timeConfirm = '';
                 item.timestampConfirm = null;
                 item.billingNumber = ''; 
-                item.actionUser = ''; // Clear user info upon reset
+                item.actionUser = ''; 
             });
             renderTable();
         }
     });
 
-    inputDNCount.addEventListener('input', (e) => { syncDNArraySize(); });
-    inputDNCount.addEventListener('change', (e) => { syncDNArraySize(); });
-    inputDepositPct.addEventListener('input', validateAndCalculate);
+    inputDNCount.addEventListener('change', (e) => { syncDNArraySize(true); });
+    inputDepositPct.addEventListener('change', () => { updateCalculations(true); });
+
+    [inputSONumber, inputCustomerName, inputCustomerCode].forEach(el => {
+        el.addEventListener('input', validateFields);
+    });
 
     window.createNewSO = function() {
         inputSONumber.value = '';
@@ -814,18 +810,18 @@
         
         productItems = [{ name: 'สินค้าใหม่ 1', price: 50000 }, { name: 'สินค้าใหม่ 2', price: 50000 }];
         dnData = [
-            { amount: 30000, dnNumber: 'DN-01', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null, actionUser: '' }, 
-            { amount: 50000, dnNumber: 'DN-02', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null, actionUser: '' }, 
-            { amount: 20000, dnNumber: 'DN-03', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null, actionUser: '' }
+            { amount: 30000, dnNumber: 'DN-01', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null, actionUser: '', deduction: 0, net: 0 }, 
+            { amount: 50000, dnNumber: 'DN-02', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null, actionUser: '', deduction: 0, net: 0 }, 
+            { amount: 20000, dnNumber: 'DN-03', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null, actionUser: '', deduction: 0, net: 0 }
         ];
         
         renderProductInputs();
+        renderDNSetupInputs();
+        updateCalculations(true);
         switchTab('main');
     }
 
     btnSaveSO.addEventListener('click', () => {
-        if (!areFieldsValid) return;
-
         const soData = {
             id: editingSOIdInput.value || Date.now().toString(),
             soNumber: inputSONumber.value.trim(),
@@ -852,8 +848,10 @@
 
         localStorage.setItem(STORAGE_KEY, JSON.stringify(savedSOs));
         alert(`บันทึกข้อมูล SO: ${soData.soNumber} เรียบร้อยแล้ว!`);
+        validateFields();
     });
 
+    // --- ส่วนของตารางประวัติ SO และฟังก์ชันขยายดู DN ---
     function getFilteredSOs() {
         const filterStart = document.getElementById('filterStartDate').value;
         const filterEnd = document.getElementById('filterEndDate').value;
@@ -889,6 +887,18 @@
         renderLogTable();
     }
 
+    window.toggleSubTable = function(id) {
+        const row = document.getElementById(`sub-${id}`);
+        const icon = document.getElementById(`icon-${id}`);
+        if (row.classList.contains('open')) {
+            row.classList.remove('open');
+            icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
+        } else {
+            row.classList.add('open');
+            icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
+        }
+    }
+
     function renderLogTable() {
         logTableBody.innerHTML = '';
         const displaySOs = getFilteredSOs();
@@ -914,8 +924,8 @@
             } else {
                 statusActionHtml = `
                     <div class="action-btns">
-                        <button class="action-btn edit-btn" onclick="editSO('${so.id}')"><i class="fa-solid fa-pen"></i></button>
-                        <button class="action-btn cancel-btn" onclick="cancelSO('${so.id}')"><i class="fa-solid fa-ban"></i></button>
+                        <button class="action-btn edit-btn" onclick="editSO('${so.id}')" title="แก้ไข"><i class="fa-solid fa-pen"></i></button>
+                        <button class="action-btn cancel-btn" onclick="cancelSO('${so.id}')" title="ยกเลิก"><i class="fa-solid fa-ban"></i></button>
                     </div>
                 `;
             }
@@ -925,7 +935,24 @@
             let firstConfirmTimeStr = '-';
             let firstConfirmTimestamp = Infinity;
 
-            if (so.dnData) {
+            let subTableHtml = `
+                <table class="sub-table">
+                    <thead>
+                        <tr>
+                            <th>เลข DN</th>
+                            <th>มูลค่า (GI)</th>
+                            <th>เงินมัดจำที่ต้องคืน</th>
+                            <th>เรียกเก็บเพิ่ม</th>
+                            <th>เลขที่ Billing</th>
+                            <th>เลขที่ CN</th>
+                            <th>ผู้ดำเนินการ</th>
+                            <th>สถานะ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            if (so.dnData && so.dnData.length > 0) {
                 so.dnData.forEach(dn => {
                     if (dn.status === 'completed') {
                         refundedAmount += (dn.deduction || 0);
@@ -936,8 +963,28 @@
                             firstConfirmTimeStr = dn.timeConfirm || '-';
                         }
                     }
+
+                    let st = dn.status === 'completed' ? '<span class="status-badge status-completed">คืนเงิน</span>' :
+                             dn.status === 'processing' ? '<span class="status-badge status-processing">GI แล้ว</span>' :
+                             '<span class="status-badge status-pending">รอจัดส่ง</span>';
+                    
+                    subTableHtml += `
+                        <tr>
+                            <td style="font-weight:600; color:var(--primary);">${dn.dnNumber || '-'}</td>
+                            <td>${formatCurrency(dn.amount)}</td>
+                            <td style="color:var(--accent);">${formatCurrency(dn.deduction)}</td>
+                            <td style="color:var(--success);">${formatCurrency(dn.net)}</td>
+                            <td>${dn.billingNumber || '-'}</td>
+                            <td>${dn.cnNumber || '-'}</td>
+                            <td style="color:var(--primary-light);"><i class="fa-solid fa-user"></i> ${dn.actionUser || '-'}</td>
+                            <td>${st}</td>
+                        </tr>
+                    `;
                 });
+            } else {
+                subTableHtml += `<tr><td colspan="8" style="text-align:center;">ไม่มีข้อมูล DN</td></tr>`;
             }
+            subTableHtml += `</tbody></table>`;
             
             const remainingRefund = totalDeposit - refundedAmount;
 
@@ -948,6 +995,9 @@
             }
 
             tr.innerHTML = `
+                <td style="font-weight:600; color:var(--primary);">
+                    <span class="toggle-btn" onclick="toggleSubTable('${so.id}')"><i class="fa-solid fa-chevron-down" id="icon-${so.id}"></i></span> 
+                </td>
                 <td style="font-weight:600; color:var(--primary);">${so.soNumber}</td>
                 <td>${so.custCode}</td>
                 <td>${so.custName}</td>
@@ -962,6 +1012,21 @@
                 <td>${statusActionHtml}</td>
             `;
             logTableBody.appendChild(tr);
+
+            const subTr = document.createElement('tr');
+            subTr.id = `sub-${so.id}`;
+            subTr.className = 'sub-table-row';
+            subTr.innerHTML = `
+                <td colspan="13" style="padding: 0;">
+                    <div class="sub-table-container">
+                        <div style="font-weight:600; margin-bottom: 8px; color: var(--primary); font-size:14px;">
+                            <i class="fa-solid fa-list-check"></i> รายละเอียดการหักมัดจำ DN (เลขที่ใบเสร็จ: ${so.depositReceipt || '-'})
+                        </div>
+                        ${subTableHtml}
+                    </div>
+                </td>
+            `;
+            logTableBody.appendChild(subTr);
         });
     }
 
@@ -982,7 +1047,9 @@
         inputDNCount.value = dnData.length;
 
         renderProductInputs();
+        renderDNSetupInputs();
         switchTab('main'); 
+        updateCalculations(false);
     };
 
     window.cancelSO = function(id) {
@@ -1047,19 +1114,14 @@
         document.body.removeChild(link);
     }
 
-    requiredFields.forEach(input => {
-        input.addEventListener('input', validateAndCalculate);
-    });
-
     window.addEventListener('load', () => {
         inputDNCount.value = '3';
         renderProductInputs();
         renderDNSetupInputs();
+        updateCalculations(true);
     });
 
 </script>
 
 </body>
 </html>
-
-```
