@@ -1,21 +1,9 @@
-ได้ดำเนินการปรับ Logic ให้สอดคล้องกับ Requirement เรียบร้อยแล้วครับ โดยมีการปรับแก้ 2 ส่วนหลักๆ ดังนี้:
-
-1. **ปรับวิธีคำนวณและแสดงผล %:** ในตาราง ช่อง `% ของมัดจำที่ต้องคืน` จะถูกเปลี่ยนเป็นการนำ **เงินมัดจำที่ต้องคืน ÷ มูลค่ารับสินค้า (GI) × 100** แทน
-
-
-2. **แก้ไข % ได้แบบ Two-way Bind:** เปลี่ยนช่อง % ให้เป็นกล่อง Input (ยกเว้นแถวสุดท้าย) ซึ่งเมื่อ User แก้ไขตัวเลข % ระบบจะไปคำนวณกลับเป็นจำนวนเงิน (Deduction) แล้วทำงานร่วมกับระบบตรวจสอบการติดลบเดิม และถ้า User แก้ไขจำนวนเงิน ตัวเลข % ก็จะอัปเดตตามแบบ Real-time
-
-
-
-สามารถคัดลอก Source Code ชุดเต็ม (อัปเดตเป็น V4.8) ด้านล่างนี้ไปใช้งานได้เลยครับ:
-
-```html
 <!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sourcing Product - Dynamic Money Route Tracker (V4.8)</title>
+    <title>Sourcing Product - Dynamic Money Route Tracker (V4.9)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -139,6 +127,15 @@
         
         .dn-setup-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
         .dn-setup-row input { padding-left: 10px !important; }
+
+        /* Styles for expandable rows */
+        .toggle-btn { cursor: pointer; color: var(--primary); display: inline-block; width: 24px; text-align: center; font-size: 14px; transition: transform 0.2s; }
+        .sub-table-row { display: none; }
+        .sub-table-row.open { display: table-row; }
+        .sub-table-container { padding: 15px 25px; background-color: #f8fafc; border-bottom: 1px solid var(--border); border-top: 1px dashed #cbd5e1; }
+        .sub-table { width: 100%; background: white; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); margin-top: 5px; }
+        .sub-table th { background: #e2e8f0; font-size: 12px; color: var(--text-main); padding: 8px; }
+        .sub-table td { font-size: 12px; padding: 8px; border-bottom: 1px solid var(--border); }
     </style>
 </head>
 <body>
@@ -151,7 +148,7 @@
         </div>
         <div class="badge-live">
             <div class="dot"></div>
-            <span>Mockup website V4.8</span>
+            <span>Mockup website V4.9</span>
         </div>
     </header>
 
@@ -229,6 +226,7 @@
                     </div>
                 </div>
 
+                <!-- ช่องระบุจำนวน DN -->
                 <div class="form-group">
                     <label for="inputDNCount">จำนวนเลข DN <span class="required-asterisk">*</span></label>
                     <div class="input-wrapper">
@@ -373,13 +371,12 @@
 </div>
 
 <script>
-    const STORAGE_KEY = 'mockup_saved_sos_v4_8';
+    const STORAGE_KEY = 'mockup_saved_sos_v4_9';
     let savedSOs = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
     const inputSONumber = document.getElementById('inputSONumber');
     const inputCustomerName = document.getElementById('inputCustomerName');
     const inputCustomerCode = document.getElementById('inputCustomerCode');
-    const requiredFields = document.querySelectorAll('.required-field');
     const editingSOIdInput = document.getElementById('editingSOId');
 
     const inputTotalSO = document.getElementById('inputTotalSO');
@@ -411,7 +408,6 @@
         { amount: 20000, dnNumber: 'DN-03', cnNumber: '', billingNumber: '', status: 'pending', timeStart: '', timeConfirm: '', timestampConfirm: null, actionUser: '' }
     ]; 
     
-    let isDnValid = true; 
     let areFieldsValid = false; 
     const currentSessionUser = "Mock_Admin_01"; 
 
@@ -529,7 +525,7 @@
         dnData.forEach((item, i) => {
             html += `
                 <div class="dn-setup-row">
-                    <div style="width: 45px; font-weight:600; font-size: 13px; color: var(--primary);">DN #${i+1}</div>
+                    <div style="width: 45px; font-weight:600; font-size: 13px; color: var(--primary);">DN #\${i+1}</div>
                     <input type="text" class="form-control dn-name-input" data-idx="${i}" placeholder="เลข DN (เช่น DN-01)" value="${item.dnNumber}" style="flex: 1;">
                     <div style="position:relative; width: 150px;">
                         <input type="number" class="form-control dn-val-input" data-idx="${i}" value="${item.amount}" min="0">
@@ -557,12 +553,13 @@
         validateAndCalculate();
     }
 
+    // ฟังก์ชันคำนวณและตรวจสอบเงื่อนไขปุ่ม Save
     function validateAndCalculate() {
         let totalSO = parseFloat(inputTotalSO.value) || 0;
         let sumDN = dnData.reduce((a, b) => a + b.amount, 0);
         sumDN = Math.round(sumDN * 100) / 100;
         
-        // แจ้งเตือนเมื่อผลรวมไม่ตรงกัน แต่ไม่บล็อกการแสดงตารางแล้ว
+        // แจ้งเตือนเมื่อผลรวมไม่ตรงกัน แต่ไม่บล็อกการแสดงตาราง
         if (sumDN !== totalSO) {
             pctWarning.style.display = 'block';
             pctSuccess.style.display = 'none';
@@ -572,6 +569,7 @@
             pctSuccess.style.display = 'block';
         }
 
+        // ตรวจสอบว่ากรอกข้อมูลจำเป็นครบแล้วหรือยังเพื่อเปิดปุ่ม Save
         areFieldsValid = (
             inputSONumber.value.trim() !== '' &&
             inputCustomerName.value.trim() !== '' &&
@@ -581,14 +579,15 @@
             totalSO > 0
         );
 
-        if (areFieldsValid) {
-            btnSaveSO.disabled = false;
-        } else {
-            btnSaveSO.disabled = true;
-        }
+        btnSaveSO.disabled = !areFieldsValid;
 
         updateCalculations();
     }
+
+    // ผูก Event ทันทีที่โหลด เพื่อให้ปุ่มบันทึกทำงานทันทีเมื่อพิมพ์
+    [inputSONumber, inputCustomerName, inputCustomerCode, inputDepositPct, inputDNCount].forEach(el => {
+        el.addEventListener('input', validateAndCalculate);
+    });
 
     function updateCalculations() {
         let totalSOVal = parseFloat(inputTotalSO.value) || 0;
@@ -601,7 +600,7 @@
         sumTotalSO.textContent = formatCurrency(totalSOVal);
         sumInitialDeposit.textContent = formatCurrency(firstDepositAmount);
         sumRemainingSO.textContent = formatCurrency(remainingSOAmount);
-        sumDeductionRate.textContent = `${depositPct.toFixed(2)}% ของแต่ละ DN`;
+        sumDeductionRate.textContent = `\${depositPct.toFixed(2)}% ของแต่ละ DN`;
 
         dnData.forEach((item, idx) => {
             item.deduction = item.amount * depositRatio;
@@ -615,9 +614,10 @@
         dnData[idx].cnNumber = val;
     };
 
-    // --- เพิ่มฟังก์ชันอัพเดท Deduction จาก % ---
+    // --- ฟังก์ชันอัพเดท Deduction จากการพิมพ์ % ที่ช่องตาราง ---
     window.updateDeductionByPct = function(idx, pctVal) {
         let amount = dnData[idx].amount || 0;
+        // % ของเงินมัดจำที่ต้องคืน คำนวณจากยอดรับสินค้า (GI) ของบรรทัดนั้น
         let newDeduction = amount * (parseFloat(pctVal) / 100);
         updateCustomDeduction(idx, newDeduction);
     };
@@ -671,6 +671,127 @@
         renderTable();
     };
 
+    function renderTable() {
+        tableBody.innerHTML = '';
+        
+        dnData.forEach((row, index) => {
+            const tr = document.createElement('tr');
+            let statusText = "";
+            let statusClass = "status-pending";
+            let chkDisabled = "";
+            
+            if (row.status === 'completed') {
+                statusText = '<i class="fa-solid fa-circle-check"></i> คืนเงิน'; 
+                statusClass = "status-completed";
+                chkDisabled = "disabled"; 
+            } else if (row.status === 'processing') {
+                statusText = '<i class="fa-solid fa-check"></i> GI แล้ว'; 
+                statusClass = "status-processing";
+                tr.className = "tr-active-now";
+            } else {
+                statusText = '<i class="fa-solid fa-clock"></i> รอจัดส่ง';
+                statusClass = "status-pending";
+            }
+
+            // คำนวณ % ของเงินมัดจำที่ต้องคืนเทียบกับยอด GI (Amount) ของรอบนั้นๆ
+            let deductionPct = row.amount > 0 ? (row.deduction / row.amount) * 100 : 0;
+            
+            let timeHtml = "";
+            if (row.timeStart) timeHtml += `<div style="font-size:11px; color:var(--primary); margin-bottom: 2px;"><i class="fa-solid fa-play"></i> GI: \${row.timeStart}</div>`;
+            if (row.timeConfirm) timeHtml += `<div style="font-size:11px; color:var(--success);"><i class="fa-solid fa-check-double"></i> คืน: \${row.timeConfirm}</div>`;
+            if (!timeHtml) timeHtml = "-";
+
+            let dnDisplay = row.dnNumber ? `<span style="font-weight:600; color:var(--primary);">\${row.dnNumber}</span>` : `<span style="color:#cbd5e1; font-style:italic;">(ระบุด้านซ้าย)</span>`;
+            let billingDisplay = row.billingNumber ? `<span style="font-weight:600; color:#475569; font-size:12px;">\${row.billingNumber}</span>` : `<span style="color:#cbd5e1; font-style:italic;">-</span>`;
+            let userDisplay = row.actionUser ? `<span style="font-size:12px; color:var(--primary-light);"><i class="fa-solid fa-user"></i> \${row.actionUser}</span>` : `<span style="color:#cbd5e1;">-</span>`;
+
+            let pctField = '';
+            let deductionField = '';
+            
+            if (index === dnData.length - 1) {
+                // แถวสุดท้าย ไม่ให้แก้เลขใดๆ ระบบจะ Auto
+                pctField = `<span style="font-weight:500;">\${deductionPct.toFixed(2)}%</span>`;
+                deductionField = `<span style="color:var(--accent); font-weight:600;">-\${formatCurrency(row.deduction)}</span>`;
+            } else {
+                // แถวอื่นๆ ให้แก้ % หรือ ค่าเงินคืน ได้
+                pctField = `
+                    <div style="display:flex; align-items:center; justify-content:center; gap:2px;">
+                        <input type="number" class="form-control table-input" 
+                            style="width: 70px; font-weight:500;" 
+                            value="\${deductionPct.toFixed(2)}" 
+                            onchange="updateDeductionByPct(\${index}, this.value)" 
+                            \${row.status === 'completed' ? 'readonly' : ''}>
+                        <span style="color:var(--text-muted); font-size: 12px;">%</span>
+                    </div>
+                `;
+                deductionField = `
+                    <div style="display:flex; align-items:center; justify-content:center; gap:4px;">
+                        <span style="color:var(--accent); font-weight:500;">-</span>
+                        <input type="number" class="form-control table-input" 
+                            style="color:var(--accent); font-weight:500; width: 90px;" 
+                            value="\${row.deduction ? row.deduction.toFixed(2) : 0}" 
+                            onchange="updateCustomDeduction(\${index}, this.value)" 
+                            \${row.status === 'completed' ? 'readonly' : ''}>
+                    </div>
+                `;
+            }
+
+            let actionBtnHtml = '';
+            if (row.status === 'pending') {
+                actionBtnHtml = `<button class="btn btn-primary" style="padding: 4px 8px; font-size:11px; width: 100%;" onclick="processSingleDN('start', \${index})">เริ่มดำเนินการ</button>`;
+            } else if (row.status === 'processing') {
+                actionBtnHtml = `<button class="btn btn-success" style="padding: 4px 8px; font-size:11px; width: 100%;" onclick="processSingleDN('confirm', \${index})">ยืนยันคืนมัดจำ</button>`;
+            } else {
+                actionBtnHtml = `<span style="color:var(--success); font-size:12px; font-weight: 600;"><i class="fa-solid fa-check"></i> เสร็จสิ้น</span>`;
+            }
+
+            tr.innerHTML = `
+                <td>
+                    <input type="checkbox" class="dn-checkbox" data-idx="${index}" ${chkDisabled} style="cursor: pointer;">
+                </td>
+                <td style="font-weight:600;">\${index + 1}</td>
+                <td>\${dnDisplay}</td>
+                <td style="font-weight:500;">\${formatCurrency(row.amount)}</td>
+                <td style="text-align: center;">\${pctField}</td>
+                <td style="text-align: center;">\${deductionField}</td>
+                <td style="color:var(--success); font-weight:600;">\${formatCurrency(row.net)}</td>
+                <td>\${billingDisplay}</td>
+                <td>
+                    <input type="text" class="form-control table-input" placeholder="ระบุเลขใบลดหนี้" value="\${row.cnNumber || ''}" onchange="updateCNNumber(${index}, this.value)" ${row.status === 'completed' ? 'readonly' : ''}>
+                </td>
+                <td>\${userDisplay}</td>
+                <td style="text-align:left; line-height: 1.3;">\${timeHtml}</td>
+                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                <td>\${actionBtnHtml}</td>
+            `;
+            tableBody.appendChild(tr);
+        });
+    }
+
+    // ฟังก์ชันจัดการทีละ Row 
+    window.processSingleDN = function(actionType, i) {
+        if(actionType === 'start') {
+            const timestamp = Date.now().toString().slice(-4);
+            const dateCode = new Date().toISOString().slice(2, 10).replace(/-/g, '');
+            dnData[i].status = 'processing';
+            dnData[i].timeStart = getNowStr();
+            dnData[i].billingNumber = `BIL-\${dateCode}-${timestamp}-${(i+1).toString().padStart(2, '0')}`;
+            dnData[i].actionUser = currentSessionUser; 
+        } else if (actionType === 'confirm') {
+            if(!dnData[i].cnNumber || dnData[i].cnNumber.trim() === '') {
+                alert('กรุณากรอก "เลขที่ใบลดหนี้ (CN)" ก่อนยืนยันครับ');
+                return;
+            }
+            if(confirm(`ยืนยันการคืนเงินมัดจำสำหรับ DN นี้เสร็จสมบูรณ์?`)) {
+                dnData[i].status = 'completed';
+                dnData[i].timeConfirm = getNowStr();
+                dnData[i].timestampConfirm = Date.now(); 
+                dnData[i].actionUser = currentSessionUser; 
+            }
+        }
+        renderTable();
+    }
+
     // --- จัดการการเลือก Checkbox ---
     window.toggleAllCheckboxes = function(source) {
         const checkboxes = document.querySelectorAll('.dn-checkbox:not([disabled])');
@@ -705,7 +826,7 @@
         if(!proceed) return;
 
         const timestamp = Date.now().toString().slice(-4);
-        const dateCode = new Date().toISOString().slice(2, 10).replace(/-/g, ''); // YYMMDD
+        const dateCode = new Date().toISOString().slice(2, 10).replace(/-/g, ''); 
 
         checkedBoxes.forEach(cb => {
             let i = parseInt(cb.dataset.idx);
@@ -726,127 +847,6 @@
         renderTable();
     };
 
-    function renderTable() {
-        tableBody.innerHTML = '';
-        
-        dnData.forEach((row, index) => {
-            const tr = document.createElement('tr');
-            let statusText = "";
-            let statusClass = "status-pending";
-            let chkDisabled = "";
-            
-            if (row.status === 'completed') {
-                statusText = '<i class="fa-solid fa-circle-check"></i> คืนเงิน'; 
-                statusClass = "status-completed";
-                chkDisabled = "disabled"; 
-            } else if (row.status === 'processing') {
-                statusText = '<i class="fa-solid fa-check"></i> GI แล้ว'; 
-                statusClass = "status-processing";
-                tr.className = "tr-active-now";
-            } else {
-                statusText = '<i class="fa-solid fa-clock"></i> รอจัดส่ง';
-                statusClass = "status-pending";
-            }
-
-            // คำนวณ % ของเงินมัดจำที่ต้องคืนเทียบกับยอด GI (Amount) ของรอบนั้นๆ
-            let deductionPct = row.amount > 0 ? (row.deduction / row.amount) * 100 : 0;
-            
-            let timeHtml = "";
-            if (row.timeStart) timeHtml += `<div style="font-size:11px; color:var(--primary); margin-bottom: 2px;"><i class="fa-solid fa-play"></i> GI: ${row.timeStart}</div>`;
-            if (row.timeConfirm) timeHtml += `<div style="font-size:11px; color:var(--success);"><i class="fa-solid fa-check-double"></i> คืน: ${row.timeConfirm}</div>`;
-            if (!timeHtml) timeHtml = "-";
-
-            let dnDisplay = row.dnNumber ? `<span style="font-weight:600; color:var(--primary);">${row.dnNumber}</span>` : `<span style="color:#cbd5e1; font-style:italic;">(ระบุด้านซ้าย)</span>`;
-            let billingDisplay = row.billingNumber ? `<span style="font-weight:600; color:#475569; font-size:12px;">${row.billingNumber}</span>` : `<span style="color:#cbd5e1; font-style:italic;">-</span>`;
-            let userDisplay = row.actionUser ? `<span style="font-size:12px; color:var(--primary-light);"><i class="fa-solid fa-user"></i> ${row.actionUser}</span>` : `<span style="color:#cbd5e1;">-</span>`;
-
-            let pctField = '';
-            let deductionField = '';
-            
-            if (index === dnData.length - 1) {
-                // แถวสุดท้าย ไม่ให้แก้เลขใดๆ ระบบจะ Auto
-                pctField = `<span style="font-weight:500;">${deductionPct.toFixed(2)}%</span>`;
-                deductionField = `<span style="color:var(--accent); font-weight:600;">-${formatCurrency(row.deduction)}</span>`;
-            } else {
-                // แถวอื่นๆ ให้แก้ % หรือ ค่าเงินคืน ได้
-                pctField = `
-                    <div style="display:flex; align-items:center; justify-content:center; gap:2px;">
-                        <input type="number" class="form-control table-input" 
-                            style="width: 70px; font-weight:500;" 
-                            value="${deductionPct.toFixed(2)}" 
-                            onchange="updateDeductionByPct(${index}, this.value)" 
-                            ${row.status === 'completed' ? 'readonly' : ''}>
-                        <span style="color:var(--text-muted); font-size: 12px;">%</span>
-                    </div>
-                `;
-                deductionField = `
-                    <div style="display:flex; align-items:center; justify-content:center; gap:4px;">
-                        <span style="color:var(--accent); font-weight:500;">-</span>
-                        <input type="number" class="form-control table-input" 
-                            style="color:var(--accent); font-weight:500; width: 90px;" 
-                            value="${row.deduction ? row.deduction.toFixed(2) : 0}" 
-                            onchange="updateCustomDeduction(${index}, this.value)" 
-                            ${row.status === 'completed' ? 'readonly' : ''}>
-                    </div>
-                `;
-            }
-
-            let actionBtnHtml = '';
-            if (row.status === 'pending') {
-                actionBtnHtml = `<button class="btn btn-primary" style="padding: 4px 8px; font-size:11px; width: 100%;" onclick="processSingleDN('start', ${index})">เริ่มดำเนินการ</button>`;
-            } else if (row.status === 'processing') {
-                actionBtnHtml = `<button class="btn btn-success" style="padding: 4px 8px; font-size:11px; width: 100%;" onclick="processSingleDN('confirm', ${index})">ยืนยันคืนมัดจำ</button>`;
-            } else {
-                actionBtnHtml = `<span style="color:var(--success); font-size:12px; font-weight: 600;"><i class="fa-solid fa-check"></i> เสร็จสิ้น</span>`;
-            }
-
-            tr.innerHTML = `
-                <td>
-                    <input type="checkbox" class="dn-checkbox" data-idx="${index}" ${chkDisabled} style="cursor: pointer;">
-                </td>
-                <td style="font-weight:600;">${index + 1}</td>
-                <td>${dnDisplay}</td>
-                <td style="font-weight:500;">${formatCurrency(row.amount)}</td>
-                <td style="text-align: center;">${pctField}</td>
-                <td style="text-align: center;">${deductionField}</td>
-                <td style="color:var(--success); font-weight:600;">${formatCurrency(row.net)}</td>
-                <td>${billingDisplay}</td>
-                <td>
-                    <input type="text" class="form-control table-input" placeholder="ระบุเลขใบลดหนี้" value="${row.cnNumber || ''}" onchange="updateCNNumber(${index}, this.value)" ${row.status === 'completed' ? 'readonly' : ''}>
-                </td>
-                <td>${userDisplay}</td>
-                <td style="text-align:left; line-height: 1.3;">${timeHtml}</td>
-                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-                <td>${actionBtnHtml}</td>
-            `;
-            tableBody.appendChild(tr);
-        });
-    }
-
-    // ฟังก์ชันจัดการทีละ Row 
-    window.processSingleDN = function(actionType, i) {
-        if(actionType === 'start') {
-            const timestamp = Date.now().toString().slice(-4);
-            const dateCode = new Date().toISOString().slice(2, 10).replace(/-/g, ''); // YYMMDD
-            dnData[i].status = 'processing';
-            dnData[i].timeStart = getNowStr();
-            dnData[i].billingNumber = `BIL-${dateCode}-${timestamp}-${(i+1).toString().padStart(2, '0')}`;
-            dnData[i].actionUser = currentSessionUser; 
-        } else if (actionType === 'confirm') {
-            if(!dnData[i].cnNumber || dnData[i].cnNumber.trim() === '') {
-                alert('กรุณากรอก "เลขที่ใบลดหนี้ (CN)" ก่อนยืนยันครับ');
-                return;
-            }
-            if(confirm(`ยืนยันการคืนเงินมัดจำสำหรับ DN นี้เสร็จสมบูรณ์?`)) {
-                dnData[i].status = 'completed';
-                dnData[i].timeConfirm = getNowStr();
-                dnData[i].timestampConfirm = Date.now(); 
-                dnData[i].actionUser = currentSessionUser; 
-            }
-        }
-        renderTable();
-    }
-
     btnResetAll.addEventListener('click', () => {
         if(confirm('ต้องการล้างสถานะการทำรายการทั้งหมดและกลับไปสู่สถานะเริ่มต้นหรือไม่? (ข้อมูลเลขที่และมูลค่าจะยังอยู่)')) {
             dnData.forEach(item => {
@@ -860,10 +860,6 @@
             renderTable();
         }
     });
-
-    inputDNCount.addEventListener('input', (e) => { syncDNArraySize(); });
-    inputDNCount.addEventListener('change', (e) => { syncDNArraySize(); });
-    inputDepositPct.addEventListener('input', validateAndCalculate);
 
     window.createNewSO = function() {
         inputSONumber.value = '';
@@ -883,6 +879,7 @@
         
         renderProductInputs();
         switchTab('main');
+        validateAndCalculate(); // สั่งประมวลผล Validate ปุ่ม Save 
     }
 
     btnSaveSO.addEventListener('click', () => {
@@ -916,6 +913,7 @@
         alert(`บันทึกข้อมูล SO: ${soData.soNumber} เรียบร้อยแล้ว!`);
     });
 
+    // --- ส่วนของตารางประวัติ SO และฟังก์ชันขยายดู DN ---
     function getFilteredSOs() {
         const filterStart = document.getElementById('filterStartDate').value;
         const filterEnd = document.getElementById('filterEndDate').value;
@@ -951,6 +949,18 @@
         renderLogTable();
     }
 
+    window.toggleSubTable = function(id) {
+        const row = document.getElementById(`sub-${id}`);
+        const icon = document.getElementById(`icon-${id}`);
+        if (row.classList.contains('open')) {
+            row.classList.remove('open');
+            icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
+        } else {
+            row.classList.add('open');
+            icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
+        }
+    }
+
     function renderLogTable() {
         logTableBody.innerHTML = '';
         const displaySOs = getFilteredSOs();
@@ -976,8 +986,8 @@
             } else {
                 statusActionHtml = `
                     <div class="action-btns">
-                        <button class="action-btn edit-btn" onclick="editSO('${so.id}')"><i class="fa-solid fa-pen"></i></button>
-                        <button class="action-btn cancel-btn" onclick="cancelSO('${so.id}')"><i class="fa-solid fa-ban"></i></button>
+                        <button class="action-btn edit-btn" onclick="editSO('\${so.id}')" title="แก้ไข"><i class="fa-solid fa-pen"></i></button>
+                        <button class="action-btn cancel-btn" onclick="cancelSO('\${so.id}')" title="ยกเลิก"><i class="fa-solid fa-ban"></i></button>
                     </div>
                 `;
             }
@@ -987,7 +997,25 @@
             let firstConfirmTimeStr = '-';
             let firstConfirmTimestamp = Infinity;
 
-            if (so.dnData) {
+            // สำหรับตารางข้อมูลย่อยของ DN
+            let subTableHtml = `
+                <table class="sub-table">
+                    <thead>
+                        <tr>
+                            <th>เลข DN</th>
+                            <th>มูลค่า (GI)</th>
+                            <th>เงินมัดจำที่ต้องคืน</th>
+                            <th>เรียกเก็บเพิ่ม</th>
+                            <th>เลขที่ Billing</th>
+                            <th>เลขที่ CN</th>
+                            <th>ผู้ดำเนินการ</th>
+                            <th>สถานะ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            if (so.dnData && so.dnData.length > 0) {
                 so.dnData.forEach(dn => {
                     if (dn.status === 'completed') {
                         refundedAmount += (dn.deduction || 0);
@@ -998,11 +1026,33 @@
                             firstConfirmTimeStr = dn.timeConfirm || '-';
                         }
                     }
+
+                    // จัดข้อมูลแสดงผลในตารางย่อย
+                    let st = dn.status === 'completed' ? '<span class="status-badge status-completed">คืนเงิน</span>' :
+                             dn.status === 'processing' ? '<span class="status-badge status-processing">GI แล้ว</span>' :
+                             '<span class="status-badge status-pending">รอจัดส่ง</span>';
+                    
+                    subTableHtml += `
+                        <tr>
+                            <td style="font-weight:600; color:var(--primary);">\${dn.dnNumber || '-'}</td>
+                            <td>\${formatCurrency(dn.amount)}</td>
+                            <td style="color:var(--accent);">\${formatCurrency(dn.deduction)}</td>
+                            <td style="color:var(--success);">\${formatCurrency(dn.net)}</td>
+                            <td>\${dn.billingNumber || '-'}</td>
+                            <td>\${dn.cnNumber || '-'}</td>
+                            <td style="color:var(--primary-light);"><i class="fa-solid fa-user"></i> \${dn.actionUser || '-'}</td>
+                            <td>\${st}</td>
+                        </tr>
+                    `;
                 });
+            } else {
+                subTableHtml += `<tr><td colspan="8" style="text-align:center;">ไม่มีข้อมูล DN</td></tr>`;
             }
+            subTableHtml += `</tbody></table>`;
             
             const remainingRefund = totalDeposit - refundedAmount;
 
+            // แถวตารางหลัก (SO Row)
             const tr = document.createElement('tr');
             if(so.status === 'cancelled') {
                 tr.style.backgroundColor = '#f8fafc';
@@ -1010,118 +1060,18 @@
             }
 
             tr.innerHTML = `
-                <td style="font-weight:600; color:var(--primary);">${so.soNumber}</td>
-                <td>${so.custCode}</td>
-                <td>${so.custName}</td>
-                <td style="font-size: 12px; color:var(--primary-light);"><i class="fa-solid fa-circle-user"></i> ${so.user || '-'}</td>
-                <td>${so.dnData ? so.dnData.length : 0} คัน</td>
-                <td>${so.depositPct || 0}%</td>
-                <td style="color:var(--accent); font-weight:500;">${formatCurrency(totalDeposit)}</td>
-                <td style="color:var(--success); font-weight:500;">${formatCurrency(refundedAmount)}</td>
-                <td style="color:var(--danger); font-weight:500;">${formatCurrency(remainingRefund)}</td>
-                <td style="font-size:12px; font-weight:500; color:var(--success);">${firstConfirmTimeStr}</td>
-                <td style="font-size:12px; color:var(--text-muted);">${so.dateSaved || '-'}</td>
-                <td>${statusActionHtml}</td>
-            `;
-            logTableBody.appendChild(tr);
-        });
-    }
-
-    window.editSO = function(id) {
-        const so = savedSOs.find(s => s.id === id);
-        if (!so) return;
-
-        editingSOIdInput.value = so.id;
-        inputSONumber.value = so.soNumber;
-        inputCustomerName.value = so.custName;
-        inputCustomerCode.value = so.custCode;
-        inputDepositPct.value = so.depositPct || 50;
-        inputDepositReceipt.value = so.depositReceipt || '';
-        
-        productItems = JSON.parse(JSON.stringify(so.products || []));
-        dnData = JSON.parse(JSON.stringify(so.dnData || []));
-        
-        inputDNCount.value = dnData.length;
-
-        renderProductInputs();
-        switchTab('main'); 
-    };
-
-    window.cancelSO = function(id) {
-        if(confirm('ยืนยันว่าต้องการยกเลิก SO นี้ใช่หรือไม่?')) {
-            const index = savedSOs.findIndex(s => s.id === id);
-            if (index !== -1) {
-                savedSOs[index].status = 'cancelled';
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(savedSOs));
-                
-                if (editingSOIdInput.value === id) {
-                    createNewSO();
-                    switchTab('log');
-                } else {
-                    renderLogTable(); 
-                }
-            }
-        }
-    };
-
-    window.exportExcel = function() {
-        const exportSOs = getFilteredSOs();
-        if(exportSOs.length === 0) return alert("ไม่มีข้อมูลสำหรับการ Export ตามช่วงเวลาที่กำหนด");
-        
-        let csvContent = "\uFEFF"; 
-        csvContent += "หมายเลข SO,รหัสลูกค้า,ชื่อลูกค้า,ผู้ทำรายการ,จำนวนDN,% มัดจำ,ยอดมัดจำทั้งหมด,คืนเงินไปแล้วเท่าไหร่,เหลือยอดคืนอีกเท่าไหร่,Create date,เวลาที่บันทึก/แก้ไข,สถานะ\n";
-        
-        exportSOs.forEach(so => {
-            const totalDeposit = so.totalSO * ((so.depositPct || 0) / 100);
-            let refundedAmount = 0;
-            let firstConfirmTimeStr = '-';
-            let firstConfirmTimestamp = Infinity;
-
-            if (so.dnData) {
-                so.dnData.forEach(dn => {
-                    if (dn.status === 'completed') {
-                        refundedAmount += (dn.deduction || 0);
-                        if (dn.timestampConfirm && dn.timestampConfirm < firstConfirmTimestamp) {
-                            firstConfirmTimestamp = dn.timestampConfirm;
-                            firstConfirmTimeStr = dn.timeConfirm;
-                        } else if (!dn.timestampConfirm && firstConfirmTimeStr === '-') {
-                            firstConfirmTimeStr = dn.timeConfirm || '-';
-                        }
-                    }
-                });
-            }
-            const remainingRefund = totalDeposit - refundedAmount;
-
-            let row = [
-                `"${so.soNumber}"`, `"${so.custCode}"`, `"${so.custName}"`, `"${so.user || '-'}"`,
-                `"${so.dnData ? so.dnData.length : 0}"`, `"${so.depositPct || 0}%"`, 
-                `"${totalDeposit.toFixed(2)}"`, `"${refundedAmount.toFixed(2)}"`, `"${remainingRefund.toFixed(2)}"`,
-                `"${firstConfirmTimeStr}"`, `"${so.dateSaved || '-'}"`, `"${so.status === 'cancelled' ? 'ยกเลิก' : 'ปกติ'}"`
-            ];
-            csvContent += row.join(",") + "\n";
-        });
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        link.setAttribute("href", URL.createObjectURL(blob));
-        link.setAttribute("download", "SO_DN_Log_Export.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-
-    requiredFields.forEach(input => {
-        input.addEventListener('input', validateAndCalculate);
-    });
-
-    window.addEventListener('load', () => {
-        inputDNCount.value = '3';
-        renderProductInputs();
-        renderDNSetupInputs();
-    });
-
-</script>
-
-</body>
-</html>
-
-```
+                <td style="font-weight:600; color:var(--primary);">
+                    <span class="toggle-btn" onclick="toggleSubTable('\${so.id}')"><i class="fa-solid fa-chevron-down" id="icon-\${so.id}"></i></span> 
+                    \${so.soNumber}
+                </td>
+                <td>\${so.custCode}</td>
+                <td>\${so.custName}</td>
+                <td style="font-size: 12px; color:var(--primary-light);"><i class="fa-solid fa-circle-user"></i> \${so.user || '-'}</td>
+                <td>\${so.dnData ? so.dnData.length : 0} คัน</td>
+                <td>\${so.depositPct || 0}%</td>
+                <td style="color:var(--accent); font-weight:500;">\${formatCurrency(totalDeposit)}</td>
+                <td style="color:var(--success); font-weight:500;">\${formatCurrency(refundedAmount)}</td>
+                <td style="color:var(--danger); font-weight:500;">\${formatCurrency(remainingRefund)}</td>
+                <td style="font-size:12px; font-weight:500; color:var(--success);">\${firstConfirmTimeStr}</td>
+                <td style="font-size:12px; color:var(--text-muted);">\${so.dateSaved || '-'}</td>
+                <td>\${statusActionHtml}
