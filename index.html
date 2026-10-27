@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sourcing Product - Dynamic Money Route Tracker (V4.9)</title>
+    <title>Sourcing Product - Dynamic Money Route Tracker (V5.0)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -16,6 +16,7 @@
             --accent-light: #f59e0b;
             --success: #10b981;
             --danger: #ef4444;
+            --warning: #f59e0b;
             --background: #f8fafc;
             --card-bg: #ffffff;
             --text-main: #1e293b;
@@ -53,12 +54,26 @@
 
         /* Tabs System */
         .tabs-container { margin-bottom: 24px; display: flex; gap: 10px; border-bottom: 2px solid var(--border); padding-bottom: 10px; }
-        .tab-btn { background: none; border: none; padding: 10px 20px; font-size: 16px; font-weight: 600; color: var(--text-muted); cursor: pointer; border-radius: 8px; transition: all 0.3s; display: flex; align-items: center; gap: 8px; }
+        .tab-btn { background: none; border: none; padding: 10px 20px; font-size: 16px; font-weight: 600; color: var(--text-muted); cursor: pointer; border-radius: 8px; transition: all 0.3s; display: flex; align-items: center; gap: 8px; position: relative; }
         .tab-btn:hover { background-color: #f1f5f9; color: var(--primary); }
         .tab-btn.active { background-color: var(--primary); color: white; }
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Notification Badge on Tab */
+        .tab-badge {
+            background-color: var(--danger);
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 12px;
+            min-width: 18px;
+            text-align: center;
+            display: none;
+            box-shadow: 0 2px 4px rgba(239, 68, 68, 0.4);
+        }
 
         .dashboard-grid { display: grid; grid-template-columns: 460px 1fr; gap: 24px; }
         @media (max-width: 1024px) { .dashboard-grid { grid-template-columns: 1fr; } }
@@ -113,6 +128,7 @@
         .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
         .status-pending { background-color: #f1f5f9; color: var(--text-muted); }
         .status-processing { background-color: #fef3c7; color: #b45309; }
+        .status-waiting { background-color: #ffedd5; color: #c2410c; border: 1px solid #fed7aa; }
         .status-completed { background-color: #d1fae5; color: #065f46; }
 
         .action-btns { display: flex; gap: 8px; justify-content: center; }
@@ -148,13 +164,18 @@
         </div>
         <div class="badge-live">
             <div class="dot"></div>
-            <span>Mockup website V4.9</span>
+            <span>Mockup website V5.0</span>
         </div>
     </header>
 
     <div class="tabs-container">
         <button class="tab-btn active" id="tabMainBtn" onclick="switchTab('main')"><i class="fa-solid fa-pen-to-square"></i> สร้าง/จัดการใบสั่งซื้อ</button>
         <button class="tab-btn" id="tabLogBtn" onclick="switchTab('log')"><i class="fa-solid fa-folder-open"></i> ประวัติ SO (Log)</button>
+        <!-- Tab สำหรับผู้บังคับบัญชา -->
+        <button class="tab-btn" id="tabApproveBtn" onclick="switchTab('approve')">
+            <i class="fa-solid fa-user-check"></i> อนุมัติรายการ (Approval)
+            <span class="tab-badge" id="pendingApprovalBadge">0</span>
+        </button>
     </div>
 
     <!-- MAIN TAB (จัดการ SO) -->
@@ -195,8 +216,7 @@
 
                 <div class="section-divider"></div>
                 <div class="section-label"><i class="fa-solid fa-boxes-stacked"></i> รายการสินค้าใน SO</div>
-                <div id="productListContainer">
-                </div>
+                <div id="productListContainer"></div>
                 <button class="btn btn-outline" onclick="addProductRow()" style="margin-top: 10px; width: 100%;"><i class="fa-solid fa-plus"></i> เพิ่มสินค้า (Item)</button>
 
                 <div class="form-group" style="margin-top: 15px;">
@@ -233,12 +253,9 @@
                         <input type="number" id="inputDNCount" class="form-control required-field" min="1" value="2" placeholder="ระบุจำนวนรอบ DN ที่คาดการณ์">
                     </div>
                     
-                    <div class="custom-pct-container" id="dnSetupContainer">
-                        <!-- JS Dynamically rendered setup fields for DN -->
-                    </div>
+                    <div class="custom-pct-container" id="dnSetupContainer"></div>
                     
                     <div id="pctWarning" class="alert-msg alert-warning"><i class="fa-solid fa-triangle-exclamation"></i> ผลรวมมูลค่า DN ย่อยไม่เท่ากับยอดสั่งซื้อรวม (ไม่มีผลกับการแสดงตาราง)</div>
-                    <div id="pctSuccess" class="alert-msg alert-success"><i class="fa-solid fa-check"></i> ผลรวมมูลค่า DN ถูกต้องตรงกับยอดสั่งซื้อ</div>
                 </div>
             </div>
 
@@ -296,8 +313,7 @@
                                     <th style="width: 90px;">สถานะ DN</th>
                                 </tr>
                             </thead>
-                            <tbody id="tableBody">
-                            </tbody>
+                            <tbody id="tableBody"></tbody>
                         </table>
                     </div>
                     
@@ -307,7 +323,7 @@
                             <i class="fa-solid fa-play"></i> เริ่มดำเนินการตัดจ่ายที่เลือก
                         </button>
                         <button class="btn btn-success" onclick="processSelectedDN('confirm')">
-                            <i class="fa-solid fa-check-double"></i> ยืนยันคืนมัดจำที่เลือก
+                            <i class="fa-solid fa-paper-plane"></i> ยืนยันส่งขออนุมัติคืนมัดจำ
                         </button>
                     </div>
                 </div>
@@ -357,22 +373,64 @@
                             <th>สถานะ/การจัดการ</th>
                         </tr>
                     </thead>
-                    <tbody id="logTableBody">
-                    </tbody>
+                    <tbody id="logTableBody"></tbody>
                 </table>
             </div>
         </div>
     </div>
+
+    <!-- APPROVAL TAB (สำหรับผู้บังคับบัญชา) -->
+    <div id="approveTab" class="tab-content">
+        <div class="card">
+            <div class="panel-title">
+                <span><i class="fa-solid fa-user-shield"></i> รายการขออนุมัติคืนเงินมัดจำ (Approval Hub)</span>
+                <!-- สลับระดับผู้อนุมัติ -->
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <label style="font-size:13px; font-weight:600; color:var(--text-muted);"><i class="fa-solid fa-id-badge"></i> สิทธิ์ผู้อนุมัติ:</label>
+                    <select id="approverRoleSelect" class="form-control" style="width: auto; padding: 6px 12px; background: white;" onchange="renderApproveTable()">
+                        <option value="level1">ผู้อนุมัติลำดับที่ 1 (ยอด &le; 70,000 ฿)</option>
+                        <option value="level2">ผู้อนุมัติลำดับที่ 2 (ยอด &gt; 70,000 ฿)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="background: #eff6ff; border-left: 4px solid var(--primary); padding: 12px 16px; margin-bottom: 20px; border-radius: 4px; font-size: 13px; color: var(--primary);">
+                <i class="fa-solid fa-circle-info"></i> <strong>คำแนะนำ:</strong> สามารถกดลูกศร <i class="fa-solid fa-chevron-down"></i> ด้านหน้าเลข SO เพื่อขยายดูและกดอนุมัติ/ไม่อนุมัติแต่ละ DN หรือกดปุ่มแก้ไขเพื่อเข้าไปดูหน้าสรุปรายละเอียดงานได้
+            </div>
+
+            <div class="table-responsive">
+                <table id="approveTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 30px;"></th>
+                            <th>หมายเลข SO</th>
+                            <th>รหัสลูกค้า</th>
+                            <th>ชื่อลูกค้า</th>
+                            <th>ผู้ทำรายการ</th>
+                            <th>จำนวน DN</th>
+                            <th>% มัดจำ</th>
+                            <th>ยอดมัดจำทั้งหมด</th>
+                            <th>คืนเงินไปแล้วเท่าไหร่</th>
+                            <th>เหลือยอดคืนอีกเท่าไหร่</th>
+                            <th>รายการรออนุมัติ</th>
+                            <th>สถานะ/การจัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="approveTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script>
-    const STORAGE_KEY = 'mockup_saved_sos_v4_9';
+    const STORAGE_KEY = 'mockup_saved_sos_v5_0';
     let savedSOs = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
     const inputSONumber = document.getElementById('inputSONumber');
     const inputCustomerName = document.getElementById('inputCustomerName');
     const inputCustomerCode = document.getElementById('inputCustomerCode');
-    const requiredFields = document.querySelectorAll('.required-field');
     const editingSOIdInput = document.getElementById('editingSOId');
 
     const inputTotalSO = document.getElementById('inputTotalSO');
@@ -383,7 +441,6 @@
     const inputDNCount = document.getElementById('inputDNCount');
     const dnSetupContainer = document.getElementById('dnSetupContainer');
     const pctWarning = document.getElementById('pctWarning');
-    const pctSuccess = document.getElementById('pctSuccess');
     
     const sumInitialDeposit = document.getElementById('sumInitialDeposit');
     const sumRemainingSO = document.getElementById('sumRemainingSO');
@@ -391,6 +448,8 @@
     
     const tableBody = document.getElementById('tableBody');
     const logTableBody = document.getElementById('logTableBody');
+    const approveTableBody = document.getElementById('approveTableBody');
+    const pendingApprovalBadge = document.getElementById('pendingApprovalBadge');
     
     const btnResetAll = document.getElementById('btnResetAll');
     const btnSaveSO = document.getElementById('btnSaveSO');
@@ -413,6 +472,23 @@
         return new Date().toLocaleString('th-TH', { day: '2-digit', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' });
     }
 
+    // ฟังก์ชันอัปเดต Badge แจ้งเตือนยอดค้างอนุมัติ
+    function updateApprovalBadge() {
+        let pendingCount = 0;
+        savedSOs.forEach(so => {
+            if (so.dnData && so.status !== 'cancelled') {
+                pendingCount += so.dnData.filter(d => d.status === 'waiting_approval').length;
+            }
+        });
+
+        if (pendingCount > 0) {
+            pendingApprovalBadge.style.display = 'inline-block';
+            pendingApprovalBadge.textContent = pendingCount;
+        } else {
+            pendingApprovalBadge.style.display = 'none';
+        }
+    }
+
     function switchTab(tabName) {
         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -424,6 +500,10 @@
             document.getElementById('logTab').classList.add('active');
             document.getElementById('tabLogBtn').classList.add('active');
             renderLogTable(); 
+        } else if (tabName === 'approve') {
+            document.getElementById('approveTab').classList.add('active');
+            document.getElementById('tabApproveBtn').classList.add('active');
+            renderApproveTable();
         }
     }
 
@@ -479,7 +559,6 @@
     // --- DN Setup Section ---
     function syncDNArraySize() {
         const count = parseInt(inputDNCount.value) || 1; 
-        const totalSO = parseFloat(inputTotalSO.value) || 0;
         
         if(dnData.length < count) {
             for(let i = dnData.length; i < count; i++) {
@@ -530,10 +609,8 @@
         let sumDN = dnData.reduce((a, b) => a + (b.amount || 0), 0);
         if (Math.abs(sumDN - totalSO) > 0.1 && totalSO > 0) {
             pctWarning.style.display = 'block';
-            pctSuccess.style.display = 'none';
         } else {
             pctWarning.style.display = 'none';
-            pctSuccess.style.display = 'block';
         }
 
         areFieldsValid = ( 
@@ -548,7 +625,6 @@
         btnSaveSO.disabled = !areFieldsValid;
     }
 
-    // ฟังก์ชันคำนวณเงินมัดจำ
     function updateCalculations(forceReset = false) {
         let totalSOVal = parseFloat(inputTotalSO.value) || 0;
         let depositPct = parseFloat(inputDepositPct.value) || 0;
@@ -643,8 +719,12 @@
             let chkDisabled = "";
             
             if (row.status === 'completed') {
-                statusText = '<i class="fa-solid fa-circle-check"></i> คืนเงิน'; 
+                statusText = '<i class="fa-solid fa-circle-check"></i> คืนเงินแล้ว'; 
                 statusClass = "status-completed";
+                chkDisabled = "disabled"; 
+            } else if (row.status === 'waiting_approval') {
+                statusText = '<i class="fa-solid fa-hourglass-half"></i> รออนุมัติ'; 
+                statusClass = "status-waiting";
                 chkDisabled = "disabled"; 
             } else if (row.status === 'processing') {
                 statusText = '<i class="fa-solid fa-check"></i> GI แล้ว'; 
@@ -666,6 +746,7 @@
             let billingDisplay = row.billingNumber ? `<span style="font-weight:600; color:#475569; font-size:12px;">${row.billingNumber}</span>` : `<span style="color:#cbd5e1; font-style:italic;">-</span>`;
             let userDisplay = row.actionUser ? `<span style="font-size:12px; color:var(--primary-light);"><i class="fa-solid fa-user"></i> ${row.actionUser}</span>` : `<span style="color:#cbd5e1;">-</span>`;
 
+            let isLocked = (row.status === 'completed' || row.status === 'waiting_approval');
             let pctField = '';
             let deductionField = '';
             
@@ -679,7 +760,7 @@
                             style="width: 70px; font-weight:500;" 
                             value="${deductionPct.toFixed(2)}" 
                             onchange="updateDeductionByPct(${index}, this.value)" 
-                            ${row.status === 'completed' ? 'readonly' : ''}>
+                            ${isLocked ? 'readonly' : ''}>
                         <span style="color:var(--text-muted); font-size: 12px;">%</span>
                     </div>
                 `;
@@ -690,7 +771,7 @@
                             style="color:var(--accent); font-weight:500; width: 90px;" 
                             value="${row.deduction ? row.deduction.toFixed(2) : 0}" 
                             onchange="updateCustomDeduction(${index}, this.value)" 
-                            ${row.status === 'completed' ? 'readonly' : ''}>
+                            ${isLocked ? 'readonly' : ''}>
                     </div>
                 `;
             }
@@ -707,7 +788,7 @@
                 <td style="color:var(--success); font-weight:600;">${formatCurrency(row.net)}</td>
                 <td>${billingDisplay}</td>
                 <td>
-                    <input type="text" class="form-control table-input" placeholder="ระบุเลขใบลดหนี้" value="${row.cnNumber || ''}" onchange="updateCNNumber(${index}, this.value)" ${row.status === 'completed' ? 'readonly' : ''}>
+                    <input type="text" class="form-control table-input" placeholder="ระบุเลขใบลดหนี้" value="${row.cnNumber || ''}" onchange="updateCNNumber(${index}, this.value)" ${isLocked ? 'readonly' : ''}>
                 </td>
                 <td>${userDisplay}</td>
                 <td style="text-align:left; line-height: 1.3;">${timeHtml}</td>
@@ -717,14 +798,12 @@
         });
     }
 
-    // --- จัดการการเลือก Checkbox ---
     window.toggleAllCheckboxes = function(source) {
         const checkboxes = document.querySelectorAll('.dn-checkbox:not([disabled])');
-        checkboxes.forEach(cb => {
-            cb.checked = source.checked;
-        });
+        checkboxes.forEach(cb => { cb.checked = source.checked; });
     };
 
+    // ปรับ Workflow: เมื่อกดยืนยันคืนมัดจำ จะเปลี่ยนสถานะเป็น 'waiting_approval' (รออนุมัติ) ก่อน
     window.processSelectedDN = function(actionType) {
         const checkedBoxes = document.querySelectorAll('.dn-checkbox:checked');
         if(checkedBoxes.length === 0) {
@@ -738,13 +817,13 @@
                 let i = parseInt(cb.dataset.idx);
                 if(dnData[i].status === 'processing') {
                     if(!dnData[i].cnNumber || dnData[i].cnNumber.trim() === '') {
-                        alert(`กรุณากรอก "เลขที่ใบลดหนี้ (CN)" สำหรับ DN ลำดับที่ ${i+1} ก่อนยืนยันครับ`);
+                        alert(`กรุณากรอก "เลขที่ใบลดหนี้ (CN)" สำหรับ DN ลำดับที่ ${i+1} ก่อนส่งอนุมัติครับ`);
                         proceed = false;
                         break;
                     }
                 }
             }
-            if(proceed) proceed = confirm(`ยืนยันการคืนเงินมัดจำสำหรับ ${checkedBoxes.length} รายการที่เลือกเสร็จสมบูรณ์?`);
+            if(proceed) proceed = confirm(`ยืนยันการส่งขออนุมัติคืนเงินมัดจำสำหรับ ${checkedBoxes.length} รายการที่เลือก?`);
         }
 
         if(!proceed) return;
@@ -760,15 +839,23 @@
                 dnData[i].billingNumber = `BIL-${dateCode}-${timestamp}-${(i+1).toString().padStart(2, '0')}`;
                 dnData[i].actionUser = currentSessionUser; 
             } else if(actionType === 'confirm' && dnData[i].status === 'processing') {
-                dnData[i].status = 'completed';
-                dnData[i].timeConfirm = getNowStr();
-                dnData[i].timestampConfirm = Date.now(); 
+                // เปลี่ยนเป็นสถานะ "รออนุมัติ"
+                dnData[i].status = 'waiting_approval';
                 dnData[i].actionUser = currentSessionUser; 
             }
         });
 
         document.getElementById('selectAllCheckbox').checked = false;
         renderTable();
+        // อัปเดตข้อมูลใน Storage อัตโนมัติหากกำลังแก้ SO เดิมอยู่
+        if(editingSOIdInput.value) {
+            const index = savedSOs.findIndex(s => s.id === editingSOIdInput.value);
+            if(index !== -1) {
+                savedSOs[index].dnData = JSON.parse(JSON.stringify(dnData));
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(savedSOs));
+            }
+        }
+        updateApprovalBadge();
     };
 
     btnResetAll.addEventListener('click', () => {
@@ -782,10 +869,11 @@
                 item.actionUser = ''; 
             });
             renderTable();
+            updateApprovalBadge();
         }
     });
 
-    inputDNCount.addEventListener('change', (e) => { syncDNArraySize(); });
+    inputDNCount.addEventListener('change', () => { syncDNArraySize(); });
     inputDepositPct.addEventListener('change', () => { updateCalculations(true); });
 
     [inputSONumber, inputCustomerName, inputCustomerCode, inputDepositPct, inputDNCount].forEach(el => {
@@ -812,7 +900,7 @@
         renderDNSetupInputs();
         updateCalculations(true);
         switchTab('main');
-    }
+    };
 
     btnSaveSO.addEventListener('click', () => {
         if (!areFieldsValid) {
@@ -846,10 +934,11 @@
 
         localStorage.setItem(STORAGE_KEY, JSON.stringify(savedSOs));
         alert(`บันทึกข้อมูล SO: ${soData.soNumber} เรียบร้อยแล้ว!`);
-        
+        updateApprovalBadge();
         switchTab('log');
     });
 
+    // --- ส่วนตารางประวัติ SO (Log) ---
     function getFilteredSOs() {
         const filterStart = document.getElementById('filterStartDate').value;
         const filterEnd = document.getElementById('filterEndDate').value;
@@ -858,7 +947,6 @@
         if (filterStart || filterEnd) {
             filteredSOs = filteredSOs.filter(so => {
                 if (!so.dateSavedISO) return true; 
-                
                 let soDate = new Date(so.dateSavedISO);
                 soDate.setHours(0,0,0,0);
                 
@@ -883,11 +971,11 @@
         document.getElementById('filterStartDate').value = '';
         document.getElementById('filterEndDate').value = '';
         renderLogTable();
-    }
+    };
 
-    window.toggleSubTable = function(id) {
-        const row = document.getElementById(`sub-${id}`);
-        const icon = document.getElementById(`icon-${id}`);
+    window.toggleSubTable = function(prefix, id) {
+        const row = document.getElementById(`sub-${prefix}-${id}`);
+        const icon = document.getElementById(`icon-${prefix}-${id}`);
         if (row.classList.contains('open')) {
             row.classList.remove('open');
             icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
@@ -895,34 +983,25 @@
             row.classList.add('open');
             icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
         }
-    }
+    };
 
     function renderLogTable() {
         logTableBody.innerHTML = '';
         const displaySOs = getFilteredSOs();
 
         if (displaySOs.length === 0) {
-            logTableBody.innerHTML = `<tr><td colspan="12">
-                <div class="empty-state">
-                    <i class="fa-solid fa-folder-open"></i>
-                    <p>ไม่พบประวัติ SO ที่ตรงกับเงื่อนไข</p>
-                </div>
-            </td></tr>`;
+            logTableBody.innerHTML = `<tr><td colspan="12"><div class="empty-state"><i class="fa-solid fa-folder-open"></i><p>ไม่พบประวัติ SO ที่ตรงกับเงื่อนไข</p></div></td></tr>`;
             return;
         }
 
         displaySOs.forEach(so => {
             let statusActionHtml = '';
             if (so.status === 'cancelled') {
-                statusActionHtml = `
-                    <div style="color: var(--danger); font-size: 13px; font-weight: 600; line-height: 1.4;">
-                        <i class="fa-solid fa-ban"></i> ยกเลิกแล้ว
-                    </div>
-                `;
+                statusActionHtml = `<div style="color: var(--danger); font-size: 13px; font-weight: 600;"><i class="fa-solid fa-ban"></i> ยกเลิกแล้ว</div>`;
             } else {
                 statusActionHtml = `
                     <div class="action-btns">
-                        <button class="action-btn edit-btn" onclick="editSO('${so.id}')" title="แก้ไข"><i class="fa-solid fa-pen"></i></button>
+                        <button class="action-btn edit-btn" onclick="editSO('${so.id}')" title="เปิดดู/แก้ไข"><i class="fa-solid fa-pen"></i></button>
                         <button class="action-btn cancel-btn" onclick="cancelSO('${so.id}')" title="ยกเลิก"><i class="fa-solid fa-ban"></i></button>
                     </div>
                 `;
@@ -962,7 +1041,8 @@
                         }
                     }
 
-                    let st = dn.status === 'completed' ? '<span class="status-badge status-completed">คืนเงิน</span>' :
+                    let st = dn.status === 'completed' ? '<span class="status-badge status-completed"><i class="fa-solid fa-circle-check"></i> คืนเงินแล้ว</span>' :
+                             dn.status === 'waiting_approval' ? '<span class="status-badge status-waiting"><i class="fa-solid fa-hourglass-half"></i> รออนุมัติ</span>' :
                              dn.status === 'processing' ? '<span class="status-badge status-processing">GI แล้ว</span>' :
                              '<span class="status-badge status-pending">รอจัดส่ง</span>';
                     
@@ -994,13 +1074,13 @@
 
             tr.innerHTML = `
                 <td style="font-weight:600; color:var(--primary);">
-                    <span class="toggle-btn" onclick="toggleSubTable('${so.id}')"><i class="fa-solid fa-chevron-down" id="icon-${so.id}"></i></span> 
+                    <span class="toggle-btn" onclick="toggleSubTable('log', '${so.id}')"><i class="fa-solid fa-chevron-down" id="icon-log-${so.id}"></i></span> 
                 </td>
                 <td style="font-weight:600; color:var(--primary);">${so.soNumber}</td>
                 <td>${so.custCode}</td>
                 <td>${so.custName}</td>
                 <td style="font-size: 12px; color:var(--primary-light);"><i class="fa-solid fa-circle-user"></i> ${so.user || '-'}</td>
-                <td>${so.dnData ? so.dnData.length : 0} คัน</td>
+                <td>${so.dnData ? so.dnData.length : 0} DN</td>
                 <td>${so.depositPct || 0}%</td>
                 <td style="color:var(--accent); font-weight:500;">${formatCurrency(totalDeposit)}</td>
                 <td style="color:var(--success); font-weight:500;">${formatCurrency(refundedAmount)}</td>
@@ -1012,7 +1092,7 @@
             logTableBody.appendChild(tr);
 
             const subTr = document.createElement('tr');
-            subTr.id = `sub-${so.id}`;
+            subTr.id = `sub-log-${so.id}`;
             subTr.className = 'sub-table-row';
             subTr.innerHTML = `
                 <td colspan="13" style="padding: 0;">
@@ -1027,6 +1107,179 @@
             logTableBody.appendChild(subTr);
         });
     }
+
+    // --- ส่วนตารางอนุมัติสำหรับผู้บังคับบัญชา (Approval Hub) ---
+    function renderApproveTable() {
+        approveTableBody.innerHTML = '';
+        const role = document.getElementById('approverRoleSelect').value;
+
+        // ดึงเฉพาะ SO ที่ active และมีอย่างน้อย 1 DN ที่อยู่ในสถานะ waiting_approval
+        const pendingSOs = savedSOs.filter(so => 
+            so.status !== 'cancelled' && 
+            so.dnData && 
+            so.dnData.some(d => d.status === 'waiting_approval')
+        ).reverse();
+
+        if (pendingSOs.length === 0) {
+            approveTableBody.innerHTML = `<tr><td colspan="12"><div class="empty-state"><i class="fa-solid fa-clipboard-check"></i><p>ไม่มีรายการที่รอดำเนินการอนุมัติในขณะนี้</p></div></td></tr>`;
+            return;
+        }
+
+        pendingSOs.forEach(so => {
+            const totalDeposit = so.totalSO * ((so.depositPct || 0) / 100);
+            let refundedAmount = 0;
+            let pendingCountInSO = 0;
+
+            let subTableHtml = `
+                <table class="sub-table">
+                    <thead>
+                        <tr>
+                            <th>เลข DN</th>
+                            <th>มูลค่ารับสินค้า (GI)</th>
+                            <th>เงินมัดจำที่ต้องคืน</th>
+                            <th>เรียกเก็บเพิ่ม</th>
+                            <th>เลขที่ Billing</th>
+                            <th>เลขที่ CN</th>
+                            <th>ผู้ขอคืนมัดจำ</th>
+                            <th>สถานะ</th>
+                            <th style="width: 170px;">การอนุมัติ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            so.dnData.forEach((dn, dnIdx) => {
+                if (dn.status === 'completed') refundedAmount += (dn.deduction || 0);
+
+                let st = dn.status === 'completed' ? '<span class="status-badge status-completed">คืนเงินแล้ว</span>' :
+                         dn.status === 'waiting_approval' ? '<span class="status-badge status-waiting"><i class="fa-solid fa-hourglass-half"></i> รออนุมัติ</span>' :
+                         dn.status === 'processing' ? '<span class="status-badge status-processing">GI แล้ว</span>' :
+                         '<span class="status-badge status-pending">รอจัดส่ง</span>';
+
+                let actionHtml = '-';
+                if (dn.status === 'waiting_approval') {
+                    pendingCountInSO++;
+                    let refundAmt = dn.deduction || 0;
+                    let canApprove = false;
+
+                    // เงื่อนไขวงเงิน: ผู้อนุมัติ 1 (<= 70,000), ผู้อนุมัติ 2 (> 70,000)
+                    if (role === 'level1' && refundAmt <= 70000) {
+                        canApprove = true;
+                    } else if (role === 'level2' && refundAmt > 70000) {
+                        canApprove = true;
+                    }
+
+                    if (canApprove) {
+                        actionHtml = `
+                            <div style="display: flex; gap: 6px; justify-content: center;">
+                                <button class="btn btn-success" style="padding: 4px 10px; font-size: 11px;" onclick="approveDN('${so.id}', ${dnIdx}, true)">
+                                    <i class="fa-solid fa-check"></i> อนุมัติ
+                                </button>
+                                <button class="btn btn-danger" style="padding: 4px 10px; font-size: 11px;" onclick="approveDN('${so.id}', ${dnIdx}, false)">
+                                    <i class="fa-solid fa-xmark"></i> ไม่อนุมัติ
+                                </button>
+                            </div>
+                        `;
+                    } else {
+                        let requiredRole = refundAmt <= 70000 ? 'ผู้อนุมัติลำดับที่ 1' : 'ผู้อนุมัติลำดับที่ 2';
+                        actionHtml = `<span style="font-size: 11px; color: var(--text-muted);"><i class="fa-solid fa-lock"></i> ต้องใช้สิทธิ์ ${requiredRole}</span>`;
+                    }
+                }
+
+                subTableHtml += `
+                    <tr>
+                        <td style="font-weight:600; color:var(--primary);">${dn.dnNumber || '-'}</td>
+                        <td>${formatCurrency(dn.amount)}</td>
+                        <td style="color:var(--accent); font-weight:600;">${formatCurrency(dn.deduction)}</td>
+                        <td style="color:var(--success);">${formatCurrency(dn.net)}</td>
+                        <td>${dn.billingNumber || '-'}</td>
+                        <td>${dn.cnNumber || '-'}</td>
+                        <td style="color:var(--primary-light);"><i class="fa-solid fa-user"></i> ${dn.actionUser || '-'}</td>
+                        <td>${st}</td>
+                        <td>${actionHtml}</td>
+                    </tr>
+                `;
+            });
+
+            subTableHtml += `</tbody></table>`;
+            const remainingRefund = totalDeposit - refundedAmount;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="font-weight:600; color:var(--primary);">
+                    <span class="toggle-btn" onclick="toggleSubTable('app', '${so.id}')"><i class="fa-solid fa-chevron-up" id="icon-app-${so.id}"></i></span> 
+                </td>
+                <td style="font-weight:600; color:var(--primary);">${so.soNumber}</td>
+                <td>${so.custCode}</td>
+                <td>${so.custName}</td>
+                <td style="font-size: 12px; color:var(--primary-light);"><i class="fa-solid fa-circle-user"></i> ${so.user || '-'}</td>
+                <td>${so.dnData ? so.dnData.length : 0} DN</td>
+                <td>${so.depositPct || 0}%</td>
+                <td style="color:var(--accent); font-weight:500;">${formatCurrency(totalDeposit)}</td>
+                <td style="color:var(--success); font-weight:500;">${formatCurrency(refundedAmount)}</td>
+                <td style="color:var(--danger); font-weight:500;">${formatCurrency(remainingRefund)}</td>
+                <td><span class="status-badge status-waiting" style="font-weight:700;"><i class="fa-solid fa-hourglass-half"></i> ค้าง ${pendingCountInSO} DN</span></td>
+                <td>
+                    <button class="action-btn edit-btn" onclick="editSO('${so.id}')" title="เปิดดูรายละเอียด/แก้ไข"><i class="fa-solid fa-pen"></i> เปิดดู</button>
+                </td>
+            `;
+            approveTableBody.appendChild(tr);
+
+            // แสดงตารางย่อยเป็นค่าเริ่มต้น (open) เพื่อให้หัวหน้ากดอนุมัติได้ทันที
+            const subTr = document.createElement('tr');
+            subTr.id = `sub-app-${so.id}`;
+            subTr.className = 'sub-table-row open';
+            subTr.innerHTML = `
+                <td colspan="12" style="padding: 0;">
+                    <div class="sub-table-container" style="background:#fff7ed;">
+                        <div style="font-weight:600; margin-bottom: 8px; color: #c2410c; font-size:14px;">
+                            <i class="fa-solid fa-stamp"></i> รายการขออนุมัติคืนเงินมัดจำ (เลขที่ใบเสร็จ: ${so.depositReceipt || '-'})
+                        </div>
+                        ${subTableHtml}
+                    </div>
+                </td>
+            `;
+            approveTableBody.appendChild(subTr);
+        });
+    }
+
+    // ฟังก์ชันตัดสินใจอนุมัติ/ไม่อนุมัติ
+    window.approveDN = function(soId, dnIdx, isApproved) {
+        const soIndex = savedSOs.findIndex(s => s.id === soId);
+        if (soIndex === -1) return;
+
+        const targetDN = savedSOs[soIndex].dnData[dnIdx];
+        const approverName = document.getElementById('approverRoleSelect').value === 'level1' ? 'Approver_L1' : 'Approver_L2';
+
+        if (isApproved) {
+            if (confirm(`ยืนยัน "อนุมัติ" การคืนเงินมัดจำจำนวน ${formatCurrency(targetDN.deduction)} สำหรับ ${targetDN.dnNumber}?`)) {
+                targetDN.status = 'completed'; // เปลี่ยนสถานะเป็นคืนเงินแล้ว
+                targetDN.timeConfirm = getNowStr();
+                targetDN.timestampConfirm = Date.now();
+                targetDN.actionUser = `${targetDN.actionUser || ''} (อนุมัติโดย: ${approverName})`;
+            } else {
+                return;
+            }
+        } else {
+            if (confirm(`ยืนยัน "ไม่อนุมัติ" รายการนี้ใช่หรือไม่? (สถานะจะถูกตีกลับไปเป็น GI แล้ว เพื่อให้แก้ไขข้อมูลใหม่)`)) {
+                targetDN.status = 'processing'; // ตีกลับสถานะ
+                targetDN.actionUser = `${targetDN.actionUser || ''} (ไม่อนุมัติโดย: ${approverName})`;
+            } else {
+                return;
+            }
+        }
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(savedSOs));
+        
+        // ถ้ากำลังเปิดหน้า Main ของ SO นั้นอยู่ ให้ sync ข้อมูลด้วย
+        if (editingSOIdInput.value === soId) {
+            dnData = JSON.parse(JSON.stringify(savedSOs[soIndex].dnData));
+            renderTable();
+        }
+
+        updateApprovalBadge();
+        renderApproveTable();
+    };
 
     window.editSO = function(id) {
         const so = savedSOs.find(s => s.id === id);
@@ -1063,6 +1316,7 @@
                 } else {
                     renderLogTable(); 
                 }
+                updateApprovalBadge();
             }
         }
     };
@@ -1072,7 +1326,7 @@
         if(exportSOs.length === 0) return alert("ไม่มีข้อมูลสำหรับการ Export ตามช่วงเวลาที่กำหนด");
         
         let csvContent = "\uFEFF"; 
-        csvContent += "หมายเลข SO,รหัสลูกค้า,ชื่อลูกค้า,ผู้ทำรายการ,จำนวนDN,% มัดจำ,ยอดมัดจำทั้งหมด,คืนเงินไปแล้วเท่าไหร่,เหลือยอดคืนอีกเท่าไหร่,Create date,เวลาที่บันทึก/แก้ไข,สถานะ\n";
+        csvContent += "หมายเลข SO,รหัสลูกค้า,ชื่อลูกค้า,ผู้ทำรายการ,จำนวนDN,% มัดจำ,ยอดมัดจำทั้งหมด,คืนเงินไปแล้วเท่าไหร่,เหลือยอดคืนอีกเท่าไหร่,Create date,เวลาที่บันทึก,สถานะ\n";
         
         exportSOs.forEach(so => {
             const totalDeposit = so.totalSO * ((so.depositPct || 0) / 100);
@@ -1110,13 +1364,14 @@
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-    }
+    };
 
     window.addEventListener('load', () => {
         inputDNCount.value = '3';
         renderProductInputs();
         renderDNSetupInputs();
         updateCalculations(true);
+        updateApprovalBadge();
     });
 
 </script>
